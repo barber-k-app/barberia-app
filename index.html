@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Barber-K | Reserva de Citas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --gold: #D4AF37;
+      --dark: #121212;
+      --light: #f8f8f8;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="50" y="50" font-family="Arial" font-size="60" fill="rgba(212, 175, 55, 0.05)" text-anchor="middle" dominant-baseline="middle">K</text></svg>'),
+                      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="rgba(212, 175, 55, 0.03)" d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM128.9 136.3c7.8-7.8 20.5-7.8 28.3 0l259.4 259.4c7.8 7.8 7.8 20.5 0 28.3s-20.5 7.8-28.3 0L128.9 164.6C121.1 156.8 121.1 144.1 128.9 136.3zM383.1 136.3c7.8 7.8 7.8 20.5 0 28.3L164.6 383.1c-7.8 7.8-20.5 7.8-28.3 0s-7.8-20.5 0-28.3l218.5-218.5C362.6 128.5 375.3 128.5 383.1 136.3z"/></svg>');
+      background-size: 200px, 300px;
+      background-repeat: repeat, no-repeat;
+      background-position: center, center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    header {
+      margin-bottom: 3rem;
+      animation: fadeIn 1s ease-out;
+    }
+    
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    
+    .logo-main {
+      font-size: 3.5rem;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #D4AF37, #F9F295, #D4AF37);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Animación de tijeras recortando - Versión Mejorada */
+    @keyframes cutting-scissors {
+      0% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(15deg) scale(1.1); }
+      50% { transform: rotate(0deg) scale(1); }
+      75% { transform: rotate(-15deg) scale(1.1); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+    
+    .logo-main::before,
+    .logo-main::after {
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      content: "\f0c4"; /* Icono de tijeras */
+      font-size: 1.8rem;
+      margin: 0 15px;
+      color: var(--gold);
+      text-shadow: 0 0 8px rgba(212, 175, 55, 0.7);
+      display: inline-block;
+      animation: cutting-scissors 2s infinite ease-in-out;
+    }
+    
+    .logo-main::after {
+      animation-delay: 0.5s; /* Desfase para efecto alternado */
+    }
+    
+    .logo-main::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      bottom: -10px;
+      left: 0;
+    }
+    
+    .logo-slogan {
+      font-size: 1.3rem;
+      letter-spacing: 2px;
+      color: var(--gold);
+      font-style: italic;
+      margin-top: 1rem;
+      text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+    }
+    
+    .slogan {
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+      opacity: 0.8;
+      margin-top: 1rem;
+    }
+    
+    .buttons {
+      display: flex;
+      gap: 1.5rem;
+      margin: 3rem 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 200px;
+      justify-content: center;
+    }
+    
+    .btn-client {
+      background-color: var(--gold);
+      color: var(--dark);
+      border: 2px solid var(--gold);
+    }
+    
+    .btn-barber {
+      background-color: transparent;
+      color: var(--gold);
+      border: 2px solid var(--gold);
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-client:hover {
+      background-color: transparent;
+      color: var(--gold);
+    }
+    
+    .btn-barber:hover {
+      background-color: var(--gold);
+      color: var(--dark);
+    }
+    
+    .location-btn {
+      margin: 2rem 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .location-btn:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+    }
+    
+    .rating-section {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      border-radius: 10px;
+      background: rgba(212, 175, 55, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+    
+    .rating-title {
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    
+    .stars {
+      font-size: 1.8rem;
+      color: var(--gold);
+      letter-spacing: 5px;
+      margin-bottom: 1rem;
+    }
+    
+    .rating-text {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    footer {
+      margin-top: auto;
+      padding: 1.5rem;
+      text-align: center;
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .copyright {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+    
+    .author {
+      font-size: 0.8rem;
+      opacity: 0.5;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Efecto de brillo dorado */
+    .gold-glow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%);
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+    
+    /* Tijera decorativa de fondo */
+    .scissors-bg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 300px;
+      color: rgba(212, 175, 55, 0.03);
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    @media (max-width: 768px) {
+      .logo-main {
+        font-size: 2.5rem;
+      }
+      
+      .logo-main::before,
+      .logo-main::after {
+        font-size: 1.3rem;
+        margin: 0 8px;
+      }
+      
+      .logo-slogan {
+        font-size: 1.1rem;
+      }
+      
+      .buttons {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .scissors-bg {
+        font-size: 200px;
+      }
+      
+      .rating-section {
+        padding: 1rem;
+      }
+      
+      .stars {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="gold-glow"></div>
+  <div class="scissors-bg">
+    <i class="fas fa-cut"></i>
+  </div>
+  
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <div class="logo-main">BARBER-K</div>
+        <div class="logo-slogan">¡MEJORAMOS TU ESTILO!</div>
+      </div>
+      <p class="slogan">Estilo premium para caballeros modernos</p>
+    </header>
+    
+    <main>
+      <div class="buttons">
+        <a href="cliente.html" class="btn btn-client">
+          <i class="fas fa-user"></i> Soy Cliente
+        </a>
+        <a href="barbero.html" class="btn btn-barber">
+          <i class="fas fa-cut"></i> Soy Barbero
+        </a>
+      </div>
+      
+      <!-- Ubicación de la barbería -->
+      <a href="https://www.google.com/maps?q=10.4954872131348,-66.7982482910156" target="_blank" class="location-btn">
+        <i class="fas fa-map-marker-alt"></i> Visítanos en Av. Principal de la Parrila Petare, Caracas
+      </a>
+      
+      <!-- Valoración de la app -->
+      <div class="rating-section">
+        <h3 class="rating-title">¿Cómo valoras nuestro Servicio de atención y barbería?</h3>
+        <div class="stars">
+          <i class="fas fa-star" data-rating="1"></i>
+          <i class="fas fa-star" data-rating="2"></i>
+          <i class="fas fa-star" data-rating="3"></i>
+          <i class="fas fa-star" data-rating="4"></i>
+          <i class="fas fa-star" data-rating="5"></i>
+        </div>
+        <p class="rating-text">Tu opinión nos ayuda a mejorar</p>
+      </div>
+    </main>
+    
+    <footer>
+      <p class="copyright">© 2025 Barber-K</p>
+      <p class="author">Sistema desarrollado por Antonio Avila telf:.(2424)1345912</p>
+    </footer>
+  </div>
+
+  <script>
+    // Sistema de valoración por estrellas
+    document.querySelectorAll('.stars i').forEach(star => {
+      star.addEventListener('click', function() {
+        const rating = this.getAttribute('data-rating');
+        const stars = document.querySelectorAll('.stars i');
+        
+        stars.forEach((s, index) => {
+          if(index < rating) {
+            s.classList.add('fas');
+            s.classList.remove('far');
+          } else {
+            s.classList.add('far');
+            s.classList.remove('fas');
+          }
+        });
+        
+        // Aquí podrías agregar código para enviar la valoración a tu backend
+        console.log(`Valoración enviada: ${rating} estrellas`);
+        alert(`¡Gracias por tu valoración de ${rating} estrellas!`);
+      });
+      
+      star.addEventListener('mouseover', function() {
+        const rating = this.getAttribute('data-rating');
+        const stars = document.querySelectorAll('.stars i');
+        
+        stars.forEach((s, index) => {
+          if(index < rating) {
+            s.style.transform = 'scale(1.2)';
+            s.style.transition = 'all 0.3s';
+          }
+        });
+      });
+      
+      star.addEventListener('mouseout', function() {
+        const stars = document.querySelectorAll('.stars i');
+        stars.forEach(s => {
+          s.style.transform = 'scale(1)';
+        });
+      });
+    });
+
+    // Efecto adicional para las tijeras del logo al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      const scissors = document.querySelectorAll('.logo-main::before, .logo-main::after');
+      scissors.forEach((scissor, index) => {
+        setTimeout(() => {
+          scissor.style.animationPlayState = 'running';
+        }, index * 300);
+      });
+    });
+  </script>
+</body>
+</html>
