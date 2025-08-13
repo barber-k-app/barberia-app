@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Panel del Barbero | Barbería Elite</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="barbero.css">
+</head>
+<body>
+  <div class="gold-glow"></div>
+  
+  <div class="container">
+    <div class="glass-panel">
+      <header>
+        <h1><i class="fas fa-cut"></i> Panel de Citas</h1>
+        <p> Barber-K - Gestión Profesional</p>
+      </header>
+      
+      <main>
+        <div class="panel-control">
+          <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="buscador" placeholder="Buscar por nombre...">
+          </div>
+          
+          <div class="filters">
+            <select id="filtro-estado">
+              <option value="todas">Todas las citas</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="completado">Completadas</option>
+              <option value="cancelado">Canceladas</option>
+            </select>
+            
+            <select id="filtro-barbero">
+              <option value="todos">Todos los barberos</option>
+              <option value="Juan">Juan</option>
+              <option value="Carlos">Carlos</option>
+              <option value="Pedro">Pedro</option>
+            </select>
+            
+            <button id="btn-exportar" class="btn-export">
+              <i class="fas fa-file-export"></i> Exportar
+            </button>
+          </div>
+        </div>
+        
+        <div id="citasContainer">
+          <div class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Cargando citas...</p>
+          </div>
+        </div>
+        
+        <div class="stats-container">
+          <div class="stat-card">
+            <h3>Total Citas</h3>
+            <p id="total-citas">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Pendientes</h3>
+            <p id="pendientes-citas">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Completadas</h3>
+            <p id="completadas-citas">0</p>
+          </div>
+        </div>
+
+        <!-- Sección de Historial de Citas -->
+        <div class="historial-container">
+          <div class="historial-header">
+            <h2><i class="fas fa-history"></i> Historial Reciente</h2>
+            <span id="contador-historial" style="color: var(--gold); font-weight: 600;">0 citas</span>
+          </div>
+          <div class="historial-citas" id="historialCitas">
+            <div class="loading">
+              <i class="fas fa-spinner"></i>
+              <p>Cargando historial...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <footer>
+      <a href="index.html" class="btn-volver">
+        <i class="fas fa-arrow-left"></i> Volver al inicio
+      </a>
+      <p>© 2025 Barbería Elite - Sistema de gestión de citas</p>
+    </footer>
+  </div>
+
+  <!-- Modal para detalles -->
+  <div id="modal-detalles" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Detalles de Cita</h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal de verificación -->
+  <div id="modal-verificacion" class="modal-verificacion" style="display: none;">
+    <div class="contenido-verificacion">
+      <h2>Acceso Restringido</h2>
+      <p>Ingrese la contraseña de barbero:</p>
+      <input type="password" id="input-password" placeholder="Contraseña">
+      <button id="btn-verificar" class="btn-verificar">Verificar</button>
+      <p id="mensaje-error-verificacion" class="mensaje-error-verificacion">Contraseña incorrecta</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="barbero.js"></script>
+</body>
+</html>
