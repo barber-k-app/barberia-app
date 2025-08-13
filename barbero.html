@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Panel del Barbero | Barbería Elite</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- ******************** CSS ******************** -->
+  <style>
+    :root {
+      --gold: #D4AF37;
+      --dark: #121212;
+      --darker: #0a0a0a;
+      --light: #f8f8f8;
+      --glass: rgba(255, 255, 255, 0.05);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      position: relative;
+      background-color: var(--dark);
+      background-image: 
+        radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 80% 70%, rgba(212, 175, 55, 0.1) 0%, transparent 20%),
+        /* Estilización de la letra K */
+        linear-gradient(to bottom, transparent 45%, rgba(212, 175, 55, 0.05) 45%, rgba(212, 175, 55, 0.05) 55%, transparent 55%),
+        linear-gradient(to right, transparent 45%, rgba(212, 175, 55, 0.05) 45%, rgba(212, 175, 55, 0.05) 55%, transparent 55%),
+        linear-gradient(135deg, transparent 45%, rgba(212, 175, 55, 0.05) 45%, rgba(212, 175, 55, 0.05) 55%, transparent 55%);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+      background-position: 0 0, 0 0, center center, center center, center center;
+      background-repeat: no-repeat;
+    }
+    
+    .container {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .glass-panel {
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 15px;
+      border: 1px solid var(--gold);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      margin-top: 0 !important;
+      backdrop-filter: blur(5px);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      margin-top: 0 !important;
+    }
+
+    header {
+      position: relative;
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 1.5rem 1rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+    }
+    
+    header h1 {
+      color: var(--gold);
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    header p {
+      color: var(--light);
+      opacity: 0.8;
+      letter-spacing: 1px;
+    }
+    
+    .panel-control {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 25px;
+      align-items: center;
+    }
+    
+    .search-container {
+      position: relative;
+      flex-grow: 1;
+      min-width: 250px;
+    }
+    
+    .search-container i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold);
+    }
+    
+    #buscador {
+      width: 100%;
+      padding: 12px 15px 12px 45px;
+      border: none;
+      border-radius: 8px;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: white;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    #buscador:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+    }
+    
+    .filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    select {
+      padding: 10px 15px;
+      border-radius: 8px;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: white;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      min-width: 150px;
+      transition: all 0.3s ease;
+    }
+    
+    select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+    }
+    
+    .btn-export {
+      background: var(--gold);
+      color: var(--darker);
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .btn-export:hover {
+      background: #c9a227;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+    }
+    
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 1.5rem;
+      max-height: 600px; /* Altura máxima para el scroll */
+      overflow-y: auto; /* Scroll vertical cuando hay muchos clientes */
+    }
+    
+    .tabla-citas {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .tabla-citas th {
+      background-color: rgba(212, 175, 55, 0.2);
+      color: var(--gold);
+      padding: 15px;
+      text-align: left;
+    }
+    
+    .tabla-citas td {
+      color: #ff4d4d !important;
+      font-weight: 500;
+      text-shadow: 0 0 2px rgba(255, 77, 77, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    /* Estilos para nombres de clientes y barberos en rojo */
+    .tabla-citas td:first-child,
+    .tabla-citas td:nth-child(6) { /* Columna de barberos */
+      color: #ff4d4d !important;
+      font-weight: 600;
+      text-shadow: 0 0 3px rgba(255, 77, 77, 0.3); 
+    }
+
+    .tabla-citas tr:hover td:first-child,
+    .tabla-citas tr:hover td:nth-child(6) {
+      color: #ff3333 !important;
+      text-shadow: 0 0 4px rgba(255, 77, 77, 0.4);
+    }
+    
+    .tabla-citas tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .tabla-citas tr:hover {
+      background-color: rgba(212, 175, 55, 0.05);
+    }
+    
+    .tabla-citas tr:hover td {
+      transform: translateX(5px);
+    }
+    
+    .estado-cita {
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+    
+    .estado-cita[data-estado="pendiente"] {
+      color: #f39c12;
+    }
+    
+    .estado-cita[data-estado="completado"] {
+      color: #27ae60;
+    }
+    
+    .estado-cita[data-estado="cancelado"] {
+      color: #e74c3c;
+    }
+    
+    .acciones {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-accion {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+    
+    .btn-completar {
+      color: #27ae60;
+      border: 1px solid #27ae60;
+    }
+    
+    .btn-completar:hover {
+      background: #27ae60;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .btn-cancelar {
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
+    }
+    
+    .btn-cancelar:hover {
+      background: #e74c3c;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .btn-detalles {
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+    
+    .btn-detalles:hover {
+      background: var(--gold);
+      color: var(--dark);
+      transform: scale(1.1);
+    }
+    
+    .btn-eliminar {
+      color: #ff4d4d;
+      border: 1px solid #ff4d4d;
+    }
+    
+    .btn-eliminar:hover {
+      background: #ff4d4d;
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 2rem;
+    }
+    
+    .stat-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      border-color: var(--gold);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.4);
+    }
+    
+    .stat-card h3 {
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    
+    .stat-card p {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--light);
+    }
+    
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: var(--gold);
+    }
+    
+    .loading i {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .mensaje-error {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+    
+    .btn-reintentar {
+      background: var(--gold);
+      color: var(--dark);
+      border: none;
+      padding: 8px 15px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s;
+    }
+    
+    .btn-reintentar:hover {
+      background: #c9a227;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background-color: var(--darker);
+      padding: 2rem;
+      border-radius: 10px;
+      border: 1px solid var(--gold);
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: modalFadeIn 0.3s;
+    }
+    
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 1.5rem;
+      color: var(--gold);
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .close-modal:hover {
+      transform: rotate(90deg);
+    }
+    
+    .modal-content h2 {
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .detalle-item {
+      margin-bottom: 1rem;
+    }
+    
+    .detalle-item h3 {
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+      font-size: 0.9rem;
+    }
+    
+    .detalle-item p {
+      color: #ff4d4d;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    .modal-verificacion {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .contenido-verificacion {
+      background-color: var(--darker);
+      padding: 2rem;
+      border-radius: 10px;
+      border: 1px solid var(--gold);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      animation: modalFadeIn 0.3s;
+    }
+    
+    .contenido-verificacion h2 {
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    
+    .contenido-verificacion input {
+      width: 100%;
+      padding: 10px;
+      margin: 1rem 0;
+      border-radius: 5px;
+      border: 1px solid var(--gold);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: all 0.3s;
+    }
+    
+    .contenido-verificacion input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+    }
+    
+    .btn-verificar {
+      background-color: var(--gold);
+      color: var(--dark);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      width: 100%;
+    }
+    
+    .btn-verificar:hover {
+      background-color: #c9a227;
+      transform: translateY(-2px);
+    }
+    
+    .btn-verificar:active {
+      transform: translateY(0);
+    }
+    
+    .mensaje-error-verificacion {
+      color: #e74c3c;
+      margin-top: 10px;
+      display: none;
+    }
+    
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9rem;
+    }
+    
+    .btn-volver {
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold);
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .btn-volver:hover {
+      background: rgba(212, 175, 55, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .gold-glow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%);
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+    
+    /* Notificaciones */
+    .notificacion {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      transform: translateX(150%);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    
+    .notificacion.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    .notificacion.hide {
+      transform: translateX(150%);
+      opacity: 0;
+    }
+    
+    .notificacion-info {
+      background: rgba(41, 128, 185, 0.9);
+      border-left: 4px solid #2980b9;
+    }
+    
+    .notificacion-success {
+      background: rgba(39, 174, 96, 0.9);
+      border-left: 4px solid #27ae60;
+    }
+    
+    .notificacion-warning {
+      background: rgba(241, 196, 15, 0.9);
+      border-left: 4px solid #f1c40f;
+    }
+    
+    .notificacion-error {
+      background: rgba(231, 76, 60, 0.9);
+      border-left: 4px solid #e74c3c;
+    }
+    
+    .notificacion i {
+      font-size: 1.2rem;
+    }
+    
+    /* Animación de carga para verificación */
+    .verificando {
+      position: relative;
+      pointer-events: none;
+    }
+    
+    .verificando::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin-top: -10px;
+      margin-left: -10px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--dark);
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Nuevos estilos para el historial de citas */
+    .historial-container {
+      margin-top: 2rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 1.5rem;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .historial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .historial-header h2 {
+      color: var(--gold);
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .historial-citas {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    .historial-item {
+      background: rgba(0, 0, 0, 0.2);
+      border-left: 3px solid var(--gold);
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+      border-radius: 0 5px 5px 0;
+      transition: all 0.3s ease;
+    }
+
+    .historial-item:hover {
+      background: rgba(0, 0, 0, 0.4);
+      transform: translateX(5px);
+    }
+
+    .historial-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .historial-cliente {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .historial-fecha {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+    }
+
+    .historial-servicio {
+      color: #ff4d4d;
+      margin-bottom: 0.3rem;
+    }
+
+    .historial-estado {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .historial-estado.completado {
+      background: rgba(39, 174, 96, 0.2);
+      color: #27ae60;
+    }
+
+    .historial-estado.cancelado {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+    }
+
+    .historial-estado.pendiente {
+      background: rgba(241, 196, 15, 0.2);
+      color: #f1c40f;
+    }
+
+
+
+    /* Personalización de la barra de desplazamiento */
+    .historial-citas::-webkit-scrollbar,
+    .table-responsive::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .historial-citas::-webkit-scrollbar-track,
+    .table-responsive::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    .historial-citas::-webkit-scrollbar-thumb,
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 3px;
+    }
+
+    .historial-citas::-webkit-scrollbar-thumb:hover,
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: #c9a227;
+    }
+    
+    /* Estilos para el checkbox de selección múltiple */
+    .select-all-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .select-all-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .btn-eliminar-multiple {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s;
+    }
+    
+    .btn-eliminar-multiple:hover {
+      background: #e60000;
+      transform: translateY(-2px);
+    }
+    
+    .btn-eliminar-multiple:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .tabla-citas td:first-child {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .tabla-citas td:first-child input[type="checkbox"] {
+      cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .glass-panel {
+        padding: 1.5rem;
+      }
+      
+      .panel-control {
+        flex-direction: column;
+      }
+      
+      .filters {
+        width: 100%;
+      }
+      
+      select {
+        width: 100%;
+      }
+      
+      .btn-export {
+        width: 100%;
+      }
+      
+      .tabla-citas {
+        font-size: 0.9rem;
+      }
+      
+      .tabla-citas th, 
+      .tabla-citas td {
+        padding: 10px 8px;
+      }
+
+      /* Estilo definitivo - Negro/Dorado Premium */
+      #btn-cerrar-sesion {
+        box-sizing: border-box !important;
+        font-family: 'Montserrat', sans-serif !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(10, 10, 10, 0.95); /* Negro sólido con ligera transparencia */
+        color: #D4AF37 !important; /* Dorado */
+        border: 1px solid #D4AF37 !important;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 500;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(2px);
+        text-decoration: none !important;
+      }
+
+      #btn-cerrar-sesion::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+        transition: 0.5s;
+        z-index: -1;
+      } 
+
+      #btn-cerrar-sesion:hover {
+        background: #D4AF37 !important; /* Fondo dorado al hover */
+        color: #0a0a0a !important; /* Texto negro al hover */
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+      }
+
+      #btn-cerrar-sesion i {
+        font-size: 0.9rem;
+      } 
+      /* Asegurar que no se solape con otros elementos */
+      header {
+        margin-top: 40px !important;
+      }
+
+        
+      .btn-cerrar-sesion:hover::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--gold);
+        z-index: -2;
+        transition: all 0.4s;
+      }
+
+      .btn-cerrar-sesion i {
+        transition: transform 0.3s;
+      }
+
+      @media (max-width: 768px) {
+        #btn-cerrar-sesion {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 6px 12px;
+          font-size: 0.7rem;
+      }
+      header h1 {
+        margin-top: 30px !important;
+      }
+    }
+  }
+  </style>
+</head>
+<body>
+  <div class="gold-glow"></div>
+
+   
+  <!-- ******************** HTML ******************** -->
+  
+  <div class="container">
+    <div class="glass-panel">
+      <header>
+        <h1><i class="fas fa-cut"></i> Panel de Citas</h1>
+        <p> Barber-K - Gestión Profesional</p>
+      </header>
+      
+      <main>
+        <div class="panel-control">
+          <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="buscador" placeholder="Buscar por nombre...">
+          </div>
+          
+          <div class="filters">
+            <select id="filtro-estado">
+              <option value="todas">Todas las citas</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="completado">Completadas</option>
+              <option value="cancelado">Canceladas</option>
+            </select>
+            
+            <select id="filtro-barbero">
+              <option value="todos">Todos los barberos</option>
+              <option value="Juan">Juan</option>
+              <option value="Carlos">Carlos</option>
+              <option value="Pedro">Pedro</option>
+            </select>
+            
+            <button id="btn-exportar" class="btn-export">
+              <i class="fas fa-file-export"></i> Exportar
+            </button>
+          </div>
+        </div>
+        
+        <div id="citasContainer">
+          <div class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Cargando citas...</p>
+          </div>
+        </div>
+        
+        <div class="stats-container">
+          <div class="stat-card">
+            <h3>Total Citas</h3>
+            <p id="total-citas">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Pendientes</h3>
+            <p id="pendientes-citas">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Completadas</h3>
+            <p id="completadas-citas">0</p>
+          </div>
+        </div>
+
+        <!-- Sección de Historial de Citas -->
+        <div class="historial-container">
+          <div class="historial-header">
+            <h2><i class="fas fa-history"></i> Historial Reciente</h2>
+            <span id="contador-historial" style="color: var(--gold); font-weight: 600;">0 citas</span>
+          </div>
+          <div class="historial-citas" id="historialCitas">
+            <div class="loading">
+              <i class="fas fa-spinner"></i>
+              <p>Cargando historial...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <footer>
+      <a href="index.html" class="btn-volver">
+        <i class="fas fa-arrow-left"></i> Volver al inicio
+      </a>
+      <p>© 2025 Barbería Elite - Sistema de gestión de citas</p>
+    </footer>
+  </div>
+
+  <!-- Modal para detalles -->
+  <div id="modal-detalles" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Detalles de Cita</h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal de verificación -->
+  <div id="modal-verificacion" class="modal-verificacion" style="display: none;">
+    <div class="contenido-verificacion">
+      <h2>Acceso Restringido</h2>
+      <p>Ingrese la contraseña de barbero:</p>
+      <input type="password" id="input-password" placeholder="Contraseña">
+      <button id="btn-verificar" class="btn-verificar">Verificar</button>
+      <p id="mensaje-error-verificacion" class="mensaje-error-verificacion">Contraseña incorrecta</p>
+    </div>
+  </div>
+
+  <!-- Scripts en el orden CORRECTO -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="scripts.js"></script>
+
+   <!-- ******************** JAVASCRIPT ******************** -->
+  <script>
+      // Variables globales
+      let todasLasCitas = [];
+      let modalAbierto = false;
+      let canalCitas = null;
+
+    // Función para mostrar notificaciones
+    function mostrarNotificacion(mensaje, tipo = 'info') {
+      const notificacion = document.createElement('div');
+      notificacion.className = `notificacion notificacion-${tipo}`;
+      notificacion.innerHTML = `
+        <i class="fas fa-${tipo === 'info' ? 'info-circle' : 
+                          tipo === 'success' ? 'check-circle' : 
+                          tipo === 'warning' ? 'exclamation-triangle' : 
+                          'times-circle'}"></i>
+        <p>${mensaje}</p>
+      `;
+      document.body.appendChild(notificacion);
+      
+      // Mostrar notificación
+      setTimeout(() => {
+        notificacion.classList.add('show');
+      }, 10);
+      
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        notificacion.classList.remove('show');
+        notificacion.classList.add('hide');
+        
+        // Eliminar después de la animación
+        setTimeout(() => notificacion.remove(), 300);
+      }, 3000);
+    }
+
+    // Verificación de seguridad para barberos
+    async function verificarAccesoBarbero() {
+      // Contraseña simple (puedes cambiarla)
+      const CONTRASENA = "barbero123";
+      // Verificar si ya está autenticado
+      const yaAutenticado = sessionStorage.getItem('barberoAutenticado');
+      if (yaAutenticado === 'true') {
+        return true;
+      }
+      
+      // Mostrar modal de verificación
+      const modal = document.getElementById('modal-verificacion');
+      modal.style.display = 'flex';
+      
+      return new Promise((resolve) => {
+        const verificar = () => {
+          const inputPassword = document.getElementById('input-password').value;
+          if (!inputPassword) return;
+          
+          // Mostrar estado de carga
+          const btnVerificar = document.getElementById('btn-verificar');
+          btnVerificar.classList.add('verificando');
+          btnVerificar.disabled = true;
+          
+          // Simular verificación con retraso (para mejor UX)
+          setTimeout(() => {
+            if (inputPassword === CONTRASENA) {
+              sessionStorage.setItem('barberoAutenticado', 'true');
+              modal.style.display = 'none';
+              mostrarNotificacion('Acceso concedido', 'success');
+              resolve(true);
+            } else {
+              document.getElementById('mensaje-error-verificacion').style.display = 'block';
+              mostrarNotificacion('Contraseña incorrecta', 'error');
+              btnVerificar.classList.remove('verificando');
+              btnVerificar.disabled = false;
+              resolve(false);
+            }
+          }, 800);
+        };
+        
+        // Configurar eventos
+        document.getElementById('btn-verificar').onclick = verificar;
+        document.getElementById('input-password').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            verificar();
+          }
+        });
+      });
+    }
+
+    // Función para mostrar botón de cerrar sesión
+    function mostrarBotonCerrarSesion() {
+      // Eliminar botón existente si existe
+      const botonExistente = document.getElementById('btn-cerrar-sesion');
+      if (botonExistente) botonExistente.remove();
+  
+      // Crear nuevo botón
+      const botonCerrar = document.createElement('button');
+      botonCerrar.id = 'btn-cerrar-sesion';
+      botonCerrar.innerHTML = `
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Salir del panel</span>
+      `;
+
+      // Estilos en línea como garantía
+      botonCerrar.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(10, 10, 10, 0.95);
+        color: #D4AF37;
+        border: 1px solid #D4AF37;
+        padding: 8px 15px;
+        border-radius: 4px;
+        z-index: 1000;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+  
+      botonCerrar.addEventListener('mouseenter', () => {
+        botonCerrar.style.background = '#D4AF37';
+        botonCerrar.style.color = '#0a0a0a';
+      });
+  
+      botonCerrar.addEventListener('mouseleave', () => {
+        botonCerrar.style.background = 'rgba(10, 10, 10, 0.95)';
+        botonCerrar.style.color = '#D4AF37';
+      });
+  
+      botonCerrar.addEventListener('click', () => {
+        sessionStorage.removeItem('barberoAutenticado');
+        mostrarNotificacion('Sesión cerrada correctamente', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      });
+  
+      document.body.appendChild(botonCerrar);
+    }
+     
+    
+    // Cargar citas desde Supabase
+    async function cargarCitas() {
+      const contenedor = document.getElementById('citasContainer');
+      if (!contenedor) return;
+
+      try {
+        contenedor.innerHTML = `
+          <div class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Cargando citas...</p>
+          </div>
+        `;
+
+        const { data: citas, error } = await supabase
+          .from('citas')
+          .select('*')
+          .order('fecha', { ascending: true })
+          .order('hora', { ascending: true });
+
+        if (error) throw error;
+
+        todasLasCitas = citas || [];
+        mostrarCitas(todasLasCitas);
+        actualizarEstadisticas(todasLasCitas);
+        mostrarHistorialCitas(todasLasCitas);
+        
+      } catch (error) {
+        console.error('Error al cargar citas:', error);
+        contenedor.innerHTML = `
+          <div class="mensaje-error">
+            <p>Error al cargar citas. Por favor intente nuevamente.</p>
+            <button onclick="window.location.reload()" class="btn-reintentar">
+              <i class="fas fa-sync-alt"></i> Reintentar
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Mostrar citas en la tabla
+    function mostrarCitas(citas) {
+      const contenedor = document.getElementById('citasContainer');
+      if (!contenedor) return;
+
+      if (!citas || citas.length === 0) {
+        contenedor.innerHTML = '<p class="no-citas">No hay citas agendadas actualmente</p>';
+        return;
+      }
+
+      let html = `
+        <div class="table-responsive">
+          <div class="select-all-container">
+            <input type="checkbox" id="select-all" class="select-all-checkbox">
+            <button id="btn-eliminar-multiple" class="btn-eliminar-multiple" disabled>
+              <i class="fas fa-trash"></i> Eliminar seleccionados
+            </button>
+          </div>
+          <table class="tabla-citas">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Contacto</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Servicio</th>
+                <th>Barbero</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      citas.forEach(cita => {
+        const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES');
+        const horaFormateada = cita.hora.substring(0, 5);
+        
+        html += `
+          <tr>
+            <td>
+              <input type="checkbox" class="cita-checkbox" data-id="${cita.id}">
+              ${cita.nombre}
+            </td>
+            <td>${cita.telefono}</td>
+            <td>${fechaFormateada}</td>
+            <td>${horaFormateada}</td>
+            <td>${cita.servicio}</td>
+            <td>${cita.barbero}</td>
+            <td class="estado-cita" data-estado="${cita.estado}">
+              ${cita.estado}
+            </td>
+            <td class="acciones">
+              <button class="btn-accion btn-completar" data-id="${cita.id}" title="Completar">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn-accion btn-cancelar" data-id="${cita.id}" title="Cancelar">
+                <i class="fas fa-times"></i>
+              </button>
+              <button class="btn-accion btn-detalles" data-id="${cita.id}" title="Detalles">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn-accion btn-eliminar" data-id="${cita.id}" title="Eliminar">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></div>`;
+      contenedor.innerHTML = html;
+      agregarEventosBotones();
+      configurarSeleccionMultiple();
+    }
+
+    // Configurar la selección múltiple de citas
+    function configurarSeleccionMultiple() {
+      const selectAllCheckbox = document.getElementById('select-all');
+      const checkboxes = document.querySelectorAll('.cita-checkbox');
+      const deleteMultipleBtn = document.getElementById('btn-eliminar-multiple');
+      
+      // Seleccionar/deseleccionar todos
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+          checkboxes.forEach(checkbox => {
+            checkbox.checked = e.target.checked;
+          });
+          actualizarBotonEliminarMultiple();
+        });
+      }
+      
+      // Actualizar botón eliminar múltiple
+      if (checkboxes) {
+        checkboxes.forEach(checkbox => {
+          checkbox.addEventListener('change', actualizarBotonEliminarMultiple);
+        });
+      }
+      
+      // Eliminar múltiples citas
+      if (deleteMultipleBtn) {
+        deleteMultipleBtn.addEventListener('click', eliminarCitasSeleccionadas);
+      }
+    }
+    
+    // Actualizar estado del botón eliminar múltiple
+    function actualizarBotonEliminarMultiple() {
+      const checkboxes = document.querySelectorAll('.cita-checkbox:checked');
+      const deleteMultipleBtn = document.getElementById('btn-eliminar-multiple');
+      
+      if (deleteMultipleBtn) {
+        deleteMultipleBtn.disabled = checkboxes.length === 0;
+      }
+      
+      // Actualizar checkbox "seleccionar todos"
+      const selectAllCheckbox = document.getElementById('select-all');
+      if (selectAllCheckbox) {
+        const allCheckboxes = document.querySelectorAll('.cita-checkbox');
+        selectAllCheckbox.checked = allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length;
+        selectAllCheckbox.indeterminate = checkboxes.length > 0 && checkboxes.length < allCheckboxes.length;
+      }
+    }
+    
+    // Eliminar citas seleccionadas
+    async function eliminarCitasSeleccionadas() {
+      const checkboxes = document.querySelectorAll('.cita-checkbox:checked');
+      if (checkboxes.length === 0) return;
+      
+      if (!confirm(`¿Estás seguro de que deseas eliminar ${checkboxes.length} citas seleccionadas?`)) return;
+      
+      const ids = Array.from(checkboxes).map(checkbox => checkbox.dataset.id);
+      
+      try {
+        const { error } = await supabase
+          .from('citas')
+          .delete()
+          .in('id', ids);
+        
+        if (error) throw error;
+        
+        mostrarNotificacion(`${ids.length} citas eliminadas correctamente`, 'success');
+        await cargarCitas();
+        
+      } catch (error) {
+        console.error('Error al eliminar citas:', error);
+        mostrarNotificacion('Error al eliminar las citas seleccionadas', 'error');
+      }
+    }
+
+    // Mostrar historial de citas
+    function mostrarHistorialCitas(citas) {
+      const contenedor = document.getElementById('historialCitas');
+      if (!contenedor) return;
+
+      // Ordenar citas por fecha más reciente primero
+      const citasOrdenadas = [...citas].sort((a, b) => {
+        const fechaA = new Date(`${a.fecha}T${a.hora}`);
+        const fechaB = new Date(`${b.fecha}T${b.hora}`);
+        return fechaB - fechaA;
+      });
+
+      // Limitar a las últimas 20 citas para el historial
+      const ultimasCitas = citasOrdenadas.slice(0, 20);
+
+      if (ultimasCitas.length === 0) {
+        contenedor.innerHTML = '<p style="color: rgba(255,255,255,0.6); text-align: center;">No hay citas en el historial</p>';
+        document.getElementById('contador-historial').textContent = '0 citas';
+        return;
+      }
+
+      let html = '';
+      
+      ultimasCitas.forEach(cita => {
+        const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        
+        const horaFormateada = cita.hora.substring(0, 5);
+        
+        html += `
+          <div class="historial-item">
+            <div class="historial-item-header">
+              <span class="historial-cliente">${cita.nombre}</span>
+              <span class="historial-fecha">${fechaFormateada} a las ${horaFormateada}</span>
+            </div>
+            <div class="historial-servicio">${cita.servicio} con ${cita.barbero}</div>
+            <span class="historial-estado ${cita.estado}">${cita.estado}</span>
+          </div>
+        `;
+      });
+
+      contenedor.innerHTML = html;
+      document.getElementById('contador-historial').textContent = `${ultimasCitas.length} citas recientes`;
+    }
+
+    // Agregar eventos a los botones de acción
+    function agregarEventosBotones() {
+      document.querySelectorAll('.btn-completar').forEach(btn => {
+        btn.addEventListener('click', () => cambiarEstadoCita(btn.dataset.id, 'completado'));
+      });
+      
+      document.querySelectorAll('.btn-cancelar').forEach(btn => {
+        btn.addEventListener('click', () => cambiarEstadoCita(btn.dataset.id, 'cancelado'));
+      });
+      
+      document.querySelectorAll('.btn-detalles').forEach(btn => {
+        btn.addEventListener('click', () => mostrarDetallesCita(btn.dataset.id));
+      });
+      
+      document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', () => eliminarCita(btn.dataset.id));
+      });
+    }
+
+    // Cambiar estado de una cita
+    async function cambiarEstadoCita(id, nuevoEstado) {
+      try {
+        const { error } = await supabase
+          .from('citas')
+          .update({ estado: nuevoEstado })
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        mostrarNotificacion(`Cita marcada como ${nuevoEstado}`, 'success');
+        await cargarCitas();
+        
+      } catch (error) {
+        console.error('Error al actualizar cita:', error);
+        mostrarNotificacion('Error al actualizar el estado de la cita', 'error');
+      }
+    }
+    
+    // Eliminar una cita
+    async function eliminarCita(id) {
+      if (!confirm('¿Estás seguro de que deseas eliminar esta cita?')) return;
+      
+      try {
+        const { error } = await supabase
+          .from('citas')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        mostrarNotificacion('Cita eliminada correctamente', 'success');
+        await cargarCitas();
+        
+      } catch (error) {
+        console.error('Error al eliminar cita:', error);
+        mostrarNotificacion('Error al eliminar la cita', 'error');
+      }
+    }
+
+    // Mostrar detalles de cita en modal
+    async function mostrarDetallesCita(id) {
+      if (modalAbierto) return;
+      modalAbierto = true;
+      
+      const modal = document.getElementById('modal-detalles');
+      const modalBody = document.getElementById('modal-body');
+      
+      try {
+        const { data: cita, error } = await supabase
+          .from('citas')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        if (error) throw error;
+        
+        const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        
+        modalBody.innerHTML = `
+          <div class="detalle-item">
+            <h3>Cliente:</h3>
+            <p>${cita.nombre}</p>
+          </div>
+          <div class="detalle-item">
+            <h3>Teléfono:</h3>
+            <p>${cita.telefono}</p>
+          </div>
+          <div class="detalle-item">
+            <h3>Fecha:</h3>
+            <p>${fechaFormateada}</p>
+          </div>
+          <div class="detalle-item">
+            <h3>Hora:</h3>
+            <p>${cita.hora.substring(0, 5)}</p>
+          </div>
+          <div class="detalle-item">
+            <h3>Servicio:</h3>
+            <p>${cita.servicio}</p>
+          </div>
+          <div class="detalle-item">
+            <h3>Barbero:</h3>
+            <p>${cita.barbero}</p>
+          </div>
+          <div class="detalle-item">
+            <h3>Estado:</h3>
+            <p class="estado-cita" data-estado="${cita.estado}">${cita.estado}</p>
+          </div>
+          <button class="btn-cerrar-detalles" style="margin-top: 20px; padding: 10px; background: var(--gold); color: var(--dark); border: none; border-radius: 5px; cursor: pointer;">
+            Cerrar detalles
+          </button>
+        `;
+        
+        modal.style.display = 'flex';
+        
+        // Configurar cierre del modal
+        document.querySelector('.btn-cerrar-detalles').addEventListener('click', cerrarModal);
+        document.querySelector('.close-modal').addEventListener('click', cerrarModal);
+        
+      } catch (error) {
+        console.error('Error al cargar detalles:', error);
+        modalBody.innerHTML = '<p class="mensaje-error">Error al cargar los detalles de la cita</p>';
+        modal.style.display = 'flex';
+      }
+    }
+
+    function cerrarModal() {
+      const modal = document.getElementById('modal-detalles');
+      modal.style.display = 'none';
+      modalAbierto = false;
+    }
+	
+	// Filtrar citas
+    function filtrarCitas() {
+      const textoBusqueda = document.getElementById('buscador')?.value.toLowerCase() || '';
+      const filtroEstado = document.getElementById('filtro-estado')?.value || 'todas';
+      const filtroBarbero = document.getElementById('filtro-barbero')?.value || 'todos';
+
+      let citasFiltradas = todasLasCitas.filter(cita => {
+        const coincideNombre = cita.nombre.toLowerCase().includes(textoBusqueda);
+        const coincideTelefono = cita.telefono.includes(textoBusqueda);
+        const coincideEstado = filtroEstado === 'todas' || cita.estado === filtroEstado;
+        const coincideBarbero = filtroBarbero === 'todos' || cita.barbero === filtroBarbero;
+        
+        return (coincideNombre || coincideTelefono) && coincideEstado && coincideBarbero;
+      });
+
+      mostrarCitas(citasFiltradas);
+    }
+
+    // Actualizar estadísticas
+    function actualizarEstadisticas(citas) {
+      const totalCitas = document.getElementById('total-citas');
+      const pendientesCitas = document.getElementById('pendientes-citas');
+      const completadasCitas = document.getElementById('completadas-citas');
+      
+      if (totalCitas) totalCitas.textContent = citas.length;
+      if (pendientesCitas) pendientesCitas.textContent = citas.filter(c => c.estado === 'pendiente').length;
+      if (completadasCitas) completadasCitas.textContent = citas.filter(c => c.estado === 'completado').length;
+    }
+
+    // Exportar citas a CSV
+    function exportarCitas() {
+      if (todasLasCitas.length === 0) {
+        mostrarNotificacion('No hay citas para exportar', 'warning');
+        return;
+      }
+      
+      let csv = 'Nombre,Telefono,Fecha,Hora,Servicio,Barbero,Estado\n';
+      
+      todasLasCitas.forEach(cita => {
+        csv += `"${cita.nombre}","${cita.telefono}","${cita.fecha}","${cita.hora}","${cita.servicio}","${cita.barbero}","${cita.estado}"\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `citas_barberia_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      mostrarNotificacion('Exportación completada con éxito', 'success');
+    }
+
+    // Conectar a websockets para cambios en tiempo real
+    function conectarWebsockets() {
+      if (canalCitas) {
+        supabase.removeChannel(canalCitas);
+      }
+
+      canalCitas = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'citas'
+          },
+          (payload) => {
+            console.log('Cambio recibido:', payload);
+            cargarCitas();
+          }
+        )
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Canal suscrito correctamente');
+          }
+          if (err) {
+            console.error('Error en suscripción:', err);
+          }
+        });
+    }
+
+    // Inicialización del panel
+    async function inicializarPanel() {
+      try {
+        const accesoPermitido = await verificarAccesoBarbero();
+        if (!accesoPermitido) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        // Mostrar botón de cerrar sesión si ya está autenticado
+        if (sessionStorage.getItem('barberoAutenticado') === 'true') {
+           mostrarBotonCerrarSesion();
+        }
+
+        // Configurar eventos y cargar citas
+        document.getElementById('buscador')?.addEventListener('input', filtrarCitas);
+        document.getElementById('filtro-estado')?.addEventListener('change', filtrarCitas);
+        document.getElementById('filtro-barbero')?.addEventListener('change', filtrarCitas);
+        document.getElementById('btn-exportar')?.addEventListener('click', exportarCitas);
+        
+        await cargarCitas();
+        conectarWebsockets();
+        
+      } catch (error) {
+        console.error('Error en inicialización:', error);
+        mostrarNotificacion('Error al inicializar el panel', 'error');
+      }
+    }
+
+    // Iniciar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', inicializarPanel);
+  </script>
+</body>
+</html>
