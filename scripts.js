@@ -162,6 +162,10 @@ function inicializarSelectores() {
   horaInput.min = CONFIG_VENEZUELA.horarioApertura;
   horaInput.max = CONFIG_VENEZUELA.horarioCierre;
   
+  // Eliminar display: none del input de hora y marcarlo como requerido
+  horaInput.style.display = 'block';
+  horaInput.required = true;
+  
   // Establecer hora actual de Venezuela como sugerencia
   const horaActual = obtenerHoraActualVenezuela();
   horaInput.value = horaActual;
@@ -346,7 +350,7 @@ async function mostrarInformacionCola(fecha, hora) {
   }
 }
 
-// 11. Función para manejar autenticación de usuarios
+// 11. Función para manejar autenticación de usuarios con mejoras
 async function manejarAutenticacion() {
   const authContainer = document.getElementById('authContainer');
   const citaContainer = document.getElementById('citaContainer');
@@ -374,6 +378,21 @@ async function manejarAutenticacion() {
     localStorage.removeItem('clienteAutenticado');
     authContainer.classList.add('active');
     citaContainer.classList.remove('active');
+  });
+
+  // Validación en tiempo real para el formulario de registro
+  registerForm?.addEventListener('input', function(e) {
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    
+    if (e.target.id === 'registerConfirmPassword' || e.target.id === 'registerPassword') {
+      const confirmPasswordInput = document.getElementById('registerConfirmPassword');
+      if (password !== confirmPassword) {
+        confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
+      } else {
+        confirmPasswordInput.setCustomValidity('');
+      }
+    }
   });
 
   // Manejar envío de formulario de autenticación
@@ -452,16 +471,19 @@ async function manejarAutenticacion() {
           .select();
 
         if (error) {
+          if (error.code === '23505') { // Código de error de violación de unicidad
+            throw new Error('El nombre de usuario ya está en uso');
+          }
           throw new Error(error.message || 'Error al registrar usuario');
         }
 
-        // Mostrar éxito y cambiar a login
         mostrarMensaje('Registro exitoso. Ahora puedes iniciar sesión.', 'exito', 'authMessage');
         registerForm.style.display = 'none';
         loginForm.style.display = 'block';
       }
     } catch (error) {
-      mostrarMensaje(error.message, 'error', 'authMessage');
+      mostrarMensaje(error.message || 'Error en el proceso de autenticación', 'error', 'authMessage');
+      console.error('Error en autenticación:', error);
     }
   });
 }
