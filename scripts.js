@@ -182,7 +182,7 @@ function inicializarSelectores() {
   });
 }
 
-// 7. Función para enviar notificación a Telegram (sin cambios)
+// 7. Función para enviar notificación a Telegram
 async function enviarNotificacionTelegram(citaData) {
   const BOT_TOKEN = "8473537897:AAE4DhBRqFSgkerepYMSA-meEBwn0pXjXag";
   const CHAT_ID = "8330674980";
@@ -350,8 +350,94 @@ async function mostrarInformacionCola(fecha, hora) {
   }
 }
 
-// 11. Función para manejar autenticación de usuarios con mejoras
-async function manejarAutenticacion() {
+// 11. Función mejorada para manejar login
+async function handleLogin() {
+  const usuario = document.getElementById('loginNombre').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  // Debuggeo
+  console.log("Credenciales ingresadas:", { usuario, password });
+
+  try {
+    // 1. Busca el usuario en Supabase
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('usuario', usuario)
+      .eq('password', password)
+      .single();
+
+    // Debuggeo
+    console.log("Datos de Supabase:", data);
+
+    if (error || !data) {
+      throw new Error("Usuario o contraseña incorrectos");
+    }
+
+    // 2. Guarda la sesión en localStorage
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data));
+    
+    // 3. Redirige a la vista de citas
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
+    
+    // 4. Recarga la página para aplicar cambios
+    setTimeout(() => location.reload(), 500);
+
+  } catch (error) {
+    mostrarMensaje(error.message, 'error');
+    console.error("Error en login:", error);
+  }
+}
+
+// 12. Función para manejar registro
+async function handleRegister() {
+  // 1. Obtener datos del formulario
+  const userData = {
+    nombre: document.getElementById('registerNombre').value.trim(),
+    telefono: document.getElementById('registerTelefono').value.trim(),
+    usuario: document.getElementById('registerUsuario').value.trim(),
+    password: document.getElementById('registerPassword').value
+  };
+
+  console.log("Datos a registrar:", userData); // Para debuggear
+
+  try {
+    // 2. Verificar si el usuario ya existe
+    const { data: existingUser, error: queryError } = await supabase
+      .from('clientes')
+      .select('usuario')
+      .eq('usuario', userData.usuario);
+
+    if (queryError) throw new Error("Error al verificar usuario");
+    if (existingUser && existingUser.length > 0) {
+      throw new Error("⚠️ El usuario ya existe");
+    }
+
+    // 3. Insertar en Supabase
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert([userData])
+      .select();
+
+    if (error) throw error;
+    if (!data) throw new Error("No se recibieron datos");
+
+    // 4. Éxito: guardar sesión y redirigir
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
+    mostrarMensaje('✅ Registro exitoso!', 'exito');
+    
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
+
+  } catch (error) {
+    console.error("Error en registro:", error);
+    mostrarMensaje(error.message, 'error');
+  }
+}
+
+// 13. Función para manejar autenticación de usuarios con mejoras
+function manejarAutenticacion() {
   const authContainer = document.getElementById('authContainer');
   const citaContainer = document.getElementById('citaContainer');
   const loginForm = document.getElementById('loginForm');
@@ -404,42 +490,8 @@ async function manejarAutenticacion() {
 
     try {
       if (isLogin) {
-        // Proceso de login
-        const nombre = document.getElementById('loginNombre').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        // Validación simple
-        if (!nombre || !password) {
-          throw new Error('Nombre y contraseña son requeridos');
-        }
-
-        // En una aplicación real, aquí iría la autenticación con Supabase Auth
-        // Simulamos una autenticación exitosa
-        const { data: cliente, error } = await supabase
-          .from('clientes')
-          .select('*')
-          .eq('usuario', nombre)
-          .eq('password', password) // En producción usaría Supabase Auth
-          .single();
-
-        if (error || !cliente) {
-          throw new Error('Credenciales incorrectas');
-        }
-
-        // Guardar en localStorage (simulación)
-        localStorage.setItem('clienteAutenticado', JSON.stringify(cliente));
-        
-        // Mostrar panel de citas
-        authContainer.classList.remove('active');
-        citaContainer.classList.add('active');
-        
-        // Rellenar datos del cliente
-        document.getElementById('nombre').value = cliente.nombre;
-        document.getElementById('telefono').value = cliente.telefono;
-        
-        mostrarMensaje('Bienvenido ' + cliente.nombre, 'exito', 'authMessage');
+        await handleLogin();
       } else {
-        // Proceso de registro - ahora usamos la nueva función handleRegister
         await handleRegister();
       }
     } catch (error) {
@@ -449,54 +501,21 @@ async function manejarAutenticacion() {
   });
 }
 
-// NUEVA FUNCIÓN MEJORADA PARA REGISTRO
-async function handleRegister() {
-  // 1. Obtener datos del formulario
-  const userData = {
-    nombre: document.getElementById('registerNombre').value.trim(),
-    telefono: document.getElementById('registerTelefono').value.trim(),
-    usuario: document.getElementById('registerUsuario').value.trim(),
-    password: document.getElementById('registerPassword').value
-  };
-
-  console.log("Datos a registrar:", userData); // Para debuggear
-
-  try {
-    // 2. Verificar si el usuario ya existe
-    const { data: existingUser, error: queryError } = await supabase
-      .from('clientes')
-      .select('usuario')
-      .eq('usuario', userData.usuario);
-
-    if (queryError) throw new Error("Error al verificar usuario");
-    if (existingUser && existingUser.length > 0) {
-      throw new Error("⚠️ El usuario ya existe");
-    }
-
-    // 3. Insertar en Supabase
-    const { data, error } = await supabase
-      .from('clientes')
-      .insert([userData])
-      .select(); // 👈 ¡Importante! Esto devuelve el registro insertado
-
-    if (error) throw error;
-    if (!data) throw new Error("No se recibieron datos");
-
-    // 4. Éxito: guardar sesión y redirigir
-    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
-    mostrarMensaje('✅ Registro exitoso!', 'exito');
-    
-    document.getElementById('authContainer').classList.remove('active');
-    document.getElementById('citaContainer').classList.add('active');
-
-  } catch (error) {
-    console.error("Error en registro:", error);
-    mostrarMensaje(error.message, 'error');
-  }
-}
-
-// 12. Inicialización principal adaptada para Venezuela
+// 14. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', function() {
+  // Verificar si hay un usuario logueado al cargar la página
+  const cliente = JSON.parse(localStorage.getItem('clienteAutenticado'));
+  
+  if (cliente) {
+    // Oculta el login y muestra la vista de citas
+    document.getElementById('authContainer')?.classList.remove('active');
+    document.getElementById('citaContainer')?.classList.add('active');
+    
+    // Rellena los datos automáticamente
+    document.getElementById('nombre').value = cliente.nombre;
+    document.getElementById('telefono').value = cliente.telefono;
+  }
+
   // Verificar si Supabase está inicializado
   if (!supabase) {
     mostrarMensaje('Error en la configuración del sistema. Recarga la página.', 'error');
@@ -505,16 +524,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Manejar autenticación
   manejarAutenticacion();
-
-  // Verificar si el usuario ya está autenticado
-  const clienteAutenticado = localStorage.getItem('clienteAutenticado');
-  if (clienteAutenticado) {
-    const cliente = JSON.parse(clienteAutenticado);
-    document.getElementById('authContainer')?.classList.remove('active');
-    document.getElementById('citaContainer')?.classList.add('active');
-    document.getElementById('nombre').value = cliente.nombre;
-    document.getElementById('telefono').value = cliente.telefono;
-  }
 
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
