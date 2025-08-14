@@ -439,53 +439,60 @@ async function manejarAutenticacion() {
         
         mostrarMensaje('Bienvenido ' + cliente.nombre, 'exito', 'authMessage');
       } else {
-        // Proceso de registro
-        const nombre = document.getElementById('registerNombre').value.trim();
-        const telefono = document.getElementById('registerTelefono').value.trim();
-        const usuario = document.getElementById('registerUsuario').value.trim();
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('registerConfirmPassword').value;
-
-        // Validaciones
-        if (!nombre || !telefono || !usuario || !password || !confirmPassword) {
-          throw new Error('Todos los campos son requeridos');
-        }
-
-        if (password !== confirmPassword) {
-          throw new Error('Las contraseñas no coinciden');
-        }
-
-        if (password.length < 6) {
-          throw new Error('La contraseña debe tener al menos 6 caracteres');
-        }
-
-        // Registrar cliente (en producción usaría Supabase Auth)
-        const { data, error } = await supabase
-          .from('clientes')
-          .insert([{
-            nombre,
-            telefono,
-            usuario,
-            password // En producción nunca guardarías contraseñas en texto plano
-          }])
-          .select();
-
-        if (error) {
-          if (error.code === '23505') { // Código de error de violación de unicidad
-            throw new Error('El nombre de usuario ya está en uso');
-          }
-          throw new Error(error.message || 'Error al registrar usuario');
-        }
-
-        mostrarMensaje('Registro exitoso. Ahora puedes iniciar sesión.', 'exito', 'authMessage');
-        registerForm.style.display = 'none';
-        loginForm.style.display = 'block';
+        // Proceso de registro - ahora usamos la nueva función handleRegister
+        await handleRegister();
       }
     } catch (error) {
-      mostrarMensaje(error.message || 'Error en el proceso de autenticación', 'error', 'authMessage');
       console.error('Error en autenticación:', error);
+      mostrarMensaje(error.message || 'Error en el proceso de autenticación', 'error', 'authMessage');
     }
   });
+}
+
+// NUEVA FUNCIÓN MEJORADA PARA REGISTRO
+async function handleRegister() {
+  // 1. Obtener datos del formulario
+  const userData = {
+    nombre: document.getElementById('registerNombre').value.trim(),
+    telefono: document.getElementById('registerTelefono').value.trim(),
+    usuario: document.getElementById('registerUsuario').value.trim(),
+    password: document.getElementById('registerPassword').value
+  };
+
+  console.log("Datos a registrar:", userData); // Para debuggear
+
+  try {
+    // 2. Verificar si el usuario ya existe
+    const { data: existingUser, error: queryError } = await supabase
+      .from('clientes')
+      .select('usuario')
+      .eq('usuario', userData.usuario);
+
+    if (queryError) throw new Error("Error al verificar usuario");
+    if (existingUser && existingUser.length > 0) {
+      throw new Error("⚠️ El usuario ya existe");
+    }
+
+    // 3. Insertar en Supabase
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert([userData])
+      .select(); // 👈 ¡Importante! Esto devuelve el registro insertado
+
+    if (error) throw error;
+    if (!data) throw new Error("No se recibieron datos");
+
+    // 4. Éxito: guardar sesión y redirigir
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
+    mostrarMensaje('✅ Registro exitoso!', 'exito');
+    
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
+
+  } catch (error) {
+    console.error("Error en registro:", error);
+    mostrarMensaje(error.message, 'error');
+  }
 }
 
 // 12. Inicialización principal adaptada para Venezuela
