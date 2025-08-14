@@ -250,7 +250,7 @@
       font-size: 0.9rem;
     }
     
-    #citaForm, #authForm {
+    #citaForm, #loginForm, #registerForm {
       display: flex;
       flex-direction: column;
       gap: 1rem;
@@ -584,63 +584,63 @@
       <main>
         <!-- Contenedor de Autenticación -->
         <div id="authContainer" class="auth-container active">
-          <form id="authForm">
+          <!-- Formulario de Login -->
+          <form id="loginForm">
             <div id="authMessage"></div>
-            
-            <div id="loginForm">
-              <div class="input-group">
-                <i class="fas fa-user"></i>
-                <input type="text" id="loginNombre" placeholder="Nombre de usuario" required>
-              </div>
-              
-              <div class="input-group">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="loginPassword" placeholder="Contraseña" required>
-              </div>
-              
-              <button type="submit">
-                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-              </button>
-              
-              <button type="button" class="auth-toggle" id="showRegister">
-                <i class="fas fa-user-plus"></i> ¿No tienes cuenta? Regístrate
-              </button>
+            <div class="input-group">
+              <i class="fas fa-user"></i>
+              <input type="text" id="loginNombre" placeholder="Nombre de usuario" required>
             </div>
             
-            <div id="registerForm" style="display: none;">
-              <div class="input-group">
-                <i class="fas fa-user"></i>
-                <input type="text" id="registerNombre" placeholder="Nombre completo" required>
-              </div>
-              
-              <div class="input-group">
-                <i class="fas fa-phone"></i>
-                <input type="tel" id="registerTelefono" placeholder="Teléfono" required>
-              </div>
-              
-              <div class="input-group">
-                <i class="fas fa-user"></i>
-                <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
-              </div>
-              
-              <div class="input-group">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="registerPassword" placeholder="Contraseña" required>
-              </div>
-              
-              <div class="input-group">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required>
-              </div>
-              
-              <button type="submit">
-                <i class="fas fa-user-plus"></i> Registrarse
-              </button>
-              
-              <button type="button" class="auth-toggle" id="showLogin">
-                <i class="fas fa-sign-in-alt"></i> ¿Ya tienes cuenta? Inicia Sesión
-              </button>
+            <div class="input-group">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="loginPassword" placeholder="Contraseña" required>
             </div>
+            
+            <button type="submit">
+              <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+            
+            <button type="button" class="auth-toggle" id="showRegister">
+              <i class="fas fa-user-plus"></i> ¿No tienes cuenta? Regístrate
+            </button>
+          </form>
+          
+          <!-- Formulario de Registro -->
+          <form id="registerForm" style="display: none;">
+            <div id="authMessage"></div>
+            <div class="input-group">
+              <i class="fas fa-user"></i>
+              <input type="text" id="registerNombre" placeholder="Nombre completo" required>
+            </div>
+            
+            <div class="input-group">
+              <i class="fas fa-phone"></i>
+              <input type="tel" id="registerTelefono" placeholder="Teléfono" required>
+            </div>
+            
+            <div class="input-group">
+              <i class="fas fa-user"></i>
+              <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
+            </div>
+            
+            <div class="input-group">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="registerPassword" placeholder="Contraseña" required>
+            </div>
+            
+            <div class="input-group">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required>
+            </div>
+            
+            <button type="submit">
+              <i class="fas fa-user-plus"></i> Registrarse
+            </button>
+            
+            <button type="button" class="auth-toggle" id="showLogin">
+              <i class="fas fa-sign-in-alt"></i> ¿Ya tienes cuenta? Inicia Sesión
+            </button>
           </form>
         </div>
         
