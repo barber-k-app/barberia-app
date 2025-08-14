@@ -523,6 +523,26 @@
       display: none;
     }
 
+    /* Nuevos estilos para los requisitos de contraseña */
+    #passwordRequirements {
+      color: var(--gold);
+      font-size: 0.8rem;
+      margin: 10px 0;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 5px;
+      text-align: left;
+    }
+
+    /* Estilo para campos inválidos */
+    input:invalid {
+      border-color: var(--danger);
+    }
+
+    input:valid {
+      border-color: var(--success);
+    }
+
     @media (max-width: 768px) {
       .form-row, .horarios-container {
         grid-template-columns: 1fr;
@@ -584,15 +604,15 @@
       <main>
         <!-- Contenedor de Autenticación -->
         <div id="authContainer" class="auth-container active">
-          <!-- Formulario de Login -->
+          <!-- Formulario de Login mejorado -->
           <form id="loginForm">
             <div id="authMessage"></div>
             <div class="input-group">
-              <i class="fas fa-user"></i>
+              <i class="fas fa-envelope"></i>
               <input 
-                type="text" 
-                id="loginNombre" 
-                placeholder="Nombre de usuario" 
+                type="email" 
+                id="loginEmail" 
+                placeholder="Correo electrónico" 
                 required 
                 autocomplete="username"
               >
@@ -618,8 +638,8 @@
             </button>
           </form>
           
-          <!-- Formulario de Registro -->
-          <form id="registerForm" style="display: none;" onsubmit="event.preventDefault(); handleRegister();">
+          <!-- Formulario de Registro mejorado -->
+          <form id="registerForm" style="display: none;">
             <div id="authMessage"></div>
             <div class="input-group">
               <i class="fas fa-user"></i>
@@ -632,18 +652,25 @@
             </div>
             
             <div class="input-group">
-              <i class="fas fa-user"></i>
-              <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="registerEmail" placeholder="Correo electrónico" required>
             </div>
             
             <div class="input-group">
               <i class="fas fa-lock"></i>
-              <input type="password" id="registerPassword" placeholder="Contraseña" required autocomplete="new-password">
+              <input type="password" id="registerPassword" 
+                     placeholder="Contraseña (mín. 8 caracteres)" 
+                     required minlength="8" autocomplete="new-password">
             </div>
             
             <div class="input-group">
               <i class="fas fa-lock"></i>
-              <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required autocomplete="new-password">
+              <input type="password" id="registerConfirmPassword" 
+                     placeholder="Confirmar contraseña" required minlength="8">
+            </div>
+            
+            <div id="passwordRequirements">
+              🔒 La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.
             </div>
             
             <button type="submit">
@@ -790,6 +817,62 @@
         el.style.transform = 'translateY(20px)';
         el.style.transition = 'all 0.6s ease-out';
         observer.observe(el);
+      });
+
+      // Manejo de los formularios de autenticación
+      const showRegister = document.getElementById('showRegister');
+      const showLogin = document.getElementById('showLogin');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+
+      showRegister.addEventListener('click', function() {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+      });
+
+      showLogin.addEventListener('click', function() {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'flex';
+      });
+
+      // Validación de contraseña en tiempo real
+      const passwordInput = document.getElementById('registerPassword');
+      const confirmPasswordInput = document.getElementById('registerConfirmPassword');
+      const passwordRequirements = document.getElementById('passwordRequirements');
+
+      passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let message = '🔒 ';
+        
+        if (password.length < 8) {
+          message += 'Mínimo 8 caracteres | ';
+        }
+        if (!/[A-Z]/.test(password)) {
+          message += '1 mayúscula | ';
+        }
+        if (!/[0-9]/.test(password)) {
+          message += '1 número | ';
+        }
+        if (!/[^A-Za-z0-9]/.test(password)) {
+          message += '1 carácter especial';
+        }
+        
+        passwordRequirements.textContent = message;
+        
+        // Validar coincidencia con confirmación
+        if (confirmPasswordInput.value && password !== confirmPasswordInput.value) {
+          confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
+        } else {
+          confirmPasswordInput.setCustomValidity('');
+        }
+      });
+
+      confirmPasswordInput.addEventListener('input', function() {
+        if (this.value !== passwordInput.value) {
+          this.setCustomValidity('Las contraseñas no coinciden');
+        } else {
+          this.setCustomValidity('');
+        }
       });
     });
   </script>
