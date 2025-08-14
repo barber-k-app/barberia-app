@@ -6,7 +6,6 @@
   <title>Agendar Cita | Barber-K</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #D4AF37;
@@ -14,6 +13,9 @@
       --darker: #0a0a0a;
       --light: #f8f8f8;
       --glass: rgba(255, 255, 255, 0.05);
+      --success: #27ae60;
+      --danger: #e74c3c;
+      --warning: #f39c12;
     }
     
     * {
@@ -248,7 +250,7 @@
       font-size: 0.9rem;
     }
     
-    #citaForm {
+    #citaForm, #authForm {
       display: flex;
       flex-direction: column;
       gap: 1rem;
@@ -314,7 +316,7 @@
       margin-bottom: 15px;
     }
     
-    button[type="submit"] {
+    button[type="submit"], .auth-toggle {
       background: var(--gold);
       color: var(--darker);
       padding: 15px;
@@ -332,13 +334,13 @@
       animation: pulse 2s infinite 1s;
     }
     
-    button[type="submit"]:hover {
+    button[type="submit"]:hover, .auth-toggle:hover {
       background: #c9a227;
       transform: translateY(-2px) scale(1.02);
       box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
     }
     
-    #mensaje {
+    #mensaje, #authMessage {
       padding: 15px;
       margin: 1rem 0;
       border-radius: 8px;
@@ -446,8 +448,83 @@
       animation-delay: 0.5s;
     }
 
+    /* Nuevos estilos para el sistema de autenticación */
+    .auth-container {
+      display: none;
+    }
+    
+    .auth-container.active {
+      display: block;
+    }
+    
+    .cita-container {
+      display: none;
+    }
+    
+    .cita-container.active {
+      display: block;
+    }
+    
+    .auth-toggle {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      margin: 0.5rem 0;
+      animation: none;
+    }
+    
+    .auth-toggle:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+    
+    /* Estilos para los horarios */
+    .horarios-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 1rem 0;
+    }
+    
+    .hora-btn {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    
+    .hora-disponible {
+      background-color: var(--success);
+      color: white;
+    }
+    
+    .hora-ocupada {
+      background-color: var(--danger);
+      color: white;
+      cursor: not-allowed;
+    }
+    
+    .hora-seleccionada {
+      background-color: var(--gold);
+      color: var(--darker);
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+    }
+    
+    .queue-info {
+      background: rgba(212, 175, 55, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border: 1px solid var(--gold);
+      text-align: center;
+      display: none;
+    }
+
     @media (max-width: 768px) {
-      .form-row {
+      .form-row, .horarios-container {
         grid-template-columns: 1fr;
       }
       
@@ -494,68 +571,148 @@
       <header>
         <h1 class="titulo-premium">
           <span class="diamond">◆</span>
-          <span class="titulo-efecto">AGENDAR CITA</span>
+          <span class="titulo-efecto">BARBER-K</span>
           <span class="diamond">◆</span>
         </h1>
         <p class="subtitulo-lujo">
           <span class="linea-oro"></span>
-          BARBER-K BARBERÍA DE ALTA GAMA
+          BARBERÍA DE ALTA GAMA
           <span class="linea-oro"></span>
         </p>
       </header>
       
       <main>
-        <form id="citaForm">
-          <div class="input-group">
-            <i class="fas fa-user"></i>
-            <input type="text" id="nombre" placeholder="Nombre completo" required>
-          </div>
-          
-          <div class="input-group">
-            <i class="fas fa-phone"></i>
-            <input type="tel" id="telefono" placeholder="Teléfono" required>
-          </div>
-          
-          <div class="form-row">
-            <div class="input-group">
-              <i class="fas fa-calendar-alt"></i>
-              <input type="date" id="fecha" required>
+        <!-- Contenedor de Autenticación -->
+        <div id="authContainer" class="auth-container active">
+          <form id="authForm">
+            <div id="authMessage"></div>
+            
+            <div id="loginForm">
+              <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="loginNombre" placeholder="Nombre de usuario" required>
+              </div>
+              
+              <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="loginPassword" placeholder="Contraseña" required>
+              </div>
+              
+              <button type="submit">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+              </button>
+              
+              <button type="button" class="auth-toggle" id="showRegister">
+                <i class="fas fa-user-plus"></i> ¿No tienes cuenta? Regístrate
+              </button>
             </div>
-
-            <div class="input-group">
-              <i class="fas fa-clock"></i>
-              <input type="time" id="hora" min="08:00" max="21:00" required>
+            
+            <div id="registerForm" style="display: none;">
+              <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="registerNombre" placeholder="Nombre completo" required>
+              </div>
+              
+              <div class="input-group">
+                <i class="fas fa-phone"></i>
+                <input type="tel" id="registerTelefono" placeholder="Teléfono" required>
+              </div>
+              
+              <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
+              </div>
+              
+              <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="registerPassword" placeholder="Contraseña" required>
+              </div>
+              
+              <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required>
+              </div>
+              
+              <button type="submit">
+                <i class="fas fa-user-plus"></i> Registrarse
+              </button>
+              
+              <button type="button" class="auth-toggle" id="showLogin">
+                <i class="fas fa-sign-in-alt"></i> ¿Ya tienes cuenta? Inicia Sesión
+              </button>
             </div>
-
+          </form>
+        </div>
+        
+        <!-- Contenedor de Citas (se muestra después de autenticarse) -->
+        <div id="citaContainer" class="cita-container">
+          <h1 class="titulo-premium">
+            <span class="diamond">◆</span>
+            <span class="titulo-efecto">AGENDAR CITA</span>
+            <span class="diamond">◆</span>
+          </h1>
+          
+          <form id="citaForm">
             <div class="input-group">
-              <i class="fas fa-cut"></i>
-              <select id="servicio" required>
-                <option value="" disabled selected>Servicio</option>
-                <option value="Corte con barba">Corte con barba</option>
-                <option value="Corte normal">Corte normal</option>
-                <option value="Retoque de barba">Retoque de barba</option>
-                <option value="Retoque de cejas">Retoque de cejas</option>
+              <i class="fas fa-user"></i>
+              <input type="text" id="nombre" placeholder="Nombre completo" required readonly>
+            </div>
+            
+            <div class="input-group">
+              <i class="fas fa-phone"></i>
+              <input type="tel" id="telefono" placeholder="Teléfono" required readonly>
+            </div>
+            
+            <div class="form-row">
+              <div class="input-group">
+                <i class="fas fa-calendar-alt"></i>
+                <input type="date" id="fecha" required>
+              </div>
+
+              <div class="input-group">
+                <i class="fas fa-clock"></i>
+                <input type="time" id="hora" min="08:00" max="21:00" required style="display: none;">
+                <div id="horariosDisponibles" class="horarios-container"></div>
+              </div>
+
+              <div class="input-group">
+                <i class="fas fa-cut"></i>
+                <select id="servicio" required>
+                  <option value="" disabled selected>Servicio</option>
+                  <option value="Corte con barba">Corte con barba</option>
+                  <option value="Corte normal">Corte normal</option>
+                  <option value="Retoque de barba">Retoque de barba</option>
+                  <option value="Retoque de cejas">Retoque de cejas</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="input-group">
+              <i class="fas fa-user-tie"></i>
+              <select id="barbero" required>
+                <option value="Kelvin" selected>Kelvin Vielma (Barbero Principal)</option>
               </select>
             </div>
+            
+            <div id="queueInfo" class="queue-info">
+              <i class="fas fa-users"></i> <span id="queueMessage"></span>
+            </div>
+            
+            <button type="submit">
+              <i class="fas fa-calendar-check"></i> Confirmar Cita
+            </button>
+          </form>
+          
+          <div id="mensaje"></div>
+          
+          <div class="info-horario">
+            <i class="fas fa-info-circle"></i>
+            <p>Horario de atención: Lunes a Sábado de 8:00 AM a 9:00 PM</p>
           </div>
           
-          <div class="input-group">
-            <i class="fas fa-user-tie"></i>
-            <select id="barbero" required>
-              <option value="Kelvin" selected>Kelvin Vielma (Barbero Principal)</option>
-            </select>
-          </div>
-          
-          <button type="submit">
-            <i class="fas fa-calendar-check"></i> Confirmar Cita
+          <button id="logoutBtn" class="btn-volver">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
           </button>
-        </form>
-        
-        <div id="mensaje"></div>
-        
-        <div class="info-horario">
-          <i class="fas fa-info-circle"></i>
-          <p>Horario de atención: Lunes a Sábado de 8:00 AM a 9:00 PM</p>
         </div>
       </main>
     </div>
