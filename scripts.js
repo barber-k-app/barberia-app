@@ -26,6 +26,33 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
+// Función para bloquear domingos
+function bloquearDomingos() {
+  const fechaInput = document.getElementById('fecha');
+  if (!fechaInput) return;
+  
+  // Obtener el próximo lunes si hoy es domingo
+  const hoy = new Date();
+  if (hoy.getDay() === 0) {
+    const proximoLunes = new Date();
+    proximoLunes.setDate(hoy.getDate() + 1);
+    fechaInput.min = proximoLunes.toISOString().split('T')[0];
+  }
+  
+  // Deshabilitar domingos en el calendario nativo
+  fechaInput.addEventListener('input', function() {
+    const fechaSeleccionada = new Date(this.value);
+    if (fechaSeleccionada.getDay() === 0) {
+      mostrarMensaje('❌ Domingos cerrados. Seleccione de Lunes a Sábado', 'error');
+      this.value = '';
+      // Reiniciar a la fecha mínima permitida
+      const fechaMinima = new Date();
+      if (fechaMinima.getDay() === 0) fechaMinima.setDate(fechaMinima.getDate() + 1);
+      this.value = fechaMinima.toISOString().split('T')[0];
+    }
+  });
+}
+
 // Función para verificar límite de citas
 async function verificarLimiteCitas(telefono, fecha) {
   const { data: citas, error } = await supabase
@@ -271,6 +298,9 @@ function inicializarSelectores() {
   
   // Generar horarios disponibles
   generarHorariosDisponibles();
+  
+  // Bloquear domingos al cargar la página
+  bloquearDomingos();
   
   // Actualizar disponibilidad cuando cambia la fecha
   fechaInput.addEventListener('change', function() {
