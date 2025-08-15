@@ -543,6 +543,27 @@
       border-color: var(--success);
     }
 
+    /* Estilos para el toggle de contraseña */
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--gold);
+      transition: all 0.3s;
+      opacity: 0.7;
+    }
+
+    .toggle-password:hover {
+      opacity: 1;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .input-group:hover .toggle-password {
+      opacity: 1;
+    }
+
     @media (max-width: 768px) {
       .form-row, .horarios-container {
         grid-template-columns: 1fr;
@@ -627,6 +648,7 @@
                 required 
                 autocomplete="current-password"
               >
+              <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('loginPassword', this)"></i>
             </div>
             
             <button type="submit">
@@ -658,15 +680,28 @@
             
             <div class="input-group">
               <i class="fas fa-lock"></i>
-              <input type="password" id="registerPassword" 
-                     placeholder="Contraseña (mín. 8 caracteres)" 
-                     required minlength="8" autocomplete="new-password">
+              <input 
+                type="password" 
+                id="registerPassword" 
+                placeholder="Contraseña (mín. 8 caracteres)" 
+                required 
+                minlength="8" 
+                autocomplete="new-password"
+              >
+              <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('registerPassword', this)"></i>
             </div>
             
             <div class="input-group">
               <i class="fas fa-lock"></i>
-              <input type="password" id="registerConfirmPassword" 
-                     placeholder="Confirmar contraseña" required minlength="8">
+              <input 
+                type="password" 
+                id="registerConfirmPassword" 
+                placeholder="Confirmar contraseña" 
+                required 
+                minlength="8"
+                autocomplete="new-password"
+              >
+              <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('registerConfirmPassword', this)"></i>
             </div>
             
             <div id="passwordRequirements">
@@ -875,6 +910,20 @@
         }
       });
     });
+
+    // Función para mostrar/ocultar contraseña
+    function togglePasswordVisibility(inputId, icon) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
   </script>
 </body>
 </html>
