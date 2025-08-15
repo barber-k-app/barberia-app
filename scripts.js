@@ -390,7 +390,7 @@ async function handleLogin() {
   }
 }
 
-// 12. Función para manejar registro
+// 12. Función para manejar registro (versión mejorada)
 async function handleRegister() {
   // 1. Obtener datos del formulario
   const userData = {
@@ -400,18 +400,31 @@ async function handleRegister() {
     password: document.getElementById('registerPassword').value
   };
 
-  console.log("Datos a registrar:", userData); // Para debuggear
+  // Validaciones adicionales
+  if (userData.password !== document.getElementById('registerConfirmPassword').value) {
+    mostrarMensaje('Las contraseñas no coinciden', 'error', 'authMessage');
+    return;
+  }
+
+  if (!/^04\d{9}$/.test(userData.telefono)) {
+    mostrarMensaje('Teléfono debe comenzar con 04 y tener 11 dígitos', 'error', 'authMessage');
+    return;
+  }
 
   try {
     // 2. Verificar si el usuario ya existe
     const { data: existingUser, error: queryError } = await supabase
       .from('clientes')
-      .select('usuario')
-      .eq('usuario', userData.usuario);
+      .select('usuario, telefono')
+      .or(`usuario.eq.${userData.usuario},telefono.eq.${userData.telefono}`);
 
     if (queryError) throw new Error("Error al verificar usuario");
+    
     if (existingUser && existingUser.length > 0) {
-      throw new Error("⚠️ El usuario ya existe");
+      const errorMsg = existingUser.some(u => u.usuario === userData.usuario) 
+        ? "⚠️ El usuario ya existe" 
+        : "⚠️ El teléfono ya está registrado";
+      throw new Error(errorMsg);
     }
 
     // 3. Insertar en Supabase
@@ -423,16 +436,22 @@ async function handleRegister() {
     if (error) throw error;
     if (!data) throw new Error("No se recibieron datos");
 
-    // 4. Éxito: guardar sesión y redirigir
-    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
-    mostrarMensaje('✅ Registro exitoso!', 'exito');
+    // 4. Éxito: mostrar mensaje y volver al login
+    mostrarMensaje('✅ Registro exitoso! Por favor inicia sesión con tus credenciales', 'exito', 'authMessage');
     
-    document.getElementById('authContainer').classList.remove('active');
-    document.getElementById('citaContainer').classList.add('active');
+    // Limpiar formulario de registro
+    document.getElementById('registerForm').reset();
+    
+    // Mostrar formulario de login
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    
+    // NO guardar sesión automáticamente
+    // NO redirigir a la vista de citas
 
   } catch (error) {
     console.error("Error en registro:", error);
-    mostrarMensaje(error.message, 'error');
+    mostrarMensaje(error.message, 'error', 'authMessage');
   }
 }
 
@@ -451,12 +470,14 @@ function manejarAutenticacion() {
   showRegister?.addEventListener('click', () => {
     loginForm.style.display = 'none';
     registerForm.style.display = 'block';
+    document.getElementById('authMessage').innerHTML = ''; // Limpiar mensajes
   });
 
   // Mostrar formulario de login
   showLogin?.addEventListener('click', () => {
     registerForm.style.display = 'none';
     loginForm.style.display = 'block';
+    document.getElementById('authMessage').innerHTML = ''; // Limpiar mensajes
   });
 
   // Manejar logout
@@ -464,6 +485,9 @@ function manejarAutenticacion() {
     localStorage.removeItem('clienteAutenticado');
     authContainer.classList.add('active');
     citaContainer.classList.remove('active');
+    loginForm.style.display = 'block';
+    registerForm.style.display = 'none';
+    document.getElementById('authMessage').innerHTML = ''; // Limpiar mensajes
   });
 
   // Validación en tiempo real para el formulario de registro
