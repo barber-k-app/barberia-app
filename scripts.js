@@ -2,14 +2,25 @@
 const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-// Inicializar Supabase con autenticación
+// Inicializar Supabase con autenticación y logging extendido
 const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storage: localStorage
+  },
+  db: {
+    schema: 'public'
   }
 }) : null;
+
+// Habilita logging detallado
+if (supabase) {
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Cambio en estado de autenticación:', event, session);
+  });
+}
 
 if (!supabase) {
   console.error('Error: No se pudo inicializar Supabase');
@@ -409,25 +420,28 @@ async function handleLogin() {
   }
 }
 
-// 12. Función para manejar registro con Supabase Auth (versión mejorada)
+// 12. Función mejorada para manejar registro con Supabase Auth
 async function handleRegister() {
-  console.log("Iniciando registro...");
-  
   const email = document.getElementById('registerEmail').value.trim();
   const password = document.getElementById('registerPassword').value;
   const nombre = document.getElementById('registerNombre').value.trim();
   const telefono = document.getElementById('registerTelefono').value.trim();
 
-  console.log("Datos a registrar:", { email, password, nombre, telefono });
+  console.log("Datos a registrar:", { email, nombre, telefono });
 
   try {
-    // Validar contraseña
+    // Validación básica
+    if (!email || !password || !nombre || !telefono) {
+      throw new Error("Todos los campos son obligatorios");
+    }
+
     if (password.length < 8) {
       throw new Error("La contraseña debe tener al menos 8 caracteres");
     }
 
-    console.log("Intentando registro en Supabase Auth...");
-    const { data: { user }, error: authError } = await supabase.auth.signUp({
+    // 1. Registrar usuario en Auth
+    console.log("Registrando en Supabase Auth...");
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -438,18 +452,19 @@ async function handleRegister() {
       }
     });
 
-    console.log("Respuesta de Auth:", { user, authError });
-    
     if (authError) {
-      console.error("Error en Auth:", authError);
+      console.error("Error en Supabase Auth:", authError);
       throw authError;
     }
 
-    console.log("Intentando guardar en tabla clientes...");
+    console.log("AuthData:", authData);
+
+    // 2. Guardar en tabla clientes
+    console.log("Guardando en tabla clientes...");
     const { data: dbData, error: dbError } = await supabase
       .from('clientes')
       .insert([{
-        id: user.id,
+        id: authData.user.id,
         nombre,
         telefono,
         email,
@@ -457,21 +472,21 @@ async function handleRegister() {
       }])
       .select();
 
-    console.log("Respuesta de DB:", { dbData, dbError });
-    
     if (dbError) {
-      console.error("Error en DB:", dbError);
+      console.error("Error al guardar en clientes:", dbError);
       throw dbError;
     }
 
-    mostrarMensaje('✅ Registro exitoso. Verifica tu email para activar la cuenta.', 'exito');
+    console.log("Datos guardados en clientes:", dbData);
+
+    mostrarMensaje('✅ Registro exitoso. Por favor verifica tu email.', 'exito');
     
     // Redirigir al login después de 3 segundos
     setTimeout(() => {
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('loginForm').style.display = 'block';
     }, 3000);
-    
+
   } catch (error) {
     console.error("Error completo en registro:", error);
     mostrarMensaje(error.message || 'Error en el registro', 'error');
@@ -550,22 +565,36 @@ function manejarAutenticacion() {
   });
 }
 
-// Función para mostrar/ocultar contraseña
-function togglePassword(inputId, icon) {
-  const input = document.getElementById(inputId);
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  } else {
-    input.type = "password";
-    icon.classList.remove('fa-eye-slash');
-    icon.classList.add('fa-eye');
-  }
+// 15. Función mejorada para mostrar/ocultar contraseña
+function setupPasswordToggles() {
+  document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      
+      if (!input) {
+        console.error('No se encontró el input con id:', targetId);
+        return;
+      }
+      
+      if (input.type === "password") {
+        input.type = "text";
+        this.classList.remove('fa-eye');
+        this.classList.add('fa-eye-slash');
+      } else {
+        input.type = "password";
+        this.classList.remove('fa-eye-slash');
+        this.classList.add('fa-eye');
+      }
+    });
+  });
 }
 
-// 15. Inicialización principal adaptada para Venezuela
+// 16. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', async function() {
+  // Configurar toggles de contraseña
+  setupPasswordToggles();
+
   // Verificar sesión activa
   const { data: { session }, error: sessionError } = await supabase.auth.getSession();
   
@@ -679,12 +708,4 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
   }
-
-  // Configurar toggles de contraseña
-  document.querySelectorAll('.toggle-password').forEach(icon => {
-    icon.addEventListener('click', function() {
-      const inputId = this.getAttribute('data-input');
-      togglePassword(inputId, this);
-    });
-  });
 });
