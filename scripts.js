@@ -2,160 +2,90 @@
 const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-// Inicializar Supabase con verificación mejorada
-let supabase;
-if (typeof window !== 'undefined' && window.supabase) {
-  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-} else {
+// Inicializar Supabase
+const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+
+if (!supabase) {
+  console.error('Error: No se pudo inicializar Supabase');
   // Cargar el script dinámicamente si es necesario
   const script = document.createElement('script');
   script.src = 'https://unpkg.com/@supabase/supabase-js@2';
   script.onload = () => {
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
     console.log('Supabase cargado dinámicamente');
-    // Volver a inicializar componentes que dependen de Supabase
-    if (document.readyState === 'complete') {
-      inicializarComponentes();
-    }
   };
   document.head.appendChild(script);
 }
 
-// Configuración de horarios para Venezuela (mejorada con objetos Date)
+// Configuración de horarios para Venezuela
 const CONFIG_VENEZUELA = {
   intervaloEntreCitas: 40, // minutos entre citas
   horarioApertura: '08:00',
   horarioCierre: '21:00',
   zonaHoraria: 'America/Caracas',
-  diasTrabajo: [1, 2, 3, 4, 5, 6], // Lunes(1) a Sábado(6)
-  // Funciones para convertir horarios a Date (mejor comparación)
-  getAperturaDate: function() {
-    const [hora, minuto] = this.horarioApertura.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hora, minuto, 0, 0);
-    return date;
-  },
-  getCierreDate: function() {
-    const [hora, minuto] = this.horarioCierre.split(':').map(Number);
-    const date = new Date();
-    date.setHours(hora, minuto, 0, 0);
-    return date;
-  }
+  diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
-// 2. Función mejorada para obtener hora actual de Venezuela
+// 2. Función para obtener hora actual de Venezuela
 function obtenerHoraActualVenezuela() {
-  try {
-    const options = {
-      timeZone: CONFIG_VENEZUELA.zonaHoraria,
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date().toLocaleTimeString('es-VE', options).slice(0, 5);
-  } catch (error) {
-    console.error('Error al obtener hora Venezuela:', error);
-    // Fallback a hora UTC si hay error
-    const now = new Date();
-    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  }
+  return new Date().toLocaleTimeString('es-VE', {
+    timeZone: CONFIG_VENEZUELA.zonaHoraria,
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
-// 3. Función mejorada para mostrar mensajes (con más opciones)
-function mostrarMensaje(texto, tipo = 'info', elementoId = 'mensaje', tiempo = 5000) {
+// 3. Función mejorada para mostrar mensajes
+function mostrarMensaje(texto, tipo = 'info', elementoId = 'mensaje') {
   const mensajeDiv = document.getElementById(elementoId);
   if (!mensajeDiv) {
-    console.warn(`No se encontró el elemento #${elementoId} para mostrar mensajes`);
+    console.warn('No se encontró el elemento para mostrar mensajes');
     return;
   }
   
-  // Limpiar mensajes anteriores con animación
-  mensajeDiv.classList.add('fade-out');
+  // Limpiar mensajes anteriores
+  mensajeDiv.innerHTML = '';
+  mensajeDiv.className = ''; // Resetear clases
+  
+  // Crear elemento de mensaje
+  const mensajeElement = document.createElement('div');
+  mensajeElement.className = `mensaje-${tipo}`;
+  mensajeElement.textContent = texto;
+  
+  // Agregar botón de cerrar
+  const cerrarBtn = document.createElement('button');
+  cerrarBtn.textContent = '×';
+  cerrarBtn.className = 'cerrar-mensaje';
+  cerrarBtn.onclick = () => mensajeDiv.style.display = 'none';
+  
+  mensajeElement.prepend(cerrarBtn);
+  mensajeDiv.appendChild(mensajeElement);
+  mensajeDiv.style.display = 'block';
+  
+  // Ocultar automáticamente después de 5 segundos
   setTimeout(() => {
-    mensajeDiv.innerHTML = '';
-    mensajeDiv.className = ''; // Resetear clases
-    mensajeDiv.classList.remove('fade-out');
-    
-    // Crear elemento de mensaje
-    const mensajeElement = document.createElement('div');
-    mensajeElement.className = `mensaje mensaje-${tipo}`;
-    mensajeElement.innerHTML = `
-      <span class="mensaje-texto">${texto}</span>
-      <button class="cerrar-mensaje" aria-label="Cerrar mensaje">×</button>
-    `;
-    
-    mensajeDiv.appendChild(mensajeElement);
-    mensajeDiv.style.display = 'block';
-    
-    // Agregar evento al botón de cerrar
-    const cerrarBtn = mensajeElement.querySelector('.cerrar-mensaje');
-    cerrarBtn.onclick = () => {
-      mensajeDiv.classList.add('fade-out');
-      setTimeout(() => {
-        mensajeDiv.style.display = 'none';
-      }, 300);
-    };
-    
-    // Ocultar automáticamente después del tiempo especificado
-    if (tiempo > 0) {
-      setTimeout(() => {
-        if (mensajeDiv.style.display === 'block') {
-          mensajeDiv.classList.add('fade-out');
-          setTimeout(() => {
-            mensajeDiv.style.display = 'none';
-          }, 300);
-        }
-      }, tiempo);
-    }
-  }, 300);
+    mensajeDiv.style.display = 'none';
+  }, 5000);
 }
 
-// 4. Función mejorada para verificar disponibilidad de horario
+// 4. Función para verificar disponibilidad de horario
 async function verificarDisponibilidad(fecha, hora) {
-  if (!supabase) {
-    return {
-      disponible: false,
-      mensaje: 'Error de conexión con el servidor'
-    };
-  }
-
   try {
-    // Validación básica de hora
-    if (!hora || !hora.match(/^\d{2}:\d{2}$/)) {
-      throw new Error('Formato de hora inválido');
-    }
-
     // Convertir hora seleccionada a minutos
     const [horaSel, minSel] = hora.split(':').map(Number);
     const minutosSel = horaSel * 60 + minSel;
     
-    // Validar horario laboral
-    const horaCita = new Date(`${fecha}T${hora}`);
-    const horaApertura = CONFIG_VENEZUELA.getAperturaDate();
-    const horaCierre = CONFIG_VENEZUELA.getCierreDate();
-    
-    if (horaCita.getHours() < horaApertura.getHours() || 
-        (horaCita.getHours() === horaCierre.getHours() && horaCita.getMinutes() >= horaCierre.getMinutes()) ||
-        horaCita.getHours() > horaCierre.getHours()) {
-      return {
-        disponible: false,
-        mensaje: `Fuera del horario laboral (${CONFIG_VENEZUELA.horarioApertura} a ${CONFIG_VENEZUELA.horarioCierre})`
-      };
-    }
-
     // Obtener todas las citas para esa fecha
     const { data: citas, error } = await supabase
       .from('citas')
-      .select('hora, estado')
+      .select('hora')
       .eq('fecha', fecha);
     
     if (error) throw error;
     
     // Verificar cada cita existente
     for (const cita of citas) {
-      // Solo considerar citas activas (no canceladas)
-      if (cita.estado === 'cancelada') continue;
-      
       const [horaExistente, minExistente] = cita.hora.split(':').map(Number);
       const minutosExistente = horaExistente * 60 + minExistente;
       
@@ -166,7 +96,7 @@ async function verificarDisponibilidad(fecha, hora) {
       if (diferencia < CONFIG_VENEZUELA.intervaloEntreCitas) {
         return {
           disponible: false,
-          mensaje: `El horario ${hora} no está disponible (hay otra cita muy cercana). Por favor elige otro.`
+          mensaje: `El horario ${hora} no está disponible. Por favor elige otro.`
         };
       }
     }
@@ -176,59 +106,34 @@ async function verificarDisponibilidad(fecha, hora) {
     console.error('Error verificando disponibilidad:', error);
     return {
       disponible: false,
-      mensaje: error.message || 'Error al verificar disponibilidad. Intenta nuevamente.'
+      mensaje: 'Error al verificar disponibilidad. Intenta nuevamente.'
     };
   }
 }
 
 // 5. Validación mejorada de formulario con horario Venezuela
-function validarFormulario({nombre, telefono, fecha, hora, servicio, barbero}) {
-  // Validación de nombre
+function validarFormulario({nombre, telefono, fecha, hora}) {
   if (!nombre || nombre.trim().length < 3) {
     return {valido: false, error: 'El nombre debe tener al menos 3 caracteres'};
   }
   
-  // Validación de teléfono (acepta +58 para Venezuela)
-  if (!telefono || !/^(\+58|0)\d{9,15}$/.test(telefono)) {
-    return {valido: false, error: 'Teléfono inválido. Debe comenzar con +58 o 0 y tener 10-15 dígitos'};
-  }
-  
-  // Validación de fecha
-  if (!fecha) {
-    return {valido: false, error: 'Por favor seleccione una fecha'};
-  }
-  
-  // Validación de hora
-  if (!hora) {
-    return {valido: false, error: 'Por favor seleccione una hora'};
-  }
-  
-  // Validación de servicio
-  if (!servicio) {
-    return {valido: false, error: 'Por favor seleccione un servicio'};
-  }
-  
-  // Validación de barbero
-  if (!barbero) {
-    return {valido: false, error: 'Por favor seleccione un barbero'};
+  if (!telefono || !/^\d{10,15}$/.test(telefono)) {
+    return {valido: false, error: 'Teléfono debe tener entre 10 y 15 dígitos'};
   }
   
   const fechaCita = new Date(`${fecha}T${hora}`);
   const ahora = new Date();
   
-  // Validar que la cita no sea en el pasado
   if (fechaCita < ahora) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
   // Validar horario laboral en Venezuela
-  const horaApertura = CONFIG_VENEZUELA.getAperturaDate();
-  const horaCierre = CONFIG_VENEZUELA.getCierreDate();
-  const horaCitaTime = fechaCita.getHours() * 60 + fechaCita.getMinutes();
-  const aperturaTime = horaApertura.getHours() * 60 + horaApertura.getMinutes();
-  const cierreTime = horaCierre.getHours() * 60 + horaCierre.getMinutes();
+  const [horaCita, minCita] = hora.split(':').map(Number);
+  const [horaApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
+  const [horaCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
   
-  if (horaCitaTime < aperturaTime || horaCitaTime >= cierreTime) {
+  if (horaCita < horaApertura || horaCita >= horaCierre) {
     return {
       valido: false, 
       error: `Horario no disponible (${CONFIG_VENEZUELA.horarioApertura} a ${CONFIG_VENEZUELA.horarioCierre})`
@@ -238,20 +143,17 @@ function validarFormulario({nombre, telefono, fecha, hora, servicio, barbero}) {
   return {valido: true};
 }
 
-// 6. Función mejorada para inicializar selectores con validación para Venezuela
+// 6. Función para inicializar selectores con validación para Venezuela
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
   const horaInput = document.getElementById('hora');
   
-  if (!fechaInput || !horaInput) {
-    console.warn('No se encontraron los inputs de fecha/hora');
-    return;
-  }
+  if (!fechaInput || !horaInput) return;
 
   // Configurar fecha mínima (hoy) según hora de Venezuela
   const hoy = new Date();
-  const hoyVenezuela = new Date(hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria }));
-  const fechaMinima = hoyVenezuela.toISOString().split('T')[0];
+  const hoyVenezuela = hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria });
+  const fechaMinima = hoyVenezuela.split(',')[0].trim().split('/').reverse().join('-');
   
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
@@ -260,15 +162,13 @@ function inicializarSelectores() {
   horaInput.min = CONFIG_VENEZUELA.horarioApertura;
   horaInput.max = CONFIG_VENEZUELA.horarioCierre;
   
-  // Mostrar input de hora y marcarlo como requerido
+  // Eliminar display: none del input de hora y marcarlo como requerido
   horaInput.style.display = 'block';
   horaInput.required = true;
   
   // Establecer hora actual de Venezuela como sugerencia
   const horaActual = obtenerHoraActualVenezuela();
-  if (horaActual) {
-    horaInput.value = horaActual;
-  }
+  horaInput.value = horaActual;
   
   // Validar días de trabajo (Lunes a Sábado)
   fechaInput.addEventListener('change', function() {
@@ -278,14 +178,11 @@ function inicializarSelectores() {
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
       this.value = fechaInput.min; // Resetear a fecha mínima
-    } else {
-      // Generar horarios cuando se selecciona una fecha válida
-      generarHorariosDisponibles(this.value);
     }
   });
 }
 
-// 7. Función mejorada para enviar notificación a Telegram
+// 7. Función para enviar notificación a Telegram
 async function enviarNotificacionTelegram(citaData) {
   const BOT_TOKEN = "8473537897:AAE4DhBRqFSgkerepYMSA-meEBwn0pXjXag";
   const CHAT_ID = "8330674980";
@@ -304,216 +201,149 @@ async function enviarNotificacionTelegram(citaData) {
       body: JSON.stringify({
         chat_id: CHAT_ID,
         text: mensaje,
-        parse_mode: 'Markdown',
-        disable_notification: false
+        parse_mode: 'Markdown'
       })
     });
 
-    const data = await response.json();
-    
-    if (!response.ok || !data.ok) {
-      throw new Error(data.description || 'Error al enviar notificación a Telegram');
+    if (!response.ok) {
+      throw new Error('Error al enviar notificación a Telegram');
     }
     
-    console.log('Notificación enviada al barbero:', data);
-    return true;
+    console.log('Notificación enviada al barbero');
   } catch (error) {
     console.error('Error en notificación Telegram:', error);
-    // No mostrar error al usuario para no afectar su experiencia
-    return false;
   }
 }
 
-// 8. Función mejorada para guardar cita con validación de horario
+// 8. Función para guardar cita con validación de horario
 async function guardarCita(citaData) {
   if (!supabase) {
     throw new Error('Error de conexión con el servidor');
   }
 
   try {
-    // Validar datos antes de verificar disponibilidad
-    const validacion = validarFormulario(citaData);
-    if (!validacion.valido) {
-      throw new Error(validacion.error);
-    }
-
-    // Verificar disponibilidad
+    // Primero verificar disponibilidad
     const disponibilidad = await verificarDisponibilidad(citaData.fecha, citaData.hora);
     if (!disponibilidad.disponible) {
       throw new Error(disponibilidad.mensaje);
     }
 
-    // Guardar la cita en Supabase
+    // Si está disponible, guardar la cita
     const { data, error } = await supabase
       .from('citas')
       .insert([{
         ...citaData,
         estado: 'pendiente',
-        creado_en: new Date().toISOString(),
-        actualizado_en: new Date().toISOString()
+        creado_en: new Date().toISOString()
       }])
       .select();
     
-    if (error) throw error;
-    if (!data || data.length === 0) throw new Error('No se recibieron datos de la cita guardada');
+    if (error) {
+      console.error('Error Supabase:', error);
+      throw new Error(error.message || 'Error al guardar la cita');
+    }
     
     // Enviar notificación a Telegram (no bloqueante)
-    enviarNotificacionTelegram(citaData)
-      .then(success => {
-        if (!success) {
-          console.warn('No se pudo enviar notificación a Telegram');
-        }
-      })
-      .catch(e => console.error('Error secundario en notificación:', e));
+    enviarNotificacionTelegram(citaData).catch(e => console.error(e));
     
-    return data[0]; // Retorna solo el primer elemento del array
+    return data;
   } catch (error) {
-    console.error('Error al guardar cita:', error);
-    throw error; // Re-lanzar el error para manejo superior
+    console.error('Error completo:', error);
+    throw error;
   }
 }
 
-// 9. Función mejorada para generar horarios disponibles
+// 9. Función para generar horarios disponibles
 async function generarHorariosDisponibles(fecha) {
   const horariosContainer = document.getElementById('horariosDisponibles');
-  if (!horariosContainer) {
-    console.warn('No se encontró el contenedor de horarios');
+  if (!horariosContainer) return;
+
+  // Limpiar contenedor
+  horariosContainer.innerHTML = '';
+
+  // Obtener citas existentes para esta fecha
+  const { data: citas, error } = await supabase
+    .from('citas')
+    .select('hora')
+    .eq('fecha', fecha);
+
+  if (error) {
+    console.error('Error al obtener citas:', error);
     return;
   }
 
-  // Mostrar loader mientras se cargan los horarios
-  horariosContainer.innerHTML = '<div class="loader">Cargando horarios...</div>';
-  
-  try {
-    // Validar fecha
-    if (!fecha) throw new Error('No se ha seleccionado una fecha');
-    
-    // Obtener citas existentes para esta fecha (solo las no canceladas)
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('hora, estado')
-      .eq('fecha', fecha)
-      .neq('estado', 'cancelada');
+  // Convertir horas ocupadas a minutos
+  const horasOcupadas = citas.map(cita => {
+    const [h, m] = cita.hora.split(':').map(Number);
+    return h * 60 + m;
+  });
 
-    if (error) throw error;
+  // Generar horarios desde apertura hasta cierre
+  const [horaApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
+  const [horaCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
+  const intervalo = CONFIG_VENEZUELA.intervaloEntreCitas;
 
-    // Convertir horas ocupadas a minutos
-    const horasOcupadas = citas.map(cita => {
-      const [h, m] = cita.hora.split(':').map(Number);
-      return h * 60 + m;
-    });
+  for (let hora = horaApertura; hora < horaCierre; hora++) {
+    for (let minuto = 0; minuto < 60; minuto += intervalo) {
+      const totalMinutos = hora * 60 + minuto;
+      const horaFormato = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
 
-    // Limpiar contenedor
-    horariosContainer.innerHTML = '';
-    
-    // Generar horarios desde apertura hasta cierre
-    const horaApertura = CONFIG_VENEZUELA.getAperturaDate();
-    const horaCierre = CONFIG_VENEZUELA.getCierreDate();
-    const intervalo = CONFIG_VENEZUELA.intervaloEntreCitas;
-    
-    let hayHorariosDisponibles = false;
+      // Verificar si está ocupado
+      const estaOcupado = horasOcupadas.some(ocupado => {
+        return Math.abs(ocupado - totalMinutos) < intervalo;
+      });
 
-    for (let hora = horaApertura.getHours(); hora <= horaCierre.getHours(); hora++) {
-      for (let minuto = 0; minuto < 60; minuto += intervalo) {
-        // No generar horarios después de la hora de cierre
-        if (hora === horaCierre.getHours() && minuto >= horaCierre.getMinutes()) {
-          continue;
-        }
+      // Crear botón de horario
+      const horaBtn = document.createElement('button');
+      horaBtn.className = `hora-btn ${estaOcupado ? 'hora-ocupada' : 'hora-disponible'}`;
+      horaBtn.textContent = horaFormato;
+      horaBtn.disabled = estaOcupado;
+      
+      // Manejar selección de horario
+      horaBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('hora').value = horaFormato;
         
-        const totalMinutos = hora * 60 + minuto;
-        const horaFormato = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-
-        // Verificar si está ocupado
-        const estaOcupado = horasOcupadas.some(ocupado => {
-          return Math.abs(ocupado - totalMinutos) < intervalo;
+        // Remover selección anterior
+        document.querySelectorAll('.hora-btn').forEach(btn => {
+          btn.classList.remove('hora-seleccionada');
         });
-
-        // Crear botón de horario
-        const horaBtn = document.createElement('button');
-        horaBtn.type = 'button';
-        horaBtn.className = `hora-btn ${estaOcupado ? 'hora-ocupada' : 'hora-disponible'}`;
-        horaBtn.textContent = horaFormato;
-        horaBtn.disabled = estaOcupado;
-        horaBtn.title = estaOcupado ? 'Horario no disponible' : 'Horario disponible';
-        horaBtn.dataset.hora = horaFormato;
         
-        // Manejar selección de horario
-        horaBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          document.getElementById('hora').value = horaFormato;
-          
-          // Remover selección anterior
-          document.querySelectorAll('.hora-btn').forEach(btn => {
-            btn.classList.remove('hora-seleccionada');
-          });
-          
-          // Marcar como seleccionado
-          horaBtn.classList.add('hora-seleccionada');
-          
-          // Mostrar información de cola
-          mostrarInformacionCola(fecha, horaFormato);
-        });
+        // Marcar como seleccionado
+        horaBtn.classList.add('hora-seleccionada');
+        
+        // Mostrar información de cola
+        mostrarInformacionCola(fecha, horaFormato);
+      });
 
-        horariosContainer.appendChild(horaBtn);
-        if (!estaOcupado) hayHorariosDisponibles = true;
-      }
+      horariosContainer.appendChild(horaBtn);
     }
-    
-    if (!hayHorariosDisponibles) {
-      horariosContainer.innerHTML = '<div class="sin-horarios">No hay horarios disponibles para esta fecha</div>';
-    }
-  } catch (error) {
-    console.error('Error generando horarios:', error);
-    horariosContainer.innerHTML = `<div class="error-horarios">Error al cargar horarios: ${error.message}</div>`;
   }
 }
 
-// 10. Función mejorada para mostrar información de cola
+// 10. Función para mostrar información de cola
 async function mostrarInformacionCola(fecha, hora) {
   const queueInfo = document.getElementById('queueInfo');
   if (!queueInfo) return;
 
   try {
-    // Validar parámetros
-    if (!fecha || !hora) {
-      throw new Error('Faltan parámetros para mostrar información de cola');
-    }
-    
-    // Obtener citas antes de esta (solo las no canceladas)
+    // Obtener citas antes de esta
     const { data: citas, error } = await supabase
       .from('citas')
-      .select('hora, estado')
+      .select('hora')
       .eq('fecha', fecha)
       .lt('hora', hora)
-      .neq('estado', 'cancelada')
       .order('hora', { ascending: true });
 
     if (error) throw error;
 
     const cantidad = citas.length;
-    let mensaje;
-    
-    if (cantidad === 0) {
-      mensaje = 'Serás el primero en este horario';
-    } else if (cantidad === 1) {
-      mensaje = 'Hay 1 persona por delante';
-    } else {
-      mensaje = `Hay ${cantidad} personas por delante`;
-    }
+    const mensaje = cantidad > 0 
+      ? `Tiene ${cantidad} ${cantidad === 1 ? 'persona' : 'personas'} por delante`
+      : 'Es el primero en este horario';
 
-    // Actualizar UI
-    const queueMessage = document.getElementById('queueMessage');
-    if (queueMessage) {
-      queueMessage.textContent = mensaje;
-      queueInfo.style.display = 'block';
-      
-      // Ocultar después de 10 segundos
-      setTimeout(() => {
-        if (queueInfo.style.display === 'block') {
-          queueInfo.style.display = 'none';
-        }
-      }, 10000);
-    }
+    document.getElementById('queueMessage').textContent = mensaje;
+    queueInfo.style.display = 'block';
   } catch (error) {
     console.error('Error al obtener información de cola:', error);
     queueInfo.style.display = 'none';
@@ -525,133 +355,111 @@ async function handleLogin() {
   const usuario = document.getElementById('loginNombre').value.trim();
   const password = document.getElementById('loginPassword').value;
 
-  // Validación básica
-  if (!usuario || !password) {
-    mostrarMensaje('Por favor complete todos los campos', 'error', 'authMessage');
-    return;
-  }
+  // Debuggeo
+  console.log("Credenciales ingresadas:", { usuario, password });
 
   try {
-    // 1. Busca el usuario en Supabase (con hash de contraseña en producción)
+    // 1. Busca el usuario en Supabase
     const { data, error } = await supabase
       .from('clientes')
       .select('*')
       .eq('usuario', usuario)
-      .eq('password', password) // En producción, usar autenticación segura
-      .maybeSingle(); // Devuelve null si no hay resultados
+      .eq('password', password)
+      .single();
 
-    if (error) throw error;
-    if (!data) throw new Error("Usuario o contraseña incorrectos");
+    // Debuggeo
+    console.log("Datos de Supabase:", data);
 
-    // 2. Guarda la sesión en localStorage (en producción considerar sessionStorage o cookies seguras)
+    if (error || !data) {
+      throw new Error("Usuario o contraseña incorrectos");
+    }
+
+    // 2. Guarda la sesión en localStorage
     localStorage.setItem('clienteAutenticado', JSON.stringify(data));
     
-    // 3. Mostrar mensaje de éxito y recargar
-    mostrarMensaje(`Bienvenido ${data.nombre}!`, 'exito', 'authMessage');
+    // 3. Redirige a la vista de citas
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
     
-    // 4. Redirigir después de breve espera
-    setTimeout(() => {
-      document.getElementById('authContainer')?.classList.remove('active');
-      document.getElementById('citaContainer')?.classList.add('active');
-      location.reload(); // Para asegurar que todos los componentes se actualicen
-    }, 1500);
+    // 4. Recarga la página para aplicar cambios
+    setTimeout(() => location.reload(), 500);
 
   } catch (error) {
+    mostrarMensaje(error.message, 'error');
     console.error("Error en login:", error);
-    mostrarMensaje(error.message || 'Error al iniciar sesión', 'error', 'authMessage');
   }
 }
 
-// 12. Función mejorada para manejar registro
+// 12. Función para manejar registro (versión mejorada)
 async function handleRegister() {
-  // 1. Obtener datos del formulario con validación
+  // 1. Obtener datos del formulario con validación mejorada
   const userData = {
     nombre: document.getElementById('registerNombre').value.trim(),
     telefono: document.getElementById('registerTelefono').value.trim(),
-    usuario: document.getElementById('registerUsuario').value.trim(),
-    password: document.getElementById('registerPassword').value,
-    confirmPassword: document.getElementById('registerConfirmPassword').value
+    usuario: document.getElementById('registerUsuario').value.trim().toLowerCase(), // Normalizar a minúsculas
+    password: document.getElementById('registerPassword').value
   };
 
-  // Validación frontend
+  // Validación básica del lado del cliente
   if (!userData.nombre || userData.nombre.length < 3) {
-    mostrarMensaje('El nombre debe tener al menos 3 caracteres', 'error', 'authMessage');
-    return;
+    throw new Error("El nombre debe tener al menos 3 caracteres");
   }
 
-  if (!userData.telefono || !/^(\+58|0)\d{9,15}$/.test(userData.telefono)) {
-    mostrarMensaje('Teléfono inválido. Debe comenzar con +58 o 0 y tener 10-15 dígitos', 'error', 'authMessage');
-    return;
+  if (!userData.telefono || !/^\d{10,15}$/.test(userData.telefono)) {
+    throw new Error("Teléfono debe tener entre 10 y 15 dígitos");
   }
 
   if (!userData.usuario || userData.usuario.length < 4) {
-    mostrarMensaje('El usuario debe tener al menos 4 caracteres', 'error', 'authMessage');
-    return;
+    throw new Error("Usuario debe tener al menos 4 caracteres");
   }
 
   if (!userData.password || userData.password.length < 6) {
-    mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error', 'authMessage');
-    return;
-  }
-
-  if (userData.password !== userData.confirmPassword) {
-    mostrarMensaje('Las contraseñas no coinciden', 'error', 'authMessage');
-    return;
+    throw new Error("La contraseña debe tener al menos 6 caracteres");
   }
 
   try {
     // 2. Verificar si el usuario ya existe
     const { data: existingUser, error: queryError } = await supabase
       .from('clientes')
-      .select('usuario, telefono')
-      .or(`usuario.eq.${userData.usuario},telefono.eq.${userData.telefono}`);
+      .select('usuario')
+      .eq('usuario', userData.usuario);
 
-    if (queryError) throw queryError;
-    
+    if (queryError) throw new Error("Error al verificar usuario");
     if (existingUser && existingUser.length > 0) {
-      const usuarioExistente = existingUser.some(u => u.usuario === userData.usuario);
-      const telefonoExistente = existingUser.some(u => u.telefono === userData.telefono);
-      
-      if (usuarioExistente && telefonoExistente) {
-        throw new Error("⚠️ El usuario y teléfono ya están registrados");
-      } else if (usuarioExistente) {
-        throw new Error("⚠️ El usuario ya está registrado");
-      } else {
-        throw new Error("⚠️ El teléfono ya está registrado");
-      }
+      throw new Error("⚠️ El usuario ya existe");
     }
 
-    // 3. Insertar en Supabase (sin la confirmación de contraseña)
+    // 3. Insertar en Supabase
     const { data, error } = await supabase
       .from('clientes')
-      .insert([{
-        nombre: userData.nombre,
-        telefono: userData.telefono,
-        usuario: userData.usuario,
-        password: userData.password // En producción, usar hash!
-      }])
+      .insert([userData])
       .select();
 
     if (error) throw error;
-    if (!data || data.length === 0) throw new Error("No se recibieron datos del registro");
+    if (!data) throw new Error("No se recibieron datos");
 
-    // 4. Éxito: mostrar mensaje y cambiar a login
-    mostrarMensaje('✅ Registro exitoso! Ahora puedes iniciar sesión', 'exito', 'authMessage');
+    // 4. Éxito: mostrar mensaje y mantener ambos formularios visibles
+    mostrarMensaje('✅ Registro exitoso! Ahora puedes iniciar sesión', 'exito');
     
-    // Limpiar formularios y mostrar login
-    document.getElementById('registerForm').reset();
-    document.getElementById('loginForm').reset();
+    // Limpiar solo los campos de contraseña del registro
+    document.getElementById('registerPassword').value = '';
+    document.getElementById('registerConfirmPassword').value = '';
+    
+    // Mantener ambos formularios visibles
     document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('showRegister').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'block';
+    
+    // Pre-llenar el usuario en el login y enfocar la contraseña
+    document.getElementById('loginNombre').value = userData.usuario;
+    document.getElementById('loginPassword').focus();
 
   } catch (error) {
     console.error("Error en registro:", error);
-    mostrarMensaje(error.message || 'Error en el registro. Intente nuevamente.', 'error', 'authMessage');
+    mostrarMensaje(error.message, 'error');
   }
 }
 
-// 13. Función mejorada para manejar autenticación de usuarios
+// 13. Función para manejar autenticación de usuarios con mejoras
 function manejarAutenticacion() {
   const authContainer = document.getElementById('authContainer');
   const citaContainer = document.getElementById('citaContainer');
@@ -662,71 +470,36 @@ function manejarAutenticacion() {
   const authForm = document.getElementById('authForm');
   const logoutBtn = document.getElementById('logoutBtn');
 
-  // Estado inicial: mostrar login
-  if (loginForm && registerForm) {
-    loginForm.style.display = 'block';
-    registerForm.style.display = 'none';
-  }
-
   // Mostrar formulario de registro
-  showRegister?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (loginForm && registerForm) {
-      loginForm.style.display = 'none';
-      registerForm.style.display = 'block';
-      showRegister.style.display = 'none';
-      showLogin.style.display = 'block';
-    }
+  showRegister?.addEventListener('click', () => {
+    loginForm.style.display = 'none';
+    registerForm.style.display = 'block';
   });
 
   // Mostrar formulario de login
-  showLogin?.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (loginForm && registerForm) {
-      registerForm.style.display = 'none';
-      loginForm.style.display = 'block';
-      showLogin.style.display = 'none';
-      showRegister.style.display = 'block';
-    }
+  showLogin?.addEventListener('click', () => {
+    registerForm.style.display = 'none';
+    loginForm.style.display = 'block';
   });
 
   // Manejar logout
-  logoutBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
+  logoutBtn?.addEventListener('click', () => {
     localStorage.removeItem('clienteAutenticado');
-    mostrarMensaje('Sesión cerrada correctamente', 'info', 'authMessage');
-    
-    if (authContainer && citaContainer) {
-      authContainer.classList.add('active');
-      citaContainer.classList.remove('active');
-    }
-    
-    // Resetear formularios
-    if (loginForm) loginForm.reset();
-    if (registerForm) registerForm.reset();
-    
-    // Mostrar login por defecto
-    if (loginForm && registerForm && showLogin && showRegister) {
-      loginForm.style.display = 'block';
-      registerForm.style.display = 'none';
-      showLogin.style.display = 'none';
-      showRegister.style.display = 'block';
-    }
+    authContainer.classList.add('active');
+    citaContainer.classList.remove('active');
   });
 
   // Validación en tiempo real para el formulario de registro
   registerForm?.addEventListener('input', function(e) {
-    const password = document.getElementById('registerPassword')?.value;
-    const confirmPassword = document.getElementById('registerConfirmPassword')?.value;
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
     
     if (e.target.id === 'registerConfirmPassword' || e.target.id === 'registerPassword') {
       const confirmPasswordInput = document.getElementById('registerConfirmPassword');
-      if (confirmPasswordInput) {
-        if (password !== confirmPassword) {
-          confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
-        } else {
-          confirmPasswordInput.setCustomValidity('');
-        }
+      if (password !== confirmPassword) {
+        confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
+      } else {
+        confirmPasswordInput.setCustomValidity('');
       }
     }
   });
@@ -735,8 +508,9 @@ function manejarAutenticacion() {
   authForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const isLogin = loginForm && loginForm.style.display !== 'none';
-    
+    const isLogin = loginForm.style.display !== 'none';
+    const authMessage = document.getElementById('authMessage');
+
     try {
       if (isLogin) {
         await handleLogin();
@@ -750,41 +524,42 @@ function manejarAutenticacion() {
   });
 }
 
-// 14. Inicialización principal mejorada
-function inicializarComponentes() {
-  // Verificar autenticación al cargar
+// 14. Inicialización principal adaptada para Venezuela
+document.addEventListener('DOMContentLoaded', function() {
+  // Verificar si hay un usuario logueado al cargar la página
   const cliente = JSON.parse(localStorage.getItem('clienteAutenticado'));
   
   if (cliente) {
-    // Mostrar vista de citas
+    // Oculta el login y muestra la vista de citas
     document.getElementById('authContainer')?.classList.remove('active');
     document.getElementById('citaContainer')?.classList.add('active');
     
-    // Rellenar datos automáticamente
-    document.getElementById('nombre')?.value = cliente.nombre || '';
-    document.getElementById('telefono')?.value = cliente.telefono || '';
-    
-    // Mostrar nombre de usuario en navbar
-    const userNavElement = document.getElementById('userNav');
-    if (userNavElement) {
-      userNavElement.textContent = cliente.nombre || cliente.usuario;
-    }
+    // Rellena los datos automáticamente
+    document.getElementById('nombre').value = cliente.nombre;
+    document.getElementById('telefono').value = cliente.telefono;
   }
 
-  // Verificar Supabase
+  // Verificar si Supabase está inicializado
   if (!supabase) {
     mostrarMensaje('Error en la configuración del sistema. Recarga la página.', 'error');
     return;
   }
 
-  // Inicializar componentes
+  // Manejar autenticación
   manejarAutenticacion();
+
+  // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
 
+  // Escuchar cambios en la fecha para generar horarios
+  document.getElementById('fecha')?.addEventListener('change', function() {
+    generarHorariosDisponibles(this.value);
+  });
+
   // Generar horarios para la fecha inicial
-  const fechaInput = document.getElementById('fecha');
-  if (fechaInput?.value) {
-    generarHorariosDisponibles(fechaInput.value);
+  const fechaInicial = document.getElementById('fecha')?.value;
+  if (fechaInicial) {
+    generarHorariosDisponibles(fechaInicial);
   }
 
   // Manejar envío del formulario de citas
@@ -793,47 +568,45 @@ function inicializarComponentes() {
     citaForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
+      // Mostrar estado de carga
       const submitBtn = citaForm.querySelector('button[type="submit"]');
-      if (!submitBtn) return;
-      
-      // Estado de carga
-      const originalText = submitBtn.innerHTML;
+      const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agendando...';
       
       try {
         // Obtener valores del formulario
         const formData = {
-          nombre: document.getElementById('nombre')?.value.trim() || '',
-          telefono: document.getElementById('telefono')?.value.trim() || '',
-          fecha: document.getElementById('fecha')?.value || '',
-          hora: document.getElementById('hora')?.value || '',
-          servicio: document.getElementById('servicio')?.value || '',
-          barbero: document.getElementById('barbero')?.value || ''
+          nombre: document.getElementById('nombre').value.trim(),
+          telefono: document.getElementById('telefono').value.trim(),
+          fecha: document.getElementById('fecha').value,
+          hora: document.getElementById('hora').value,
+          servicio: document.getElementById('servicio').value,
+          barbero: document.getElementById('barbero').value
         };
 
-        // Validar datos
+        // Validar datos básicos
         const validacion = validarFormulario(formData);
         if (!validacion.valido) {
           throw new Error(validacion.error);
         }
 
-        // Guardar cita
+        // Validar que se haya seleccionado un horario
+        if (!formData.hora) {
+          throw new Error('Por favor seleccione un horario disponible');
+        }
+
+        // Guardar cita (incluye validación de disponibilidad)
         const citaGuardada = await guardarCita(formData);
+        console.log('Cita guardada:', citaGuardada);
         
         // Mostrar éxito y resetear
         mostrarMensaje('✅ Cita agendada correctamente. Te esperamos!', 'exito');
-        
-        // Resetear solo los campos de cita, mantener nombre y teléfono
-        document.getElementById('fecha').value = fechaInput?.min || '';
-        document.getElementById('hora').value = '';
-        document.getElementById('servicio').value = '';
-        document.getElementById('barbero').value = '';
+        citaForm.reset();
+        inicializarSelectores();
         
         // Regenerar horarios
-        if (formData.fecha) {
-          generarHorariosDisponibles(formData.fecha);
-        }
+        generarHorariosDisponibles(formData.fecha);
         
       } catch (error) {
         console.error('Error al procesar cita:', error);
@@ -841,19 +614,8 @@ function inicializarComponentes() {
       } finally {
         // Restaurar botón
         submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
+        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Cita';
       }
     });
   }
-}
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-  // Si Supabase ya está cargado, inicializar componentes
-  if (typeof window.supabase !== 'undefined') {
-    inicializarComponentes();
-  }
-  
-  // También escuchar cambios en caso de carga asíncrona
-  document.addEventListener('supabaseReady', inicializarComponentes);
 });
