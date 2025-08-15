@@ -230,14 +230,20 @@ async function actualizarDisponibilidadHorarios(fecha) {
 // 6. Función para inicializar selectores con validación para Venezuela
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
-  const horaInput = document.getElementById('hora');
-  
   if (!fechaInput) return;
 
   // Configurar fecha mínima (hoy) según hora de Venezuela
   const hoy = new Date();
-  const hoyVenezuela = hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria });
-  const fechaMinima = hoyVenezuela.split(',')[0].trim().split('/').reverse().join('-');
+  const hoyVenezuela = hoy.toLocaleString('es-VE', { 
+    timeZone: CONFIG_VENEZUELA.zonaHoraria,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  // Formatear fecha como yyyy-MM-dd
+  const [dia, mes, anio] = hoyVenezuela.split(',')[0].trim().split('/');
+  const fechaMinima = `${anio}-${mes}-${dia}`;
   
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
@@ -252,7 +258,7 @@ function inicializarSelectores() {
     
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
-      this.value = fechaInput.min;
+      this.value = fechaMinima;
     } else {
       actualizarDisponibilidadHorarios(this.value);
     }
@@ -260,6 +266,8 @@ function inicializarSelectores() {
   
   // Actualizar el input de hora oculto cuando se selecciona un horario
   const selectHorario = document.getElementById('hora-select');
+  const horaInput = document.getElementById('hora');
+  
   if (selectHorario && horaInput) {
     selectHorario.addEventListener('change', function() {
       horaInput.value = this.value;
@@ -365,27 +373,42 @@ document.addEventListener('DOMContentLoaded', function() {
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agendando...';
       
       try {
-        // Obtener valores del formulario
+        // Obtener valores del formulario de manera segura
+        const nombreInput = document.getElementById('nombre');
+        const telefonoInput = document.getElementById('telefono');
+        const fechaInput = document.getElementById('fecha');
+        const horaSelect = document.getElementById('hora-select');
+        const servicioSelect = document.getElementById('servicio');
+        const barberoSelect = document.getElementById('barbero');
+
+        if (!nombreInput || !telefonoInput || !fechaInput || !horaSelect || !servicioSelect || !barberoSelect) {
+          throw new Error('Error al leer los datos del formulario');
+        }
+
         const formData = {
-          nombre: document.getElementById('nombre').value.trim(),
-          telefono: document.getElementById('telefono').value.trim(),
-          fecha: document.getElementById('fecha').value,
-          hora: document.getElementById('hora').value,
-          servicio: document.getElementById('servicio').value,
-          barbero: document.getElementById('barbero').value
+          nombre: nombreInput.value.trim(),
+          telefono: telefonoInput.value.trim(),
+          fecha: fechaInput.value,
+          hora: horaSelect.value, // Usamos el valor del select
+          servicio: servicioSelect.value,
+          barbero: barberoSelect.value
         };
 
-        // Validar datos básicos
+        // Validar que se haya seleccionado un horario
+        if (!formData.hora) {
+          throw new Error('Por favor seleccione un horario disponible');
+        }
+
+        // Resto de la validación...
         const validacion = validarFormulario(formData);
         if (!validacion.valido) {
           throw new Error(validacion.error);
         }
 
-        // Guardar cita (incluye validación de disponibilidad)
+        // Guardar cita
         const citaGuardada = await guardarCita(formData);
         console.log('Cita guardada:', citaGuardada);
         
-        // Mostrar éxito y resetear
         mostrarMensaje('✅ Cita agendada correctamente. Te esperamos!', 'exito');
         citaForm.reset();
         inicializarSelectores();
@@ -394,9 +417,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error al procesar cita:', error);
         mostrarMensaje(`❌ ${error.message}`, 'error');
       } finally {
-        // Restaurar botón
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Cita';
+        submitBtn.innerHTML = originalText;
       }
     });
   }
