@@ -607,7 +607,7 @@
           </form>
           
           <!-- Formulario de Registro -->
-          <form id="registerForm" style="display: none;">
+          <form id="registerForm" style="display: none;" onsubmit="event.preventDefault(); handleRegister();">
             <div id="authMessage"></div>
             <div class="input-group">
               <i class="fas fa-user"></i>
