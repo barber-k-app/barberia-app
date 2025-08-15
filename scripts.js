@@ -26,6 +26,15 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
+// Función auxiliar para formatear fechas
+function formatDate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // 2. Función para obtener hora actual de Venezuela
 function obtenerHoraActualVenezuela() {
   return new Date().toLocaleTimeString('es-VE', {
@@ -232,17 +241,12 @@ function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
   if (!fechaInput) return;
 
-  // Configurar fecha mínima (hoy) según hora de Venezuela
+  // Obtener fecha actual en Venezuela con formato correcto
   const hoy = new Date();
-  const hoyVenezuela = hoy.toLocaleString('es-VE', { 
-    timeZone: CONFIG_VENEZUELA.zonaHoraria,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
   
-  // Formatear fecha como yyyy-MM-dd
-  const [dia, mes, anio] = hoyVenezuela.split(',')[0].trim().split('/');
   const fechaMinima = `${anio}-${mes}-${dia}`;
   
   fechaInput.min = fechaMinima;
@@ -259,12 +263,12 @@ function inicializarSelectores() {
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
       this.value = fechaMinima;
-    } else {
-      actualizarDisponibilidadHorarios(this.value);
+      return;
     }
+    actualizarDisponibilidadHorarios(this.value);
   });
   
-  // Actualizar el input de hora oculto cuando se selecciona un horario
+  // Actualizar el input de hora oculto
   const selectHorario = document.getElementById('hora-select');
   const horaInput = document.getElementById('hora');
   
@@ -373,25 +377,21 @@ document.addEventListener('DOMContentLoaded', function() {
       submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agendando...';
       
       try {
+        // Función auxiliar para obtener elementos de forma segura
+        const getElement = (id) => {
+          const el = document.getElementById(id);
+          if (!el) throw new Error(`Elemento ${id} no encontrado`);
+          return el;
+        };
+
         // Obtener valores del formulario de manera segura
-        const nombreInput = document.getElementById('nombre');
-        const telefonoInput = document.getElementById('telefono');
-        const fechaInput = document.getElementById('fecha');
-        const horaSelect = document.getElementById('hora-select');
-        const servicioSelect = document.getElementById('servicio');
-        const barberoSelect = document.getElementById('barbero');
-
-        if (!nombreInput || !telefonoInput || !fechaInput || !horaSelect || !servicioSelect || !barberoSelect) {
-          throw new Error('Error al leer los datos del formulario');
-        }
-
         const formData = {
-          nombre: nombreInput.value.trim(),
-          telefono: telefonoInput.value.trim(),
-          fecha: fechaInput.value,
-          hora: horaSelect.value, // Usamos el valor del select
-          servicio: servicioSelect.value,
-          barbero: barberoSelect.value
+          nombre: getElement('nombre').value.trim(),
+          telefono: getElement('telefono').value.trim(),
+          fecha: getElement('fecha').value,
+          hora: getElement('hora-select').value, // Usamos directamente el select
+          servicio: getElement('servicio').value,
+          barbero: getElement('barbero').value
         };
 
         // Validar que se haya seleccionado un horario
