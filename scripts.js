@@ -26,6 +26,20 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
+// Función para verificar límite de citas
+async function verificarLimiteCitas(telefono, fecha) {
+  const { data: citas, error } = await supabase
+    .from('citas')
+    .select('id', { count: 'exact' }) // Solo contar registros
+    .eq('telefono', telefono)
+    .eq('fecha', fecha);
+
+  if (error) throw error;
+  if (citas.length >= 2) {
+    throw new Error('❌ Límite alcanzado: Máximo 2 citas por día por teléfono');
+  }
+}
+
 // Función auxiliar para formatear fechas
 function formatDate(date) {
   const d = new Date(date);
@@ -322,7 +336,10 @@ async function guardarCita(citaData) {
   }
 
   try {
-    // Primero verificar disponibilidad
+    // Primero verificar límite de citas
+    await verificarLimiteCitas(citaData.telefono, citaData.fecha);
+    
+    // Luego verificar disponibilidad
     const disponibilidad = await verificarDisponibilidad(citaData.fecha, citaData.hora);
     if (!disponibilidad.disponible) {
       throw new Error(disponibilidad.mensaje);
@@ -363,6 +380,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
+
+  // Función para actualizar contador de citas
+  async function actualizarContador() {
+    const telefono = document.getElementById('telefono')?.value.trim();
+    const fecha = document.getElementById('fecha')?.value;
+    const contador = document.getElementById('contador-citas');
+
+    if (!telefono || !fecha || !contador) return;
+
+    try {
+      const { count } = await supabase
+        .from('citas')
+        .select('*', { count: 'exact' })
+        .eq('telefono', telefono)
+        .eq('fecha', fecha);
+
+      const restantes = 2 - (count || 0);
+      contador.innerHTML = `<i class="fas fa-info-circle"></i>
+        <span>Citas hoy: ${count || 0}/2 (${restantes} restantes)</span>`;
+      contador.style.color = count >= 2 ? '#e74c3c' : '#2ecc71';
+    } catch (error) {
+      console.error('Error al contar citas:', error);
+    }
+  }
+
+  // Configurar listeners para actualizar contador
+  document.getElementById('telefono')?.addEventListener('input', actualizarContador);
+  document.getElementById('fecha')?.addEventListener('change', actualizarContador);
 
   // Manejar envío del formulario
   const citaForm = document.getElementById('citaForm');
