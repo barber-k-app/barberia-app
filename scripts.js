@@ -2,38 +2,8 @@
 const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-// Inicializar Supabase con autenticación y logging extendido
-const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storage: localStorage
-  },
-  db: {
-    schema: 'public'
-  }
-}) : null;
-
-// Habilita logging detallado
-if (supabase) {
-  supabase.auth.onAuthStateChange((event, session) => {
-    console.log('Cambio en estado de autenticación:', event, session);
-    
-    if (event === 'SIGNED_IN') {
-      console.log('Usuario autenticado:', session.user);
-    } else if (event === 'SIGNED_OUT') {
-      console.log('Usuario cerró sesión');
-    } else if (event === 'USER_UPDATED') {
-      console.log('Usuario actualizado:', session.user);
-    }
-  });
-  
-  // Verifica el estado inicial
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    console.log('Sesión inicial:', session);
-  });
-}
+// Inicializar Supabase
+const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 if (!supabase) {
   console.error('Error: No se pudo inicializar Supabase');
@@ -41,13 +11,7 @@ if (!supabase) {
   const script = document.createElement('script');
   script.src = 'https://unpkg.com/@supabase/supabase-js@2';
   script.onload = () => {
-    window.supabase = supabase.createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-      }
-    });
+    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
     console.log('Supabase cargado dinámicamente');
   };
   document.head.appendChild(script);
@@ -186,16 +150,10 @@ function inicializarSelectores() {
   
   if (!fechaInput || !horaInput) return;
 
-  // Obtener fecha actual en formato YYYY-MM-DD para Venezuela
-  const ahora = new Date();
-  const offsetVenezuela = -4 * 60; // UTC-4 para Venezuela
-  const fechaVenezuela = new Date(ahora.getTime() + offsetVenezuela * 60 * 1000);
-  
-  const año = fechaVenezuela.getFullYear();
-  const mes = String(fechaVenezuela.getMonth() + 1).padStart(2, '0');
-  const dia = String(fechaVenezuela.getDate()).padStart(2, '0');
-  
-  const fechaMinima = `${año}-${mes}-${dia}`;
+  // Configurar fecha mínima (hoy) según hora de Venezuela
+  const hoy = new Date();
+  const hoyVenezuela = hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria });
+  const fechaMinima = hoyVenezuela.split(',')[0].trim().split('/').reverse().join('-');
   
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
@@ -392,133 +350,93 @@ async function mostrarInformacionCola(fecha, hora) {
   }
 }
 
-// 11. Función mejorada para manejar login con Supabase Auth
+// 11. Función mejorada para manejar login
 async function handleLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
+  const usuario = document.getElementById('loginNombre').value.trim();
   const password = document.getElementById('loginPassword').value;
 
+  // Debuggeo
+  console.log("Credenciales ingresadas:", { usuario, password });
+
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ 
-      email, 
-      password 
-    });
-    
-    if (error) throw error;
-    
-    // Obtener datos adicionales del usuario
-    const { data: userData, error: userError } = await supabase
+    // 1. Busca el usuario en Supabase
+    const { data, error } = await supabase
       .from('clientes')
       .select('*')
-      .eq('email', email)
+      .eq('usuario', usuario)
+      .eq('password', password)
       .single();
+
+    // Debuggeo
+    console.log("Datos de Supabase:", data);
+
+    if (error || !data) {
+      throw new Error("Usuario o contraseña incorrectos");
+    }
+
+    // 2. Guarda la sesión en localStorage
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data));
     
-    if (userError) throw userError;
-    
-    // Guardar en localStorage para compatibilidad con código existente
-    localStorage.setItem('clienteAutenticado', JSON.stringify({
-      ...userData,
-      usuario: email // Mantener compatibilidad
-    }));
-    
-    // Redirigir a la vista de citas
+    // 3. Redirige a la vista de citas
     document.getElementById('authContainer').classList.remove('active');
     document.getElementById('citaContainer').classList.add('active');
     
-    // Recargar para aplicar cambios
+    // 4. Recarga la página para aplicar cambios
     setTimeout(() => location.reload(), 500);
-    
+
   } catch (error) {
-    mostrarMensaje("Error: " + error.message, 'error');
+    mostrarMensaje(error.message, 'error');
     console.error("Error en login:", error);
   }
 }
 
-// 12. Función mejorada para manejar registro con Supabase Auth
+// 12. Función para manejar registro
 async function handleRegister() {
-  const email = document.getElementById('registerEmail').value.trim();
-  const password = document.getElementById('registerPassword').value;
-  const nombre = document.getElementById('registerNombre').value.trim();
-  const telefono = document.getElementById('registerTelefono').value.trim();
+  // 1. Obtener datos del formulario
+  const userData = {
+    nombre: document.getElementById('registerNombre').value.trim(),
+    telefono: document.getElementById('registerTelefono').value.trim(),
+    usuario: document.getElementById('registerUsuario').value.trim(),
+    password: document.getElementById('registerPassword').value
+  };
+
+  console.log("Datos a registrar:", userData); // Para debuggear
 
   try {
-    // Validación básica
-    if (!email || !password || !nombre || !telefono) {
-      throw new Error("Todos los campos son obligatorios");
+    // 2. Verificar si el usuario ya existe
+    const { data: existingUser, error: queryError } = await supabase
+      .from('clientes')
+      .select('usuario')
+      .eq('usuario', userData.usuario);
+
+    if (queryError) throw new Error("Error al verificar usuario");
+    if (existingUser && existingUser.length > 0) {
+      throw new Error("⚠️ El usuario ya existe");
     }
 
-    if (password.length < 8) {
-      throw new Error("La contraseña debe tener al menos 8 caracteres");
-    }
+    // 3. Insertar en Supabase
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert([userData])
+      .select();
 
-    console.log("Iniciando registro...");
+    if (error) throw error;
+    if (!data) throw new Error("No se recibieron datos");
 
-    // 1. Registrar usuario en Auth
-    const { data: { user, session }, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: nombre,
-          phone: telefono
-        },
-        emailRedirectTo: window.location.origin // Para confirmación de email
-      }
-    });
-
-    console.log("Respuesta de signUp:", { user, session, authError });
-
-    if (authError) {
-      console.error("Error en Supabase Auth:", authError);
-      throw authError;
-    }
-
-    // 2. Guardar en tabla clientes (solo si el registro en Auth fue exitoso)
-    if (user) {
-      const { data: dbData, error: dbError } = await supabase
-        .from('clientes')
-        .insert([{
-          id: user.id,
-          nombre,
-          telefono,
-          email,
-          creado_en: new Date().toISOString()
-        }])
-        .select();
-
-      if (dbError) {
-        console.error("Error al guardar en clientes:", dbError);
-        throw dbError;
-      }
-
-      console.log("Usuario guardado en tabla clientes:", dbData);
-    }
-
-    mostrarMensaje('✅ Registro exitoso. ' + (user ? 'Verifica tu email.' : 'Ya puedes iniciar sesión.'), 'exito');
+    // 4. Éxito: guardar sesión y redirigir
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
+    mostrarMensaje('✅ Registro exitoso!', 'exito');
     
-    // Redirigir al login
-    setTimeout(() => {
-      document.getElementById('registerForm').style.display = 'none';
-      document.getElementById('loginForm').style.display = 'block';
-    }, 3000);
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
 
   } catch (error) {
-    console.error("Error completo en registro:", error);
-    mostrarMensaje(`❌ ${error.message}`, 'error');
+    console.error("Error en registro:", error);
+    mostrarMensaje(error.message, 'error');
   }
 }
 
-// 13. Función para manejar logout
-async function handleLogout() {
-  try {
-    await supabase.auth.signOut();
-    localStorage.removeItem('clienteAutenticado');
-    location.reload();
-  } catch (error) {
-    console.error("Error en logout:", error);
-  }
-}
-
-// 14. Función para manejar autenticación de usuarios con mejoras
+// 13. Función para manejar autenticación de usuarios con mejoras
 function manejarAutenticacion() {
   const authContainer = document.getElementById('authContainer');
   const citaContainer = document.getElementById('citaContainer');
@@ -542,7 +460,11 @@ function manejarAutenticacion() {
   });
 
   // Manejar logout
-  logoutBtn?.addEventListener('click', handleLogout);
+  logoutBtn?.addEventListener('click', () => {
+    localStorage.removeItem('clienteAutenticado');
+    authContainer.classList.add('active');
+    citaContainer.classList.remove('active');
+  });
 
   // Validación en tiempo real para el formulario de registro
   registerForm?.addEventListener('input', function(e) {
@@ -579,66 +501,17 @@ function manejarAutenticacion() {
   });
 }
 
-// 15. Función mejorada para mostrar/ocultar contraseña
-function setupPasswordToggles() {
-  document.querySelectorAll('.toggle-password').forEach(icon => {
-    icon.addEventListener('click', function() {
-      const targetId = this.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      
-      if (!input) {
-        console.error('No se encontró el input con id:', targetId);
-        return;
-      }
-      
-      if (input.type === "password") {
-        input.type = "text";
-        this.classList.remove('fa-eye');
-        this.classList.add('fa-eye-slash');
-      } else {
-        input.type = "password";
-        this.classList.remove('fa-eye-slash');
-        this.classList.add('fa-eye');
-      }
-    });
-  });
-}
-
-// 16. Inicialización principal adaptada para Venezuela
-document.addEventListener('DOMContentLoaded', async function() {
-  // Configurar toggles de contraseña
-  setupPasswordToggles();
-
-  // Verificar sesión activa
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+// 14. Inicialización principal adaptada para Venezuela
+document.addEventListener('DOMContentLoaded', function() {
+  // Verificar si hay un usuario logueado al cargar la página
+  const cliente = JSON.parse(localStorage.getItem('clienteAutenticado'));
   
-  if (session) {
-    try {
-      // Obtener datos del cliente
-      const { data: cliente, error: clienteError } = await supabase
-        .from('clientes')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!clienteError && cliente) {
-        // Mostrar vista de citas
-        document.getElementById('authContainer').classList.remove('active');
-        document.getElementById('citaContainer').classList.add('active');
-        
-        // Rellenar datos
-        document.getElementById('nombre').value = cliente.nombre;
-        document.getElementById('telefono').value = cliente.telefono;
-      }
-    } catch (error) {
-      console.error('Error al cargar datos del cliente:', error);
-    }
-  }
-  // Si no hay sesión pero hay datos en localStorage (para compatibilidad)
-  else if (localStorage.getItem('clienteAutenticado')) {
-    const cliente = JSON.parse(localStorage.getItem('clienteAutenticado'));
-    document.getElementById('authContainer').classList.remove('active');
-    document.getElementById('citaContainer').classList.add('active');
+  if (cliente) {
+    // Oculta el login y muestra la vista de citas
+    document.getElementById('authContainer')?.classList.remove('active');
+    document.getElementById('citaContainer')?.classList.add('active');
+    
+    // Rellena los datos automáticamente
     document.getElementById('nombre').value = cliente.nombre;
     document.getElementById('telefono').value = cliente.telefono;
   }
