@@ -148,72 +148,75 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
   return {valido: true};
 }
 
-// 6. Función para generar slots de horarios
+// 6. Función para generar slots de horarios (actualizada)
 async function generarHorarios(fecha) {
   const horarioGrid = document.getElementById('horarioGrid');
   if (!horarioGrid) return;
 
-  horarioGrid.innerHTML = '<div class="loading-horarios">Cargando horarios...</div>';
-  
+  // Horarios fijos cada 40 minutos
+  const horariosFijos = [
+    '08:00', '08:40', '09:20', '10:00', '10:40',
+    '11:20', '12:00', '12:40', '13:20', '14:00',
+    '14:40', '15:20', '16:00', '16:40', '17:20',
+    '18:00', '18:40', '19:20', '20:00', '20:40'
+  ];
+
   try {
-    // Asegurar formato yyyy-MM-dd
+    // Obtener citas existentes
     const fechaFormateada = new Date(fecha).toISOString().split('T')[0];
-    
     const { data: citas, error } = await supabase
       .from('citas')
       .select('hora')
       .eq('fecha', fechaFormateada);
-    
+
     if (error) throw error;
-    
-    // Convertir horas ocupadas a minutos
+
+    // Convertir a minutos para comparación
     const horasOcupadas = citas.map(cita => {
       const [h, m] = cita.hora.split(':').map(Number);
       return h * 60 + m;
     });
-    
+
     // Generar slots
     horarioGrid.innerHTML = '';
-    const [horaApertura, minApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
-    const [horaCierre, minCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
-    
-    const aperturaMinutos = horaApertura * 60 + minApertura;
-    const cierreMinutos = horaCierre * 60 + minCierre;
-    
-    for (let minutos = aperturaMinutos; minutos < cierreMinutos; minutos += CONFIG_VENEZUELA.intervaloEntreCitas) {
-      const horas = Math.floor(minutos / 60);
-      const mins = minutos % 60;
-      const horaFormato = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-      const horaMinutos = horas * 60 + mins;
+    horariosFijos.forEach(hora => {
+      const [h, m] = hora.split(':').map(Number);
+      const minutos = h * 60 + m;
       
-      // Verificar disponibilidad
       const ocupado = horasOcupadas.some(ocupado => {
-        return Math.abs(ocupado - horaMinutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
+        return Math.abs(ocupado - minutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
       });
-      
+
       const slot = document.createElement('div');
       slot.className = `horario-slot ${ocupado ? 'horario-ocupado' : 'horario-disponible'}`;
-      slot.textContent = horaFormato;
-      
+      slot.textContent = hora;
+
       if (!ocupado) {
         slot.addEventListener('click', function() {
-          // Remover selección anterior
           document.querySelectorAll('.horario-slot').forEach(s => {
             s.classList.remove('horario-seleccionado');
           });
-          
-          // Marcar como seleccionado
           this.classList.add('horario-seleccionado');
-          document.getElementById('hora').value = horaFormato;
+          document.getElementById('hora').value = hora;
         });
       }
-      
+
       horarioGrid.appendChild(slot);
-    }
+    });
+
   } catch (error) {
     console.error('Error al cargar citas:', error);
     horarioGrid.innerHTML = '<div class="error-horarios">Error al cargar horarios</div>';
   }
+}
+
+// Función para mostrar/ocultar el grid de horarios
+function toggleHorarioGrid() {
+  const grid = document.getElementById('horarioGrid');
+  const icon = document.getElementById('horarioToggleIcon');
+  
+  grid.classList.toggle('visible');
+  icon.style.transform = grid.classList.contains('visible') ? 'rotate(180deg)' : 'rotate(0deg)';
 }
 
 // 7. Función para inicializar selectores con validación para Venezuela
@@ -283,7 +286,7 @@ async function enviarNotificacionTelegram(citaData) {
   }
 }
 
-// 9. Función para guardar cita con validación de horario
+// 9. Función para guardar cita con validación de horario (actualizada)
 async function guardarCita(citaData) {
   if (!supabase) {
     throw new Error('Error de conexión con el servidor');
@@ -314,6 +317,9 @@ async function guardarCita(citaData) {
     // Enviar notificación a Telegram (no bloqueante)
     enviarNotificacionTelegram(citaData).catch(e => console.error(e));
     
+    // Actualizar la lista de horarios después de guardar
+    generarHorarios(citaData.fecha);
+    
     return data;
   } catch (error) {
     console.error('Error completo:', error);
@@ -331,6 +337,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
+
+  // Configurar el toggle del grid de horarios si existe el botón
+  const toggleBtn = document.getElementById('horarioToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleHorarioGrid);
+  }
 
   // Manejar envío del formulario
   const citaForm = document.getElementById('citaForm');
