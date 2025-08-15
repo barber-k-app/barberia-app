@@ -162,10 +162,16 @@ function inicializarSelectores() {
   
   if (!fechaInput || !horaInput) return;
 
-  // Configurar fecha mínima (hoy) según hora de Venezuela
-  const hoy = new Date();
-  const hoyVenezuela = hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria });
-  const fechaMinima = hoyVenezuela.split(',')[0].trim().split('/').reverse().join('-');
+  // Obtener fecha actual en formato YYYY-MM-DD para Venezuela
+  const ahora = new Date();
+  const offsetVenezuela = -4 * 60; // UTC-4 para Venezuela
+  const fechaVenezuela = new Date(ahora.getTime() + offsetVenezuela * 60 * 1000);
+  
+  const año = fechaVenezuela.getFullYear();
+  const mes = String(fechaVenezuela.getMonth() + 1).padStart(2, '0');
+  const dia = String(fechaVenezuela.getDate()).padStart(2, '0');
+  
+  const fechaMinima = `${año}-${mes}-${dia}`;
   
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
@@ -403,7 +409,7 @@ async function handleLogin() {
   }
 }
 
-// 12. Función para manejar registro con Supabase Auth
+// 12. Función para manejar registro con Supabase Auth (versión mejorada)
 async function handleRegister() {
   const email = document.getElementById('registerEmail').value.trim();
   const password = document.getElementById('registerPassword').value;
@@ -411,42 +417,42 @@ async function handleRegister() {
   const telefono = document.getElementById('registerTelefono').value.trim();
 
   try {
-    // 1. Registra al usuario en Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // 1. Registrar usuario en Auth
+    const { data: { user }, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { 
-        data: { 
+      options: {
+        data: {
           full_name: nombre,
-          phone: telefono 
-        } 
+          phone: telefono
+        }
       }
     });
-    
+
     if (authError) throw authError;
 
-    // 2. Guarda datos adicionales en tu tabla 'clientes'
-    const { data: dbData, error: dbError } = await supabase
+    // 2. Guardar en tabla clientes
+    const { error: dbError } = await supabase
       .from('clientes')
-      .insert([{ 
-        id: authData.user.id, 
-        nombre, 
-        telefono, 
+      .insert([{
+        id: user.id,  // Usamos el ID que genera Auth
+        nombre,
+        telefono,
         email,
         usuario: email // Mantener compatibilidad
       }]);
 
     if (dbError) throw dbError;
-    
-    mostrarMensaje("✅ Registro exitoso. Verifica tu email.", 'exito');
+
+    mostrarMensaje('✅ Registro exitoso. Verifica tu email.', 'exito');
     
     // Mostrar formulario de login
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('loginForm').style.display = 'block';
     
   } catch (error) {
-    mostrarMensaje("Error: " + error.message, 'error');
     console.error("Error en registro:", error);
+    mostrarMensaje(error.message || 'Error en el registro', 'error');
   }
 }
 
@@ -639,4 +645,17 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
   }
+});
+
+// Script para mostrar/ocultar contraseña
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', function() {
+      const input = this.previousElementSibling;
+      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+      input.setAttribute('type', type);
+      this.classList.toggle('fa-eye');
+      this.classList.toggle('fa-eye-slash');
+    });
+  });
 });
