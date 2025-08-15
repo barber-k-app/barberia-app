@@ -26,6 +26,44 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
+// Función para validar teléfono venezolano
+function validarTelefonoVenezolano(telefono) {
+  // 1. Eliminar todos los caracteres no numéricos
+  const telefonoLimpio = telefono.replace(/\D/g, '');
+  
+  // 2. Verificar que tenga exactamente 11 dígitos
+  if (telefonoLimpio.length !== 11) {
+    return {
+      valido: false,
+      error: 'El teléfono debe tener 11 dígitos (ej: 04121234567)'
+    };
+  }
+  
+  // 3. Verificar que comience con 0
+  if (!telefonoLimpio.startsWith('0')) {
+    return {
+      valido: false,
+      error: 'El teléfono debe comenzar con 0 (ej: 04121234567)'
+    };
+  }
+  
+  // 4. Verificar códigos de operadoras venezolanas
+  const codigosOperadoras = [
+    '412', '414', '416', '418', '424', '426', '416', '428', '432', '434'
+  ];
+  
+  const codigo = telefonoLimpio.substring(1, 4); // Obtener los 3 dígitos después del 0
+  
+  if (!codigosOperadoras.includes(codigo)) {
+    return {
+      valido: false,
+      error: 'Código de operadora no válido. Debe ser un teléfono venezolano (0412, 0414, 0424, etc.)'
+    };
+  }
+  
+  return { valido: true, telefono: telefonoLimpio };
+}
+
 // Función para verificar límite de citas
 async function verificarLimiteCitas(telefono, fecha) {
   const { data: citas, error } = await supabase
@@ -140,8 +178,10 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     return {valido: false, error: 'El nombre debe tener al menos 3 caracteres'};
   }
   
-  if (!telefono || !/^\d{10,15}$/.test(telefono)) {
-    return {valido: false, error: 'Teléfono debe tener entre 10 y 15 dígitos'};
+  // Validación de teléfono mejorada
+  const validacionTelefono = validarTelefonoVenezolano(telefono);
+  if (!validacionTelefono.valido) {
+    return validacionTelefono;
   }
   
   const fechaCita = new Date(`${fecha}T${hora}`);
@@ -168,7 +208,7 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     };
   }
   
-  return {valido: true};
+  return {valido: true, telefono: validacionTelefono.telefono || telefono};
 }
 
 // Función para generar horarios disponibles
@@ -455,6 +495,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const validacion = validarFormulario(formData);
         if (!validacion.valido) {
           throw new Error(validacion.error);
+        }
+
+        // Usar el teléfono limpio (sin caracteres especiales)
+        if (validacion.telefono) {
+          formData.telefono = validacion.telefono;
         }
 
         // Guardar cita
