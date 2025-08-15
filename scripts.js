@@ -37,8 +37,8 @@ function obtenerHoraActualVenezuela() {
 }
 
 // 3. Función mejorada para mostrar mensajes
-function mostrarMensaje(texto, tipo = 'info', elementoId = 'mensaje') {
-  const mensajeDiv = document.getElementById(elementoId);
+function mostrarMensaje(texto, tipo = 'info') {
+  const mensajeDiv = document.getElementById('mensaje');
   if (!mensajeDiv) {
     console.warn('No se encontró el elemento para mostrar mensajes');
     return;
@@ -50,7 +50,7 @@ function mostrarMensaje(texto, tipo = 'info', elementoId = 'mensaje') {
   
   // Crear elemento de mensaje
   const mensajeElement = document.createElement('div');
-  mensajeElement.className = `mensaje-${tipo}`;
+  mensajeElement.className = `mensaje ${tipo}`;
   mensajeElement.textContent = texto;
   
   // Agregar botón de cerrar
@@ -162,10 +162,6 @@ function inicializarSelectores() {
   horaInput.min = CONFIG_VENEZUELA.horarioApertura;
   horaInput.max = CONFIG_VENEZUELA.horarioCierre;
   
-  // Eliminar display: none del input de hora y marcarlo como requerido
-  horaInput.style.display = 'block';
-  horaInput.required = true;
-  
   // Establecer hora actual de Venezuela como sugerencia
   const horaActual = obtenerHoraActualVenezuela();
   horaInput.value = horaActual;
@@ -182,7 +178,7 @@ function inicializarSelectores() {
   });
 }
 
-// 7. Función para enviar notificación a Telegram
+// 7. Función para enviar notificación a Telegram (sin cambios)
 async function enviarNotificacionTelegram(citaData) {
   const BOT_TOKEN = "8473537897:AAE4DhBRqFSgkerepYMSA-meEBwn0pXjXag";
   const CHAT_ID = "8330674980";
@@ -253,293 +249,18 @@ async function guardarCita(citaData) {
   }
 }
 
-// 9. Función para generar horarios disponibles
-async function generarHorariosDisponibles(fecha) {
-  const horariosContainer = document.getElementById('horariosDisponibles');
-  if (!horariosContainer) return;
-
-  // Limpiar contenedor
-  horariosContainer.innerHTML = '';
-
-  // Obtener citas existentes para esta fecha
-  const { data: citas, error } = await supabase
-    .from('citas')
-    .select('hora')
-    .eq('fecha', fecha);
-
-  if (error) {
-    console.error('Error al obtener citas:', error);
-    return;
-  }
-
-  // Convertir horas ocupadas a minutos
-  const horasOcupadas = citas.map(cita => {
-    const [h, m] = cita.hora.split(':').map(Number);
-    return h * 60 + m;
-  });
-
-  // Generar horarios desde apertura hasta cierre
-  const [horaApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
-  const [horaCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
-  const intervalo = CONFIG_VENEZUELA.intervaloEntreCitas;
-
-  for (let hora = horaApertura; hora < horaCierre; hora++) {
-    for (let minuto = 0; minuto < 60; minuto += intervalo) {
-      const totalMinutos = hora * 60 + minuto;
-      const horaFormato = `${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-
-      // Verificar si está ocupado
-      const estaOcupado = horasOcupadas.some(ocupado => {
-        return Math.abs(ocupado - totalMinutos) < intervalo;
-      });
-
-      // Crear botón de horario
-      const horaBtn = document.createElement('button');
-      horaBtn.className = `hora-btn ${estaOcupado ? 'hora-ocupada' : 'hora-disponible'}`;
-      horaBtn.textContent = horaFormato;
-      horaBtn.disabled = estaOcupado;
-      
-      // Manejar selección de horario
-      horaBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.getElementById('hora').value = horaFormato;
-        
-        // Remover selección anterior
-        document.querySelectorAll('.hora-btn').forEach(btn => {
-          btn.classList.remove('hora-seleccionada');
-        });
-        
-        // Marcar como seleccionado
-        horaBtn.classList.add('hora-seleccionada');
-        
-        // Mostrar información de cola
-        mostrarInformacionCola(fecha, horaFormato);
-      });
-
-      horariosContainer.appendChild(horaBtn);
-    }
-  }
-}
-
-// 10. Función para mostrar información de cola
-async function mostrarInformacionCola(fecha, hora) {
-  const queueInfo = document.getElementById('queueInfo');
-  if (!queueInfo) return;
-
-  try {
-    // Obtener citas antes de esta
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('hora')
-      .eq('fecha', fecha)
-      .lt('hora', hora)
-      .order('hora', { ascending: true });
-
-    if (error) throw error;
-
-    const cantidad = citas.length;
-    const mensaje = cantidad > 0 
-      ? `Tiene ${cantidad} ${cantidad === 1 ? 'persona' : 'personas'} por delante`
-      : 'Es el primero en este horario';
-
-    document.getElementById('queueMessage').textContent = mensaje;
-    queueInfo.style.display = 'block';
-  } catch (error) {
-    console.error('Error al obtener información de cola:', error);
-    queueInfo.style.display = 'none';
-  }
-}
-
-// 11. Función mejorada para manejar login
-async function handleLogin() {
-  const usuario = document.getElementById('loginNombre').value.trim();
-  const password = document.getElementById('loginPassword').value;
-
-  // Debuggeo
-  console.log("Credenciales ingresadas:", { usuario, password });
-
-  try {
-    // 1. Busca el usuario en Supabase
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('*')
-      .eq('usuario', usuario)
-      .eq('password', password)
-      .single();
-
-    // Debuggeo
-    console.log("Datos de Supabase:", data);
-
-    if (error || !data) {
-      throw new Error("Usuario o contraseña incorrectos");
-    }
-
-    // 2. Guarda la sesión en localStorage
-    localStorage.setItem('clienteAutenticado', JSON.stringify(data));
-    
-    // 3. Redirige a la vista de citas
-    document.getElementById('authContainer').classList.remove('active');
-    document.getElementById('citaContainer').classList.add('active');
-    
-    // 4. Recarga la página para aplicar cambios
-    setTimeout(() => location.reload(), 500);
-
-  } catch (error) {
-    mostrarMensaje(error.message, 'error');
-    console.error("Error en login:", error);
-  }
-}
-
-// 12. Función para manejar registro
-async function handleRegister() {
-  // 1. Obtener datos del formulario
-  const userData = {
-    nombre: document.getElementById('registerNombre').value.trim(),
-    telefono: document.getElementById('registerTelefono').value.trim(),
-    usuario: document.getElementById('registerUsuario').value.trim(),
-    password: document.getElementById('registerPassword').value
-  };
-
-  console.log("Datos a registrar:", userData); // Para debuggear
-
-  try {
-    // 2. Verificar si el usuario ya existe
-    const { data: existingUser, error: queryError } = await supabase
-      .from('clientes')
-      .select('usuario')
-      .eq('usuario', userData.usuario);
-
-    if (queryError) throw new Error("Error al verificar usuario");
-    if (existingUser && existingUser.length > 0) {
-      throw new Error("⚠️ El usuario ya existe");
-    }
-
-    // 3. Insertar en Supabase
-    const { data, error } = await supabase
-      .from('clientes')
-      .insert([userData])
-      .select();
-
-    if (error) throw error;
-    if (!data) throw new Error("No se recibieron datos");
-
-    // 4. Éxito: guardar sesión y redirigir
-    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
-    mostrarMensaje('✅ Registro exitoso!', 'exito');
-    
-    document.getElementById('authContainer').classList.remove('active');
-    document.getElementById('citaContainer').classList.add('active');
-
-  } catch (error) {
-    console.error("Error en registro:", error);
-    mostrarMensaje(error.message, 'error');
-  }
-}
-
-// 13. Función para manejar autenticación de usuarios con mejoras
-function manejarAutenticacion() {
-  const authContainer = document.getElementById('authContainer');
-  const citaContainer = document.getElementById('citaContainer');
-  const loginForm = document.getElementById('loginForm');
-  const registerForm = document.getElementById('registerForm');
-  const showRegister = document.getElementById('showRegister');
-  const showLogin = document.getElementById('showLogin');
-  const authForm = document.getElementById('authForm');
-  const logoutBtn = document.getElementById('logoutBtn');
-
-  // Mostrar formulario de registro
-  showRegister?.addEventListener('click', () => {
-    loginForm.style.display = 'none';
-    registerForm.style.display = 'block';
-  });
-
-  // Mostrar formulario de login
-  showLogin?.addEventListener('click', () => {
-    registerForm.style.display = 'none';
-    loginForm.style.display = 'block';
-  });
-
-  // Manejar logout
-  logoutBtn?.addEventListener('click', () => {
-    localStorage.removeItem('clienteAutenticado');
-    authContainer.classList.add('active');
-    citaContainer.classList.remove('active');
-  });
-
-  // Validación en tiempo real para el formulario de registro
-  registerForm?.addEventListener('input', function(e) {
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    
-    if (e.target.id === 'registerConfirmPassword' || e.target.id === 'registerPassword') {
-      const confirmPasswordInput = document.getElementById('registerConfirmPassword');
-      if (password !== confirmPassword) {
-        confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
-      } else {
-        confirmPasswordInput.setCustomValidity('');
-      }
-    }
-  });
-
-  // Manejar envío de formulario de autenticación
-  authForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const isLogin = loginForm.style.display !== 'none';
-    const authMessage = document.getElementById('authMessage');
-
-    try {
-      if (isLogin) {
-        await handleLogin();
-      } else {
-        await handleRegister();
-      }
-    } catch (error) {
-      console.error('Error en autenticación:', error);
-      mostrarMensaje(error.message || 'Error en el proceso de autenticación', 'error', 'authMessage');
-    }
-  });
-}
-
-// 14. Inicialización principal adaptada para Venezuela
+// 9. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', function() {
-  // Verificar si hay un usuario logueado al cargar la página
-  const cliente = JSON.parse(localStorage.getItem('clienteAutenticado'));
-  
-  if (cliente) {
-    // Oculta el login y muestra la vista de citas
-    document.getElementById('authContainer')?.classList.remove('active');
-    document.getElementById('citaContainer')?.classList.add('active');
-    
-    // Rellena los datos automáticamente
-    document.getElementById('nombre').value = cliente.nombre;
-    document.getElementById('telefono').value = cliente.telefono;
-  }
-
   // Verificar si Supabase está inicializado
   if (!supabase) {
     mostrarMensaje('Error en la configuración del sistema. Recarga la página.', 'error');
     return;
   }
 
-  // Manejar autenticación
-  manejarAutenticacion();
-
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
 
-  // Escuchar cambios en la fecha para generar horarios
-  document.getElementById('fecha')?.addEventListener('change', function() {
-    generarHorariosDisponibles(this.value);
-  });
-
-  // Generar horarios para la fecha inicial
-  const fechaInicial = document.getElementById('fecha')?.value;
-  if (fechaInicial) {
-    generarHorariosDisponibles(fechaInicial);
-  }
-
-  // Manejar envío del formulario de citas
+  // Manejar envío del formulario
   const citaForm = document.getElementById('citaForm');
   if (citaForm) {
     citaForm.addEventListener('submit', async function(e) {
@@ -568,11 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
           throw new Error(validacion.error);
         }
 
-        // Validar que se haya seleccionado un horario
-        if (!formData.hora) {
-          throw new Error('Por favor seleccione un horario disponible');
-        }
-
         // Guardar cita (incluye validación de disponibilidad)
         const citaGuardada = await guardarCita(formData);
         console.log('Cita guardada:', citaGuardada);
@@ -581,9 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
         mostrarMensaje('✅ Cita agendada correctamente. Te esperamos!', 'exito');
         citaForm.reset();
         inicializarSelectores();
-        
-        // Regenerar horarios
-        generarHorariosDisponibles(formData.fecha);
         
       } catch (error) {
         console.error('Error al procesar cita:', error);
