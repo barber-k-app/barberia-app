@@ -3,7 +3,7 @@ const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
 // Inicializar Supabase
-const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 if (!supabase) {
   console.error('Error: No se pudo inicializar Supabase');
@@ -148,12 +148,12 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
   return {valido: true};
 }
 
-// 6. Función para generar slots de horarios (actualizada)
+// 6. Función para generar slots de horarios (versión optimizada)
 async function generarHorarios(fecha) {
   const horarioGrid = document.getElementById('horarioGrid');
   if (!horarioGrid) return;
 
-  // Horarios fijos cada 40 minutos
+  // Horarios fijos cada 40 minutos (configuración centralizada)
   const horariosFijos = [
     '08:00', '08:40', '09:20', '10:00', '10:40',
     '11:20', '12:00', '12:40', '13:20', '14:00',
@@ -162,40 +162,41 @@ async function generarHorarios(fecha) {
   ];
 
   try {
-    // Obtener citas existentes
-    const fechaFormateada = new Date(fecha).toISOString().split('T')[0];
+    // Obtener citas existentes para la fecha seleccionada
     const { data: citas, error } = await supabase
       .from('citas')
       .select('hora')
-      .eq('fecha', fechaFormateada);
+      .eq('fecha', fecha);
 
     if (error) throw error;
 
-    // Convertir a minutos para comparación
-    const horasOcupadas = citas.map(cita => {
-      const [h, m] = cita.hora.split(':').map(Number);
-      return h * 60 + m;
-    });
-
-    // Generar slots
+    // Limpiar grid antes de generar nuevos slots
     horarioGrid.innerHTML = '';
-    horariosFijos.forEach(hora => {
-      const [h, m] = hora.split(':').map(Number);
-      const minutos = h * 60 + m;
-      
-      const ocupado = horasOcupadas.some(ocupado => {
-        return Math.abs(ocupado - minutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
-      });
 
+    // Generar todos los slots de horarios
+    horariosFijos.forEach(hora => {
       const slot = document.createElement('div');
-      slot.className = `horario-slot ${ocupado ? 'horario-ocupado' : 'horario-disponible'}`;
+      slot.className = 'horario-slot';
       slot.textContent = hora;
 
-      if (!ocupado) {
+      // Verificar si el horario está ocupado
+      const ocupado = citas.some(cita => {
+        const [hExistente, mExistente] = cita.hora.split(':').map(Number);
+        const [hActual, mActual] = hora.split(':').map(Number);
+        const diff = Math.abs((hExistente * 60 + mExistente) - (hActual * 60 + mActual));
+        return diff < CONFIG_VENEZUELA.intervaloEntreCitas;
+      });
+
+      if (ocupado) {
+        slot.classList.add('horario-ocupado');
+      } else {
+        slot.classList.add('horario-disponible');
         slot.addEventListener('click', function() {
+          // Deseleccionar otros slots
           document.querySelectorAll('.horario-slot').forEach(s => {
             s.classList.remove('horario-seleccionado');
           });
+          // Seleccionar este slot
           this.classList.add('horario-seleccionado');
           document.getElementById('hora').value = hora;
         });
@@ -205,18 +206,24 @@ async function generarHorarios(fecha) {
     });
 
   } catch (error) {
-    console.error('Error al cargar citas:', error);
-    horarioGrid.innerHTML = '<div class="error-horarios">Error al cargar horarios</div>';
+    console.error('Error al generar horarios:', error);
+    horarioGrid.innerHTML = '<div class="error-horarios">Error al cargar horarios. Intente nuevamente.</div>';
   }
 }
 
-// Función para mostrar/ocultar el grid de horarios
+// Función para mostrar/ocultar el grid de horarios (versión optimizada)
 function toggleHorarioGrid() {
   const grid = document.getElementById('horarioGrid');
   const icon = document.getElementById('horarioToggleIcon');
   
-  grid.classList.toggle('visible');
-  icon.style.transform = grid.classList.contains('visible') ? 'rotate(180deg)' : 'rotate(0deg)';
+  if (grid && icon) {
+    grid.classList.toggle('visible');
+    icon.style.transform = grid.classList.contains('visible') ? 'rotate(180deg)' : 'rotate(0deg)';
+    
+    // Alternar atributo aria-expanded para accesibilidad
+    const isExpanded = grid.classList.contains('visible');
+    document.getElementById('horarioToggleBtn').setAttribute('aria-expanded', isExpanded);
+  }
 }
 
 // 7. Función para inicializar selectores con validación para Venezuela
@@ -342,6 +349,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const toggleBtn = document.getElementById('horarioToggleBtn');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', toggleHorarioGrid);
+    // Añadir accesibilidad
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.setAttribute('aria-controls', 'horarioGrid');
   }
 
   // Manejar envío del formulario
@@ -388,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } finally {
         // Restaurar botón
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Cita';
+        submitBtn.textContent = originalText;
       }
     });
   }
