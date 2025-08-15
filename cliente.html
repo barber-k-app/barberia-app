@@ -606,8 +606,8 @@
             </button>
           </form>
           
-          <!-- Formulario de Registro -->
-          <form id="registerForm" style="display: none;" onsubmit="event.preventDefault(); handleRegister();">
+          <!-- Formulario de Registro mejorado -->
+          <form id="registerForm" style="display: none;">
             <div id="authMessage"></div>
             <div class="input-group">
               <i class="fas fa-user"></i>
@@ -616,22 +616,27 @@
             
             <div class="input-group">
               <i class="fas fa-phone"></i>
-              <input type="tel" id="registerTelefono" placeholder="Teléfono" required>
+              <input type="tel" id="registerTelefono" placeholder="Teléfono (ej: 04121234567)" required pattern="[0-9]{11}">
             </div>
             
             <div class="input-group">
               <i class="fas fa-user"></i>
-              <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
+              <input type="text" id="registerUsuario" placeholder="Nombre de usuario (mín. 4 caracteres)" required minlength="4">
             </div>
             
             <div class="input-group">
               <i class="fas fa-lock"></i>
-              <input type="password" id="registerPassword" placeholder="Contraseña" required autocomplete="new-password">
+              <input type="password" id="registerPassword" placeholder="Contraseña (mín. 6 caracteres)" required minlength="6" autocomplete="new-password">
             </div>
             
             <div class="input-group">
               <i class="fas fa-lock"></i>
               <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required autocomplete="new-password">
+            </div>
+            
+            <div class="info-horario">
+              <i class="fas fa-info-circle"></i>
+              <p>Después del registro, podrás iniciar sesión con tu usuario y contraseña</p>
             </div>
             
             <button type="submit">
