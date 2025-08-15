@@ -446,6 +446,84 @@
       animation-delay: 0.5s;
     }
 
+    /* Estilos para el selector de horarios visual */
+    .horario-container {
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 10px;
+    }
+
+    .horario-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      color: var(--gold);
+      font-size: 0.9rem;
+    }
+
+    .horario-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .horario-slot {
+      padding: 10px;
+      text-align: center;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.85rem;
+      border: 1px solid transparent;
+    }
+
+    .horario-slot:hover {
+      transform: translateY(-2px);
+    }
+
+    .horario-disponible {
+      background-color: rgba(46, 204, 113, 0.2);
+      border-color: rgba(46, 204, 113, 0.5);
+      color: #2ecc71;
+    }
+
+    .horario-disponible:hover {
+      background-color: rgba(46, 204, 113, 0.3);
+    }
+
+    .horario-ocupado {
+      background-color: rgba(231, 76, 60, 0.2);
+      border-color: rgba(231, 76, 60, 0.5);
+      color: #e74c3c;
+      cursor: not-allowed;
+    }
+
+    .horario-seleccionado {
+      background-color: var(--gold);
+      color: var(--darker);
+      font-weight: bold;
+      border-color: var(--gold);
+    }
+
+    .loading-horarios, .error-horarios {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+    }
+
+    .loading-horarios {
+      color: var(--gold);
+    }
+
+    .error-horarios {
+      color: #e74c3c;
+    }
+
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -481,6 +559,10 @@
       .titulo-efecto::after {
         font-size: 1.2rem;
         margin: 0 5px;
+      }
+      
+      .horario-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -522,9 +604,16 @@
               <input type="date" id="fecha" required>
             </div>
 
-            <div class="input-group">
-              <i class="fas fa-clock"></i>
-              <input type="time" id="hora" min="08:00" max="21:00" required>
+            <!-- Contenedor de horarios visual -->
+            <div class="horario-container">
+              <div class="horario-header">
+                <i class="fas fa-clock"></i>
+                <span>Selecciona un horario</span>
+              </div>
+              <div class="horario-grid" id="horarioGrid">
+                <!-- Los horarios se generarán dinámicamente aquí -->
+              </div>
+              <input type="hidden" id="hora" required>
             </div>
 
             <div class="input-group">
@@ -605,7 +694,7 @@
   <script>
     // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
-      const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
+      const animatedElements = document.querySelectorAll('.input-group, .contacto-item, .horario-slot');
       
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -622,6 +711,55 @@
         el.style.transition = 'all 0.6s ease-out';
         observer.observe(el);
       });
+
+      // Generar horarios disponibles
+      const horarioGrid = document.getElementById('horarioGrid');
+      const horaInput = document.getElementById('hora');
+      
+      function generarHorarios() {
+        horarioGrid.innerHTML = '<div class="loading-horarios"><i class="fas fa-spinner fa-spin"></i> Cargando horarios...</div>';
+        
+        // Simular carga de horarios disponibles desde el servidor
+        setTimeout(() => {
+          const horariosDisponibles = [
+            '08:00', '09:00', '10:00', '11:00', '12:00', 
+            '13:00', '14:00', '15:00', '16:00', '17:00', 
+            '18:00', '19:00', '20:00'
+          ];
+          
+          const horariosOcupados = ['10:00', '14:00', '18:00']; // Ejemplo de horarios ocupados
+          
+          horarioGrid.innerHTML = '';
+          
+          horariosDisponibles.forEach(hora => {
+            const estaOcupado = horariosOcupados.includes(hora);
+            const slot = document.createElement('div');
+            slot.className = `horario-slot ${estaOcupado ? 'horario-ocupado' : 'horario-disponible'}`;
+            slot.textContent = hora;
+            
+            if (!estaOcupado) {
+              slot.addEventListener('click', function() {
+                // Remover selección previa
+                document.querySelectorAll('.horario-slot').forEach(s => {
+                  s.classList.remove('horario-seleccionado');
+                });
+                
+                // Marcar como seleccionado
+                this.classList.add('horario-seleccionado');
+                horaInput.value = hora;
+              });
+            }
+            
+            horarioGrid.appendChild(slot);
+          });
+        }, 1000);
+      }
+      
+      // Generar horarios cuando se selecciona una fecha
+      document.getElementById('fecha').addEventListener('change', generarHorarios);
+      
+      // Generar horarios iniciales
+      generarHorarios();
     });
   </script>
 </body>
