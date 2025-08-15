@@ -136,6 +136,12 @@ async function verificarDisponibilidad(fecha, hora) {
 
 // 5. Validación mejorada de formulario con horario Venezuela
 function validarFormulario({nombre, telefono, fecha, hora}) {
+  // Validar que no sea domingo
+  const fechaCita = new Date(fecha);
+  if (fechaCita.getDay() === 0) { // 0 = Domingo
+    return {valido: false, error: 'Cerrado los domingos. Horario: Lunes a Sábado 8:00 AM - 8:40 PM'};
+  }
+
   if (!nombre || nombre.trim().length < 3) {
     return {valido: false, error: 'El nombre debe tener al menos 3 caracteres'};
   }
@@ -144,10 +150,7 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     return {valido: false, error: 'Teléfono debe tener entre 10 y 15 dígitos'};
   }
   
-  const fechaCita = new Date(`${fecha}T${hora}`);
-  const ahora = new Date();
-  
-  if (fechaCita < ahora) {
+  if (fechaCita < new Date()) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
@@ -273,6 +276,13 @@ function inicializarSelectores() {
   fechaInput.addEventListener('change', function() {
     const fechaSeleccionada = new Date(this.value);
     const diaSemana = fechaSeleccionada.getDay();
+    
+    // Validación de domingo
+    if (diaSemana === 0) {
+      mostrarMensaje('❌ Cerrado los domingos. Selecciona de Lunes a Sábado', 'error');
+      this.value = fechaMinima; // Resetear a fecha actual
+      return;
+    }
     
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
