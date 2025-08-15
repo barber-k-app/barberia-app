@@ -390,32 +390,17 @@ async function handleLogin() {
   }
 }
 
-// 12. Función para manejar registro (versión mejorada)
+// 12. Función para manejar registro
 async function handleRegister() {
-  // 1. Obtener datos del formulario con validación mejorada
+  // 1. Obtener datos del formulario
   const userData = {
     nombre: document.getElementById('registerNombre').value.trim(),
     telefono: document.getElementById('registerTelefono').value.trim(),
-    usuario: document.getElementById('registerUsuario').value.trim().toLowerCase(), // Normalizar a minúsculas
+    usuario: document.getElementById('registerUsuario').value.trim(),
     password: document.getElementById('registerPassword').value
   };
 
-  // Validación básica del lado del cliente
-  if (!userData.nombre || userData.nombre.length < 3) {
-    throw new Error("El nombre debe tener al menos 3 caracteres");
-  }
-
-  if (!userData.telefono || !/^\d{10,15}$/.test(userData.telefono)) {
-    throw new Error("Teléfono debe tener entre 10 y 15 dígitos");
-  }
-
-  if (!userData.usuario || userData.usuario.length < 4) {
-    throw new Error("Usuario debe tener al menos 4 caracteres");
-  }
-
-  if (!userData.password || userData.password.length < 6) {
-    throw new Error("La contraseña debe tener al menos 6 caracteres");
-  }
+  console.log("Datos a registrar:", userData); // Para debuggear
 
   try {
     // 2. Verificar si el usuario ya existe
@@ -438,20 +423,12 @@ async function handleRegister() {
     if (error) throw error;
     if (!data) throw new Error("No se recibieron datos");
 
-    // 4. Éxito: mostrar mensaje y mantener ambos formularios visibles
-    mostrarMensaje('✅ Registro exitoso! Ahora puedes iniciar sesión', 'exito');
+    // 4. Éxito: guardar sesión y redirigir
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
+    mostrarMensaje('✅ Registro exitoso!', 'exito');
     
-    // Limpiar solo los campos de contraseña del registro
-    document.getElementById('registerPassword').value = '';
-    document.getElementById('registerConfirmPassword').value = '';
-    
-    // Mantener ambos formularios visibles
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'block';
-    
-    // Pre-llenar el usuario en el login y enfocar la contraseña
-    document.getElementById('loginNombre').value = userData.usuario;
-    document.getElementById('loginPassword').focus();
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
 
   } catch (error) {
     console.error("Error en registro:", error);
