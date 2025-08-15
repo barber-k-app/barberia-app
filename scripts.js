@@ -390,7 +390,7 @@ async function handleLogin() {
   }
 }
 
-// 12. Función para manejar registro (modificada)
+// 12. Función para manejar registro
 async function handleRegister() {
   // 1. Obtener datos del formulario
   const userData = {
@@ -423,15 +423,12 @@ async function handleRegister() {
     if (error) throw error;
     if (!data) throw new Error("No se recibieron datos");
 
-    // 4. Éxito: mostrar mensaje y redirigir al login
-    mostrarMensaje('✅ Registro exitoso! Por favor inicia sesión', 'exito');
+    // 4. Éxito: guardar sesión y redirigir
+    localStorage.setItem('clienteAutenticado', JSON.stringify(data[0]));
+    mostrarMensaje('✅ Registro exitoso!', 'exito');
     
-    // Limpiar el formulario de registro
-    document.getElementById('registerForm').reset();
-    
-    // Mostrar el formulario de login y ocultar el de registro
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
 
   } catch (error) {
     console.error("Error en registro:", error);
