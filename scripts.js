@@ -140,127 +140,45 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     };
   }
   
-  // Validar que se haya seleccionado un horario
-  if (!hora) {
-    return {valido: false, error: 'Por favor selecciona un horario disponible'};
-  }
-  
   return {valido: true};
 }
 
-// 6. Función para generar slots de horarios (versión optimizada)
-async function generarHorarios(fecha) {
-  const horarioGrid = document.getElementById('horarioGrid');
-  if (!horarioGrid) return;
-
-  // Horarios fijos cada 40 minutos (configuración centralizada)
-  const horariosFijos = [
-    '08:00', '08:40', '09:20', '10:00', '10:40',
-    '11:20', '12:00', '12:40', '13:20', '14:00',
-    '14:40', '15:20', '16:00', '16:40', '17:20',
-    '18:00', '18:40', '19:20', '20:00', '20:40'
-  ];
-
-  try {
-    // Obtener citas existentes para la fecha seleccionada
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('hora')
-      .eq('fecha', fecha);
-
-    if (error) throw error;
-
-    // Limpiar grid antes de generar nuevos slots
-    horarioGrid.innerHTML = '';
-
-    // Generar todos los slots de horarios
-    horariosFijos.forEach(hora => {
-      const slot = document.createElement('div');
-      slot.className = 'horario-slot';
-      slot.textContent = hora;
-
-      // Verificar si el horario está ocupado
-      const ocupado = citas.some(cita => {
-        const [hExistente, mExistente] = cita.hora.split(':').map(Number);
-        const [hActual, mActual] = hora.split(':').map(Number);
-        const diff = Math.abs((hExistente * 60 + mExistente) - (hActual * 60 + mActual));
-        return diff < CONFIG_VENEZUELA.intervaloEntreCitas;
-      });
-
-      if (ocupado) {
-        slot.classList.add('horario-ocupado');
-      } else {
-        slot.classList.add('horario-disponible');
-        slot.addEventListener('click', function() {
-          // Deseleccionar otros slots
-          document.querySelectorAll('.horario-slot').forEach(s => {
-            s.classList.remove('horario-seleccionado');
-          });
-          // Seleccionar este slot
-          this.classList.add('horario-seleccionado');
-          document.getElementById('hora').value = hora;
-        });
-      }
-
-      horarioGrid.appendChild(slot);
-    });
-
-  } catch (error) {
-    console.error('Error al generar horarios:', error);
-    horarioGrid.innerHTML = '<div class="error-horarios">Error al cargar horarios. Intente nuevamente.</div>';
-  }
-}
-
-// Función para mostrar/ocultar el grid de horarios (versión optimizada)
-function toggleHorarioGrid() {
-  const grid = document.getElementById('horarioGrid');
-  const icon = document.getElementById('horarioToggleIcon');
-  
-  if (grid && icon) {
-    grid.classList.toggle('visible');
-    icon.style.transform = grid.classList.contains('visible') ? 'rotate(180deg)' : 'rotate(0deg)';
-    
-    // Alternar atributo aria-expanded para accesibilidad
-    const isExpanded = grid.classList.contains('visible');
-    document.getElementById('horarioToggleBtn').setAttribute('aria-expanded', isExpanded);
-  }
-}
-
-// 7. Función para inicializar selectores con validación para Venezuela
+// 6. Función para inicializar selectores con validación para Venezuela
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
-  if (!fechaInput) return;
+  const horaInput = document.getElementById('hora');
+  
+  if (!fechaInput || !horaInput) return;
 
-  // Formato correcto: yyyy-MM-dd
+  // Configurar fecha mínima (hoy) según hora de Venezuela
   const hoy = new Date();
-  const año = hoy.getFullYear();
-  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoy.getDate()).padStart(2, '0');
-  const fechaMinima = `${año}-${mes}-${dia}`;
+  const hoyVenezuela = hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria });
+  const fechaMinima = hoyVenezuela.split(',')[0].trim().split('/').reverse().join('-');
   
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
   
-  // Generar horarios iniciales
-  generarHorarios(fechaMinima);
+  // Configurar hora según horario Venezuela
+  horaInput.min = CONFIG_VENEZUELA.horarioApertura;
+  horaInput.max = CONFIG_VENEZUELA.horarioCierre;
   
-  // Escuchar cambios de fecha
+  // Establecer hora actual de Venezuela como sugerencia
+  const horaActual = obtenerHoraActualVenezuela();
+  horaInput.value = horaActual;
+  
+  // Validar días de trabajo (Lunes a Sábado)
   fechaInput.addEventListener('change', function() {
-    const fechaSeleccionada = this.value;
-    const diaSemana = new Date(fechaSeleccionada).getDay();
+    const fechaSeleccionada = new Date(this.value);
+    const diaSemana = fechaSeleccionada.getDay(); // 0=Domingo, 1=Lunes, etc.
     
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
-      this.value = fechaInput.min;
-      return;
+      this.value = fechaInput.min; // Resetear a fecha mínima
     }
-    
-    document.getElementById('hora').value = '';
-    generarHorarios(fechaSeleccionada);
   });
 }
 
-// 8. Función para enviar notificación a Telegram
+// 7. Función para enviar notificación a Telegram (sin cambios)
 async function enviarNotificacionTelegram(citaData) {
   const BOT_TOKEN = "8473537897:AAE4DhBRqFSgkerepYMSA-meEBwn0pXjXag";
   const CHAT_ID = "8330674980";
@@ -293,7 +211,7 @@ async function enviarNotificacionTelegram(citaData) {
   }
 }
 
-// 9. Función para guardar cita con validación de horario (actualizada)
+// 8. Función para guardar cita con validación de horario
 async function guardarCita(citaData) {
   if (!supabase) {
     throw new Error('Error de conexión con el servidor');
@@ -324,9 +242,6 @@ async function guardarCita(citaData) {
     // Enviar notificación a Telegram (no bloqueante)
     enviarNotificacionTelegram(citaData).catch(e => console.error(e));
     
-    // Actualizar la lista de horarios después de guardar
-    generarHorarios(citaData.fecha);
-    
     return data;
   } catch (error) {
     console.error('Error completo:', error);
@@ -334,7 +249,7 @@ async function guardarCita(citaData) {
   }
 }
 
-// 10. Inicialización principal adaptada para Venezuela
+// 9. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', function() {
   // Verificar si Supabase está inicializado
   if (!supabase) {
@@ -344,15 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
-
-  // Configurar el toggle del grid de horarios si existe el botón
-  const toggleBtn = document.getElementById('horarioToggleBtn');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', toggleHorarioGrid);
-    // Añadir accesibilidad
-    toggleBtn.setAttribute('aria-expanded', 'false');
-    toggleBtn.setAttribute('aria-controls', 'horarioGrid');
-  }
 
   // Manejar envío del formulario
   const citaForm = document.getElementById('citaForm');
@@ -398,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } finally {
         // Restaurar botón
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
+        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Cita';
       }
     });
   }
