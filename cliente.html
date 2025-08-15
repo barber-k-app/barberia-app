@@ -480,6 +480,21 @@
       animation: fadeInUp 0.8s ease-out;
     }
 
+    /* NUEVO ESTILO PARA INFO HORARIO MEJORADO */
+    .info-horario-mejorado {
+      background: rgba(212, 175, 55, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--gold);
+      border-left: 3px solid var(--gold);
+      animation: fadeInUp 0.8s ease-out;
+    }
+
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -580,6 +595,12 @@
                 <option value="Retoque de cejas">Retoque de cejas</option>
               </select>
             </div>
+          </div>
+          
+          <!-- NUEVO MENSAJE DE HORARIO MEJORADO -->
+          <div class="info-horario-mejorado">
+            <i class="fas fa-calendar-times"></i>
+            <span><strong>Domingos cerrados</strong> - Horario: L-S 8:00 AM - 8:40 PM</span>
           </div>
           
           <div class="input-group">
