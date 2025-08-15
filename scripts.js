@@ -26,11 +26,20 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
-// Función para bloquear domingos
+// Función mejorada para bloquear domingos con mensaje visual
 function bloquearDomingos() {
   const fechaInput = document.getElementById('fecha');
   if (!fechaInput) return;
   
+  // Crear elemento de alerta si no existe
+  let alertaDomingo = document.querySelector('.alerta-domingo');
+  if (!alertaDomingo) {
+    alertaDomingo = document.createElement('div');
+    alertaDomingo.className = 'alerta-domingo';
+    alertaDomingo.innerHTML = '<i class="fas fa-ban"></i><span>Domingos no disponibles</span>';
+    fechaInput.insertAdjacentElement('afterend', alertaDomingo);
+  }
+
   // Obtener el próximo lunes si hoy es domingo
   const hoy = new Date();
   if (hoy.getDay() === 0) {
