@@ -463,6 +463,11 @@
       margin-bottom: 15px;
       color: var(--gold);
       font-size: 0.9rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px;
+      background-color: rgba(212, 175, 55, 0.1);
+      border-radius: 5px;
     }
 
     .horario-header span {
@@ -470,10 +475,24 @@
       opacity: 0.9;
     }
 
+    .horario-header i.fa-chevron-down {
+      margin-left: auto;
+      transition: transform 0.3s;
+    }
+
     .horario-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .horario-grid.visible {
+      max-height: 500px;
+      display: block;
+      margin-top: 10px;
     }
 
     .horario-slot {
@@ -611,9 +630,10 @@
 
             <!-- Selector visual de horarios -->
             <div class="horario-container">
-              <div class="horario-header">
+              <div class="horario-header" onclick="toggleHorarioGrid()">
                 <i class="fas fa-clock"></i>
                 <span>Horarios disponibles - Verde: Libre / Rojo: Ocupado</span>
+                <i class="fas fa-chevron-down" id="horarioToggleIcon"></i>
               </div>
               <div class="horario-grid" id="horarioGrid">
                 <!-- Los horarios se cargarán automáticamente con JavaScript -->
@@ -766,6 +786,20 @@
       // Generar horarios iniciales
       generarHorarios();
     });
+
+    // Función para alternar la visualización del grid de horarios
+    function toggleHorarioGrid() {
+      const horarioGrid = document.getElementById('horarioGrid');
+      const toggleIcon = document.getElementById('horarioToggleIcon');
+      
+      horarioGrid.classList.toggle('visible');
+      
+      if (horarioGrid.classList.contains('visible')) {
+        toggleIcon.style.transform = 'rotate(180deg)';
+      } else {
+        toggleIcon.style.transform = 'rotate(0deg)';
+      }
+    }
   </script>
 </body>
 </html>
