@@ -465,6 +465,21 @@
       background-color: rgba(231, 76, 60, 0.1);
     }
 
+    /* NUEVO ESTILO PARA EL CONTADOR DE CITAS */
+    .info-citas {
+      background: rgba(212, 175, 55, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gold);
+      border-left: 3px solid var(--gold);
+      animation: fadeInUp 0.8s ease-out;
+    }
+
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -533,6 +548,12 @@
           <div class="input-group">
             <i class="fas fa-phone"></i>
             <input type="tel" id="telefono" placeholder="Teléfono" required>
+          </div>
+
+          <!-- NUEVO CONTADOR DE CITAS -->
+          <div id="contador-citas" class="info-citas">
+            <i class="fas fa-info-circle"></i>
+            <span>Límite: 2 citas por día por teléfono</span>
           </div>
           
           <div class="form-row">
