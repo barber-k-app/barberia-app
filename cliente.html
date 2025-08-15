@@ -6,7 +6,6 @@
   <title>Agendar Cita | Barber-K</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #D4AF37;
@@ -690,10 +689,56 @@
       <p>© 2025 Barber-K - Todos los derechos reservados</p>
     </footer>
   </div>
-
-  <script src="scripts.js"></script>
   
   <script>
+    // Función mejorada para bloquear domingos
+    function bloquearDomingos() {
+      const fechaInput = document.getElementById('fecha');
+      const mensajeError = document.getElementById('mensaje');
+      
+      // Configurar fecha mínima (evitar domingos iniciales)
+      const hoy = new Date();
+      if (hoy.getDay() === 0) { // Si hoy es domingo
+        const lunes = new Date(hoy);
+        lunes.setDate(hoy.getDate() + 1);
+        fechaInput.min = lunes.toISOString().split('T')[0];
+      } else {
+        fechaInput.min = hoy.toISOString().split('T')[0];
+      }
+
+      // Validar al seleccionar fecha
+      fechaInput.addEventListener('change', function() {
+        const fecha = new Date(this.value);
+        if (fecha.getDay() === 0) {
+          mostrarMensaje('Domingos no disponibles', 'error');
+          this.value = ''; // Limpiar selección
+          
+          // Auto-seleccionar próximo día hábil (lunes)
+          const proximoLunes = new Date(fecha);
+          proximoLunes.setDate(fecha.getDate() + 1);
+          this.value = proximoLunes.toISOString().split('T')[0];
+        }
+      });
+    }
+
+    // Función para mostrar mensajes
+    function mostrarMensaje(texto, tipo) {
+      const mensaje = document.getElementById('mensaje');
+      mensaje.textContent = texto;
+      mensaje.className = ''; // Limpiar clases
+      mensaje.classList.add(`mensaje-${tipo}`);
+      mensaje.style.display = 'block';
+      
+      // Ocultar mensaje después de 5 segundos
+      setTimeout(() => {
+        mensaje.style.opacity = '0';
+        setTimeout(() => {
+          mensaje.style.display = 'none';
+          mensaje.style.opacity = '1';
+        }, 500);
+      }, 5000);
+    }
+
     // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
@@ -733,30 +778,10 @@
       optionNoDisponible.setAttribute('data-disponible', 'false');
       optionNoDisponible.disabled = true;
       horaSelect.appendChild(optionNoDisponible);
+      
+      // Inicializar bloqueo de domingos
+      bloquearDomingos();
     });
-
-    // Función para bloquear domingos
-    function bloquearDomingos() {
-      const fechaInput = document.getElementById('fecha');
-      
-      // Establecer la fecha mínima como hoy si no está definida
-      if (!fechaInput.min) {
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-        fechaInput.min = yyyy + '-' + mm + '-' + dd;
-      }
-      
-      // Validar domingos al cambiar la fecha
-      fechaInput.addEventListener('change', function() {
-        const selectedDate = new Date(this.value);
-        if (selectedDate.getDay() === 0) { // 0 es domingo
-          alert('Los domingos no están disponibles para citas. Por favor seleccione otro día.');
-          this.value = '';
-        }
-      });
-    }
   </script>
 </body>
 </html>
