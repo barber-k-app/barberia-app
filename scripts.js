@@ -26,42 +26,6 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
-// Función mejorada para bloquear domingos con mensaje visual
-function bloquearDomingos() {
-  const fechaInput = document.getElementById('fecha');
-  if (!fechaInput) return;
-  
-  // Crear elemento de alerta si no existe
-  let alertaDomingo = document.querySelector('.alerta-domingo');
-  if (!alertaDomingo) {
-    alertaDomingo = document.createElement('div');
-    alertaDomingo.className = 'alerta-domingo';
-    alertaDomingo.innerHTML = '<i class="fas fa-ban"></i><span>Domingos no disponibles</span>';
-    fechaInput.insertAdjacentElement('afterend', alertaDomingo);
-  }
-
-  // Obtener el próximo lunes si hoy es domingo
-  const hoy = new Date();
-  if (hoy.getDay() === 0) {
-    const proximoLunes = new Date();
-    proximoLunes.setDate(hoy.getDate() + 1);
-    fechaInput.min = proximoLunes.toISOString().split('T')[0];
-  }
-  
-  // Deshabilitar domingos en el calendario nativo
-  fechaInput.addEventListener('input', function() {
-    const fechaSeleccionada = new Date(this.value);
-    if (fechaSeleccionada.getDay() === 0) {
-      mostrarMensaje('❌ Domingos cerrados. Seleccione de Lunes a Sábado', 'error');
-      this.value = '';
-      // Reiniciar a la fecha mínima permitida
-      const fechaMinima = new Date();
-      if (fechaMinima.getDay() === 0) fechaMinima.setDate(fechaMinima.getDate() + 1);
-      this.value = fechaMinima.toISOString().split('T')[0];
-    }
-  });
-}
-
 // Función para verificar límite de citas
 async function verificarLimiteCitas(telefono, fecha) {
   const { data: citas, error } = await supabase
@@ -172,12 +136,6 @@ async function verificarDisponibilidad(fecha, hora) {
 
 // 5. Validación mejorada de formulario con horario Venezuela
 function validarFormulario({nombre, telefono, fecha, hora}) {
-  // Validar que no sea domingo
-  const fechaCita = new Date(fecha);
-  if (fechaCita.getDay() === 0) { // 0 = Domingo
-    return {valido: false, error: 'Cerrado los domingos. Horario: Lunes a Sábado 8:00 AM - 8:40 PM'};
-  }
-
   if (!nombre || nombre.trim().length < 3) {
     return {valido: false, error: 'El nombre debe tener al menos 3 caracteres'};
   }
@@ -186,7 +144,10 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     return {valido: false, error: 'Teléfono debe tener entre 10 y 15 dígitos'};
   }
   
-  if (fechaCita < new Date()) {
+  const fechaCita = new Date(`${fecha}T${hora}`);
+  const ahora = new Date();
+  
+  if (fechaCita < ahora) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
@@ -308,20 +269,10 @@ function inicializarSelectores() {
   // Generar horarios disponibles
   generarHorariosDisponibles();
   
-  // Bloquear domingos al cargar la página
-  bloquearDomingos();
-  
   // Actualizar disponibilidad cuando cambia la fecha
   fechaInput.addEventListener('change', function() {
     const fechaSeleccionada = new Date(this.value);
     const diaSemana = fechaSeleccionada.getDay();
-    
-    // Validación de domingo
-    if (diaSemana === 0) {
-      mostrarMensaje('❌ Cerrado los domingos. Selecciona de Lunes a Sábado', 'error');
-      this.value = fechaMinima; // Resetear a fecha actual
-      return;
-    }
     
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
