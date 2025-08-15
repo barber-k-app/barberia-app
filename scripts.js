@@ -19,6 +19,19 @@ const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, sup
 if (supabase) {
   supabase.auth.onAuthStateChange((event, session) => {
     console.log('Cambio en estado de autenticación:', event, session);
+    
+    if (event === 'SIGNED_IN') {
+      console.log('Usuario autenticado:', session.user);
+    } else if (event === 'SIGNED_OUT') {
+      console.log('Usuario cerró sesión');
+    } else if (event === 'USER_UPDATED') {
+      console.log('Usuario actualizado:', session.user);
+    }
+  });
+  
+  // Verifica el estado inicial
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    console.log('Sesión inicial:', session);
   });
 }
 
@@ -427,8 +440,6 @@ async function handleRegister() {
   const nombre = document.getElementById('registerNombre').value.trim();
   const telefono = document.getElementById('registerTelefono').value.trim();
 
-  console.log("Datos a registrar:", { email, nombre, telefono });
-
   try {
     // Validación básica
     if (!email || !password || !nombre || !telefono) {
@@ -439,49 +450,52 @@ async function handleRegister() {
       throw new Error("La contraseña debe tener al menos 8 caracteres");
     }
 
+    console.log("Iniciando registro...");
+
     // 1. Registrar usuario en Auth
-    console.log("Registrando en Supabase Auth...");
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: { user, session }, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: nombre,
           phone: telefono
-        }
+        },
+        emailRedirectTo: window.location.origin // Para confirmación de email
       }
     });
+
+    console.log("Respuesta de signUp:", { user, session, authError });
 
     if (authError) {
       console.error("Error en Supabase Auth:", authError);
       throw authError;
     }
 
-    console.log("AuthData:", authData);
+    // 2. Guardar en tabla clientes (solo si el registro en Auth fue exitoso)
+    if (user) {
+      const { data: dbData, error: dbError } = await supabase
+        .from('clientes')
+        .insert([{
+          id: user.id,
+          nombre,
+          telefono,
+          email,
+          creado_en: new Date().toISOString()
+        }])
+        .select();
 
-    // 2. Guardar en tabla clientes
-    console.log("Guardando en tabla clientes...");
-    const { data: dbData, error: dbError } = await supabase
-      .from('clientes')
-      .insert([{
-        id: authData.user.id,
-        nombre,
-        telefono,
-        email,
-        creado_en: new Date().toISOString()
-      }])
-      .select();
+      if (dbError) {
+        console.error("Error al guardar en clientes:", dbError);
+        throw dbError;
+      }
 
-    if (dbError) {
-      console.error("Error al guardar en clientes:", dbError);
-      throw dbError;
+      console.log("Usuario guardado en tabla clientes:", dbData);
     }
 
-    console.log("Datos guardados en clientes:", dbData);
-
-    mostrarMensaje('✅ Registro exitoso. Por favor verifica tu email.', 'exito');
+    mostrarMensaje('✅ Registro exitoso. ' + (user ? 'Verifica tu email.' : 'Ya puedes iniciar sesión.'), 'exito');
     
-    // Redirigir al login después de 3 segundos
+    // Redirigir al login
     setTimeout(() => {
       document.getElementById('registerForm').style.display = 'none';
       document.getElementById('loginForm').style.display = 'block';
@@ -489,7 +503,7 @@ async function handleRegister() {
 
   } catch (error) {
     console.error("Error completo en registro:", error);
-    mostrarMensaje(error.message || 'Error en el registro', 'error');
+    mostrarMensaje(`❌ ${error.message}`, 'error');
   }
 }
 
