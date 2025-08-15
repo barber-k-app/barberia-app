@@ -446,7 +446,7 @@
       animation-delay: 0.5s;
     }
 
-    /* Estilos para el selector de horarios visual */
+    /* Selector visual de horarios */
     .horario-container {
       width: 100%;
       background-color: rgba(0, 0, 0, 0.7);
@@ -463,6 +463,11 @@
       margin-bottom: 15px;
       color: var(--gold);
       font-size: 0.9rem;
+    }
+
+    .horario-header span {
+      font-size: 0.8rem;
+      opacity: 0.9;
     }
 
     .horario-grid {
@@ -604,16 +609,16 @@
               <input type="date" id="fecha" required>
             </div>
 
-            <!-- Contenedor de horarios visual -->
+            <!-- Selector visual de horarios -->
             <div class="horario-container">
               <div class="horario-header">
                 <i class="fas fa-clock"></i>
-                <span>Selecciona un horario</span>
+                <span>Horarios disponibles - Verde: Libre / Rojo: Ocupado</span>
               </div>
               <div class="horario-grid" id="horarioGrid">
-                <!-- Los horarios se generarán dinámicamente aquí -->
+                <!-- Los horarios se cargarán automáticamente con JavaScript -->
               </div>
-              <input type="hidden" id="hora" required>
+              <input type="hidden" id="hora" required> <!-- Campo oculto para guardar la selección -->
             </div>
 
             <div class="input-group">
