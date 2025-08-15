@@ -151,6 +151,11 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
+  // Validar que no sea domingo
+  if (fechaCita.getDay() === 0) {
+    return {valido: false, error: 'No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.'};
+  }
+  
   // Validar horario laboral en Venezuela
   const [horaCita, minCita] = hora.split(':').map(Number);
   const [horaApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
@@ -272,13 +277,15 @@ function inicializarSelectores() {
   // Actualizar disponibilidad cuando cambia la fecha
   fechaInput.addEventListener('change', function() {
     const fechaSeleccionada = new Date(this.value);
-    const diaSemana = fechaSeleccionada.getDay();
+    const diaSemana = fechaSeleccionada.getDay(); // 0 es domingo, 1 es lunes, etc.
     
-    if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
-      mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
-      this.value = fechaMinima;
+    // Verificar si es domingo (0)
+    if (diaSemana === 0) {
+      mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.', 'error');
+      this.value = fechaMinima; // Resetear al día actual
       return;
     }
+    
     actualizarDisponibilidadHorarios(this.value);
   });
   
