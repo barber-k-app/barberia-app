@@ -153,103 +153,100 @@ async function generarHorarios(fecha) {
   const horarioGrid = document.getElementById('horarioGrid');
   if (!horarioGrid) return;
 
-  // Mostrar carga
-  horarioGrid.innerHTML = '<div class="loading-horarios">Cargando horarios disponibles...</div>';
+  horarioGrid.innerHTML = '<div class="loading-horarios">Cargando horarios...</div>';
   
-  // Obtener citas existentes para esta fecha
-  const { data: citas, error } = await supabase
-    .from('citas')
-    .select('hora')
-    .eq('fecha', fecha);
-  
-  if (error) {
-    console.error('Error al obtener citas:', error);
-    horarioGrid.innerHTML = '<div class="error-horarios">Error al cargar horarios</div>';
-    return;
-  }
-  
-  // Convertir horas ocupadas a minutos para comparación
-  const horasOcupadas = citas.map(cita => {
-    const [h, m] = cita.hora.split(':').map(Number);
-    return h * 60 + m;
-  });
-  
-  // Generar slots de horarios
-  horarioGrid.innerHTML = '';
-  const [horaApertura, minApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
-  const [horaCierre, minCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
-  
-  const aperturaMinutos = horaApertura * 60 + minApertura;
-  const cierreMinutos = horaCierre * 60 + minCierre;
-  
-  for (let minutos = aperturaMinutos; minutos < cierreMinutos; minutos += CONFIG_VENEZUELA.intervaloEntreCitas) {
-    const horas = Math.floor(minutos / 60);
-    const mins = minutos % 60;
-    const horaFormato = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-    const horaMinutos = horas * 60 + mins;
+  try {
+    // Asegurar formato yyyy-MM-dd
+    const fechaFormateada = new Date(fecha).toISOString().split('T')[0];
     
-    // Verificar si está ocupado
-    const ocupado = horasOcupadas.some(ocupado => {
-      return Math.abs(ocupado - horaMinutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
+    const { data: citas, error } = await supabase
+      .from('citas')
+      .select('hora')
+      .eq('fecha', fechaFormateada);
+    
+    if (error) throw error;
+    
+    // Convertir horas ocupadas a minutos
+    const horasOcupadas = citas.map(cita => {
+      const [h, m] = cita.hora.split(':').map(Number);
+      return h * 60 + m;
     });
     
-    const slot = document.createElement('div');
-    slot.className = `horario-slot ${ocupado ? 'horario-ocupado' : 'horario-disponible'}`;
-    slot.textContent = horaFormato;
+    // Generar slots
+    horarioGrid.innerHTML = '';
+    const [horaApertura, minApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
+    const [horaCierre, minCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
     
-    if (!ocupado) {
-      slot.addEventListener('click', function() {
-        // Remover selección anterior
-        document.querySelectorAll('.horario-slot').forEach(s => {
-          s.classList.remove('horario-seleccionado');
-        });
-        
-        // Marcar como seleccionado
-        this.classList.add('horario-seleccionado');
-        document.getElementById('hora').value = horaFormato;
+    const aperturaMinutos = horaApertura * 60 + minApertura;
+    const cierreMinutos = horaCierre * 60 + minCierre;
+    
+    for (let minutos = aperturaMinutos; minutos < cierreMinutos; minutos += CONFIG_VENEZUELA.intervaloEntreCitas) {
+      const horas = Math.floor(minutos / 60);
+      const mins = minutos % 60;
+      const horaFormato = `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+      const horaMinutos = horas * 60 + mins;
+      
+      // Verificar disponibilidad
+      const ocupado = horasOcupadas.some(ocupado => {
+        return Math.abs(ocupado - horaMinutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
       });
+      
+      const slot = document.createElement('div');
+      slot.className = `horario-slot ${ocupado ? 'horario-ocupado' : 'horario-disponible'}`;
+      slot.textContent = horaFormato;
+      
+      if (!ocupado) {
+        slot.addEventListener('click', function() {
+          // Remover selección anterior
+          document.querySelectorAll('.horario-slot').forEach(s => {
+            s.classList.remove('horario-seleccionado');
+          });
+          
+          // Marcar como seleccionado
+          this.classList.add('horario-seleccionado');
+          document.getElementById('hora').value = horaFormato;
+        });
+      }
+      
+      horarioGrid.appendChild(slot);
     }
-    
-    horarioGrid.appendChild(slot);
+  } catch (error) {
+    console.error('Error al cargar citas:', error);
+    horarioGrid.innerHTML = '<div class="error-horarios">Error al cargar horarios</div>';
   }
 }
 
 // 7. Función para inicializar selectores con validación para Venezuela
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
-  
   if (!fechaInput) return;
 
-  // Configurar fecha mínima (hoy) según hora de Venezuela
+  // Formato correcto: yyyy-MM-dd
   const hoy = new Date();
-  const hoyVenezuela = hoy.toLocaleString('es-VE', { timeZone: CONFIG_VENEZUELA.zonaHoraria });
-  const fechaMinima = hoyVenezuela.split(',')[0].trim().split('/').reverse().join('-');
+  const año = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  const fechaMinima = `${año}-${mes}-${dia}`;
   
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
   
-  // Generar horarios para la fecha inicial
-  generarHorarios(fechaInput.value);
+  // Generar horarios iniciales
+  generarHorarios(fechaMinima);
   
-  // Actualizar horarios cuando cambia la fecha
+  // Escuchar cambios de fecha
   fechaInput.addEventListener('change', function() {
-    const fechaSeleccionada = new Date(this.value);
-    const diaSemana = fechaSeleccionada.getDay(); // 0=Domingo, 1=Lunes, etc.
+    const fechaSeleccionada = this.value;
+    const diaSemana = new Date(fechaSeleccionada).getDay();
     
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
-      this.value = fechaInput.min; // Resetear a fecha mínima
+      this.value = fechaInput.min;
       return;
     }
     
-    // Limpiar selección anterior
     document.getElementById('hora').value = '';
-    document.querySelectorAll('.horario-slot').forEach(s => {
-      s.classList.remove('horario-seleccionado');
-    });
-    
-    // Generar nuevos horarios
-    generarHorarios(this.value);
+    generarHorarios(fechaSeleccionada);
   });
 }
 
