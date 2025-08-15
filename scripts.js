@@ -143,12 +143,96 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
   return {valido: true};
 }
 
+// Función para generar horarios disponibles
+function generarHorariosDisponibles() {
+  const selectHorario = document.getElementById('hora-select');
+  if (!selectHorario) return;
+
+  // Limpiar opciones existentes
+  selectHorario.innerHTML = '';
+  const optionDefault = document.createElement('option');
+  optionDefault.value = '';
+  optionDefault.disabled = true;
+  optionDefault.selected = true;
+  optionDefault.textContent = 'Selecciona un horario';
+  selectHorario.appendChild(optionDefault);
+
+  // Generar horarios de 8:00 AM a 9:00 PM cada 40 minutos
+  const horarios = [];
+  for (let hora = 8; hora <= 21; hora++) {
+    for (let minuto = 0; minuto < 60; minuto += 40) {
+      if (hora === 21 && minuto > 0) break; // No pasar de las 9:00 PM
+      
+      const horaStr = hora.toString().padStart(2, '0');
+      const minutoStr = minuto.toString().padStart(2, '0');
+      horarios.push(`${horaStr}:${minutoStr}`);
+    }
+  }
+
+  // Agregar opciones al select
+  horarios.forEach(horario => {
+    const option = document.createElement('option');
+    option.value = horario;
+    option.textContent = horario;
+    option.dataset.disponible = 'true'; // Marcamos todos como disponibles inicialmente
+    selectHorario.appendChild(option);
+  });
+}
+
+// Función para actualizar disponibilidad en tiempo real
+async function actualizarDisponibilidadHorarios(fecha) {
+  const selectHorario = document.getElementById('hora-select');
+  if (!selectHorario || !fecha) return;
+
+  try {
+    // Obtener citas existentes para esta fecha
+    const { data: citas, error } = await supabase
+      .from('citas')
+      .select('hora')
+      .eq('fecha', fecha);
+    
+    if (error) throw error;
+
+    // Convertir horas de citas existentes a minutos
+    const horasOcupadas = citas.map(cita => {
+      const [h, m] = cita.hora.split(':').map(Number);
+      return h * 60 + m;
+    });
+
+    // Verificar cada opción de horario
+    Array.from(selectHorario.options).forEach(option => {
+      if (!option.value) return; // Saltar la opción por defecto
+      
+      const [h, m] = option.value.split(':').map(Number);
+      const minutos = h * 60 + m;
+      
+      // Verificar si está ocupado (40 minutos antes o después)
+      const ocupado = horasOcupadas.some(ocupado => {
+        return Math.abs(ocupado - minutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
+      });
+      
+      // Actualizar estilo según disponibilidad
+      if (ocupado) {
+        option.disabled = true;
+        option.dataset.disponible = 'false';
+        option.textContent = `${option.value} - No disponible`;
+      } else {
+        option.disabled = false;
+        option.dataset.disponible = 'true';
+        option.textContent = option.value;
+      }
+    });
+  } catch (error) {
+    console.error('Error actualizando disponibilidad:', error);
+  }
+}
+
 // 6. Función para inicializar selectores con validación para Venezuela
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
   const horaInput = document.getElementById('hora');
   
-  if (!fechaInput || !horaInput) return;
+  if (!fechaInput) return;
 
   // Configurar fecha mínima (hoy) según hora de Venezuela
   const hoy = new Date();
@@ -158,27 +242,35 @@ function inicializarSelectores() {
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
   
-  // Configurar hora según horario Venezuela
-  horaInput.min = CONFIG_VENEZUELA.horarioApertura;
-  horaInput.max = CONFIG_VENEZUELA.horarioCierre;
+  // Generar horarios disponibles
+  generarHorariosDisponibles();
   
-  // Establecer hora actual de Venezuela como sugerencia
-  const horaActual = obtenerHoraActualVenezuela();
-  horaInput.value = horaActual;
-  
-  // Validar días de trabajo (Lunes a Sábado)
+  // Actualizar disponibilidad cuando cambia la fecha
   fechaInput.addEventListener('change', function() {
     const fechaSeleccionada = new Date(this.value);
-    const diaSemana = fechaSeleccionada.getDay(); // 0=Domingo, 1=Lunes, etc.
+    const diaSemana = fechaSeleccionada.getDay();
     
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día hábil de Lunes a Sábado.', 'error');
-      this.value = fechaInput.min; // Resetear a fecha mínima
+      this.value = fechaInput.min;
+    } else {
+      actualizarDisponibilidadHorarios(this.value);
     }
   });
+  
+  // Actualizar el input de hora oculto cuando se selecciona un horario
+  const selectHorario = document.getElementById('hora-select');
+  if (selectHorario && horaInput) {
+    selectHorario.addEventListener('change', function() {
+      horaInput.value = this.value;
+    });
+  }
+  
+  // Actualizar disponibilidad inicial
+  actualizarDisponibilidadHorarios(fechaInput.value);
 }
 
-// 7. Función para enviar notificación a Telegram (sin cambios)
+// 7. Función para enviar notificación a Telegram
 async function enviarNotificacionTelegram(citaData) {
   const BOT_TOKEN = "8473537897:AAE4DhBRqFSgkerepYMSA-meEBwn0pXjXag";
   const CHAT_ID = "8330674980";
