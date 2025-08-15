@@ -450,7 +450,7 @@
 
     /* Nuevos estilos para el sistema de autenticación */
     .auth-container {
-      display: none;
+      display: block;
     }
     
     .auth-container.active {
@@ -523,6 +523,33 @@
       display: none;
     }
 
+    /* Estilos para separar los formularios */
+    .auth-forms-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    .auth-form-wrapper {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1.5rem;
+      border-radius: 10px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .auth-form-title {
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
     @media (max-width: 768px) {
       .form-row, .horarios-container {
         grid-template-columns: 1fr;
@@ -559,6 +586,14 @@
         font-size: 1.2rem;
         margin: 0 5px;
       }
+      
+      .auth-forms-container {
+        gap: 1.5rem;
+      }
+      
+      .auth-form-wrapper {
+        padding: 1rem;
+      }
     }
   </style>
 </head>
@@ -584,64 +619,70 @@
       <main>
         <!-- Contenedor de Autenticación -->
         <div id="authContainer" class="auth-container active">
-          <!-- Formulario de Login -->
-          <form id="loginForm">
-            <div id="authMessage"></div>
-            <div class="input-group">
-              <i class="fas fa-user"></i>
-              <input type="text" id="loginNombre" placeholder="Nombre de usuario" required autocomplete="username">
+          <div class="auth-forms-container">
+            <!-- Formulario de Login -->
+            <div class="auth-form-wrapper">
+              <div class="auth-form-title">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Iniciar Sesión</span>
+              </div>
+              <form id="loginForm" style="display: block;">
+                <div id="authMessageLogin"></div>
+                <div class="input-group">
+                  <i class="fas fa-user"></i>
+                  <input type="text" id="loginNombre" placeholder="Nombre de usuario" required autocomplete="username">
+                </div>
+                
+                <div class="input-group">
+                  <i class="fas fa-lock"></i>
+                  <input type="password" id="loginPassword" placeholder="Contraseña" required autocomplete="current-password">
+                </div>
+                
+                <button type="submit">
+                  <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+              </form>
             </div>
             
-            <div class="input-group">
-              <i class="fas fa-lock"></i>
-              <input type="password" id="loginPassword" placeholder="Contraseña" required autocomplete="current-password">
+            <!-- Formulario de Registro -->
+            <div class="auth-form-wrapper">
+              <div class="auth-form-title">
+                <i class="fas fa-user-plus"></i>
+                <span>Registro de Cliente</span>
+              </div>
+              <form id="registerForm" style="display: block;" onsubmit="event.preventDefault(); handleRegister();">
+                <div id="authMessageRegister"></div>
+                <div class="input-group">
+                  <i class="fas fa-user"></i>
+                  <input type="text" id="registerNombre" placeholder="Nombre completo" required>
+                </div>
+                
+                <div class="input-group">
+                  <i class="fas fa-phone"></i>
+                  <input type="tel" id="registerTelefono" placeholder="Teléfono" required>
+                </div>
+                
+                <div class="input-group">
+                  <i class="fas fa-user"></i>
+                  <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
+                </div>
+                
+                <div class="input-group">
+                  <i class="fas fa-lock"></i>
+                  <input type="password" id="registerPassword" placeholder="Contraseña" required autocomplete="new-password">
+                </div>
+                
+                <div class="input-group">
+                  <i class="fas fa-lock"></i>
+                  <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required autocomplete="new-password">
+                </div>
+                
+                <button type="submit">
+                  <i class="fas fa-user-plus"></i> Registrarse
+                </button>
+              </form>
             </div>
-            
-            <button type="submit">
-              <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-            </button>
-            
-            <button type="button" class="auth-toggle" id="showRegister">
-              <i class="fas fa-user-plus"></i> ¿No tienes cuenta? Regístrate
-            </button>
-          </form>
-          
-          <!-- Formulario de Registro -->
-          <form id="registerForm" style="display: none;" onsubmit="event.preventDefault(); handleRegister();">
-            <div id="authMessage"></div>
-            <div class="input-group">
-              <i class="fas fa-user"></i>
-              <input type="text" id="registerNombre" placeholder="Nombre completo" required>
-            </div>
-            
-            <div class="input-group">
-              <i class="fas fa-phone"></i>
-              <input type="tel" id="registerTelefono" placeholder="Teléfono" required>
-            </div>
-            
-            <div class="input-group">
-              <i class="fas fa-user"></i>
-              <input type="text" id="registerUsuario" placeholder="Nombre de usuario" required>
-            </div>
-            
-            <div class="input-group">
-              <i class="fas fa-lock"></i>
-              <input type="password" id="registerPassword" placeholder="Contraseña" required autocomplete="new-password">
-            </div>
-            
-            <div class="input-group">
-              <i class="fas fa-lock"></i>
-              <input type="password" id="registerConfirmPassword" placeholder="Confirmar contraseña" required autocomplete="new-password">
-            </div>
-            
-            <button type="submit">
-              <i class="fas fa-user-plus"></i> Registrarse
-            </button>
-            
-            <button type="button" class="auth-toggle" id="showLogin">
-              <i class="fas fa-sign-in-alt"></i> ¿Ya tienes cuenta? Inicia Sesión
-            </button>
-          </form>
+          </div>
         </div>
         
         <!-- Contenedor de Citas (se muestra después de autenticarse) -->
