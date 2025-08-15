@@ -411,13 +411,22 @@ async function handleLogin() {
 
 // 12. Función para manejar registro con Supabase Auth (versión mejorada)
 async function handleRegister() {
+  console.log("Iniciando registro...");
+  
   const email = document.getElementById('registerEmail').value.trim();
   const password = document.getElementById('registerPassword').value;
   const nombre = document.getElementById('registerNombre').value.trim();
   const telefono = document.getElementById('registerTelefono').value.trim();
 
+  console.log("Datos a registrar:", { email, password, nombre, telefono });
+
   try {
-    // 1. Registrar usuario en Auth
+    // Validar contraseña
+    if (password.length < 8) {
+      throw new Error("La contraseña debe tener al menos 8 caracteres");
+    }
+
+    console.log("Intentando registro en Supabase Auth...");
     const { data: { user }, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -429,29 +438,42 @@ async function handleRegister() {
       }
     });
 
-    if (authError) throw authError;
+    console.log("Respuesta de Auth:", { user, authError });
+    
+    if (authError) {
+      console.error("Error en Auth:", authError);
+      throw authError;
+    }
 
-    // 2. Guardar en tabla clientes
-    const { error: dbError } = await supabase
+    console.log("Intentando guardar en tabla clientes...");
+    const { data: dbData, error: dbError } = await supabase
       .from('clientes')
       .insert([{
-        id: user.id,  // Usamos el ID que genera Auth
+        id: user.id,
         nombre,
         telefono,
         email,
-        usuario: email // Mantener compatibilidad
-      }]);
+        creado_en: new Date().toISOString()
+      }])
+      .select();
 
-    if (dbError) throw dbError;
-
-    mostrarMensaje('✅ Registro exitoso. Verifica tu email.', 'exito');
+    console.log("Respuesta de DB:", { dbData, dbError });
     
-    // Mostrar formulario de login
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'block';
+    if (dbError) {
+      console.error("Error en DB:", dbError);
+      throw dbError;
+    }
+
+    mostrarMensaje('✅ Registro exitoso. Verifica tu email para activar la cuenta.', 'exito');
+    
+    // Redirigir al login después de 3 segundos
+    setTimeout(() => {
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('loginForm').style.display = 'block';
+    }, 3000);
     
   } catch (error) {
-    console.error("Error en registro:", error);
+    console.error("Error completo en registro:", error);
     mostrarMensaje(error.message || 'Error en el registro', 'error');
   }
 }
@@ -528,40 +550,52 @@ function manejarAutenticacion() {
   });
 }
 
+// Función para mostrar/ocultar contraseña
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = "password";
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+
 // 15. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', async function() {
-  // Verificar sesión activa con Supabase Auth
-  const { data: { session } } = await supabase.auth.getSession();
+  // Verificar sesión activa
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
   
   if (session) {
-    // Obtener datos adicionales del usuario
-    const { data: userData, error } = await supabase
-      .from('clientes')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-    
-    if (!error && userData) {
-      // Guardar en localStorage para compatibilidad con código existente
-      localStorage.setItem('clienteAutenticado', JSON.stringify({
-        ...userData,
-        usuario: session.user.email // Mantener compatibilidad
-      }));
-      
-      // Mostrar vista de citas
-      document.getElementById('authContainer')?.classList.remove('active');
-      document.getElementById('citaContainer')?.classList.add('active');
-      
-      // Rellena los datos automáticamente
-      document.getElementById('nombre').value = userData.nombre;
-      document.getElementById('telefono').value = userData.telefono;
+    try {
+      // Obtener datos del cliente
+      const { data: cliente, error: clienteError } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!clienteError && cliente) {
+        // Mostrar vista de citas
+        document.getElementById('authContainer').classList.remove('active');
+        document.getElementById('citaContainer').classList.add('active');
+        
+        // Rellenar datos
+        document.getElementById('nombre').value = cliente.nombre;
+        document.getElementById('telefono').value = cliente.telefono;
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del cliente:', error);
     }
   }
   // Si no hay sesión pero hay datos en localStorage (para compatibilidad)
   else if (localStorage.getItem('clienteAutenticado')) {
     const cliente = JSON.parse(localStorage.getItem('clienteAutenticado'));
-    document.getElementById('authContainer')?.classList.remove('active');
-    document.getElementById('citaContainer')?.classList.add('active');
+    document.getElementById('authContainer').classList.remove('active');
+    document.getElementById('citaContainer').classList.add('active');
     document.getElementById('nombre').value = cliente.nombre;
     document.getElementById('telefono').value = cliente.telefono;
   }
@@ -645,17 +679,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
     });
   }
-});
 
-// Script para mostrar/ocultar contraseña
-document.addEventListener('DOMContentLoaded', function() {
+  // Configurar toggles de contraseña
   document.querySelectorAll('.toggle-password').forEach(icon => {
     icon.addEventListener('click', function() {
-      const input = this.previousElementSibling;
-      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-      input.setAttribute('type', type);
-      this.classList.toggle('fa-eye');
-      this.classList.toggle('fa-eye-slash');
+      const inputId = this.getAttribute('data-input');
+      togglePassword(inputId, this);
     });
   });
 });
