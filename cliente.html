@@ -481,8 +481,9 @@
 
     .horario-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       gap: 10px;
+      padding: 10px;
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease-out;
@@ -490,17 +491,17 @@
 
     .horario-grid.visible {
       max-height: 500px;
-      display: block;
+      display: grid;
       margin-top: 10px;
     }
 
     .horario-slot {
-      padding: 10px;
+      padding: 12px 5px;
       text-align: center;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.3s;
-      font-size: 0.85rem;
+      transition: all 0.2s;
+      font-size: 0.9rem;
       border: 1px solid transparent;
     }
 
@@ -631,13 +632,11 @@
             <div class="horario-container">
               <div class="horario-header" onclick="toggleHorarioGrid()">
                 <i class="fas fa-clock"></i>
-                <span>Horarios disponibles - Verde: Libre / Rojo: Ocupado</span>
+                <span>Ver horarios disponibles</span>
                 <i class="fas fa-chevron-down" id="horarioToggleIcon"></i>
               </div>
-              <div class="horario-grid" id="horarioGrid">
-                <!-- Los horarios se cargarán automáticamente con JavaScript -->
-              </div>
-              <input type="hidden" id="hora" required> <!-- Campo oculto para guardar la selección -->
+              <div class="horario-grid" id="horarioGrid" style="display: none;"></div>
+              <input type="hidden" id="hora" required>
             </div>
 
             <div class="input-group">
