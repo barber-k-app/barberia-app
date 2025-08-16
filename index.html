@@ -268,6 +268,101 @@
       pointer-events: none;
     }
     
+    /* Panel de Citas del Día */
+    .citas-panel {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 300px;
+      background: rgba(18, 18, 18, 0.9);
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+      z-index: 1000;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .citas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .citas-title {
+      color: var(--gold);
+      font-size: 1.2rem;
+      margin: 0;
+    }
+    
+    .refresh-btn {
+      background: var(--gold);
+      color: var(--dark);
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+    
+    .refresh-btn:hover {
+      transform: rotate(180deg);
+      background: var(--light);
+    }
+    
+    .citas-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .cita-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .cita-time {
+      color: var(--gold);
+      font-weight: bold;
+      min-width: 50px;
+    }
+    
+    .cita-name {
+      flex-grow: 1;
+      padding: 0 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .cita-service {
+      color: rgba(248, 248, 248, 0.7);
+      font-size: 0.8rem;
+    }
+    
+    .no-citas {
+      color: rgba(248, 248, 248, 0.5);
+      font-style: italic;
+      text-align: center;
+      padding: 10px 0;
+    }
+    
+    .loading-citas {
+      color: var(--gold);
+      text-align: center;
+      padding: 10px 0;
+    }
+    
     @media (max-width: 768px) {
       .logo-main {
         font-size: 2.5rem;
@@ -299,6 +394,13 @@
       .stars {
         font-size: 1.5rem;
       }
+      
+      .citas-panel {
+        position: static;
+        width: 100%;
+        margin: 20px 0;
+        max-height: none;
+      }
     }
   </style>
 </head>
@@ -306,6 +408,19 @@
   <div class="gold-glow"></div>
   <div class="scissors-bg">
     <i class="fas fa-cut"></i>
+  </div>
+  
+  <!-- Panel de Citas -->
+  <div class="citas-panel" id="citasPanel">
+    <div class="citas-header">
+      <h3 class="citas-title">Citas de Hoy</h3>
+      <button class="refresh-btn" id="refreshCitas">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+    <div id="citasContainer">
+      <p class="loading-citas">Cargando citas...</p>
+    </div>
   </div>
   
   <div class="container">
@@ -403,6 +518,110 @@
         }, index * 300);
       });
     });
+
+    // Configuración Segura de Supabase
+    const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+
+    // Inicializar Supabase
+    const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+
+    if (!supabase) {
+      console.error('Error: No se pudo inicializar Supabase');
+      // Cargar el script dinámicamente si es necesario
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      script.onload = () => {
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase cargado dinámicamente');
+        cargarCitasDelDia(); // Cargar citas después de inicializar Supabase
+      };
+      document.head.appendChild(script);
+    } else {
+      // Si Supabase ya está cargado, obtener citas inmediatamente
+      cargarCitasDelDia();
+    }
+
+    // Función para formatear la fecha en formato YYYY-MM-DD
+    function obtenerFechaActual() {
+      const hoy = new Date();
+      const año = hoy.getFullYear();
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      return `${año}-${mes}-${dia}`;
+    }
+
+    // Función para cargar las citas del día
+    async function cargarCitasDelDia() {
+      const fechaHoy = obtenerFechaActual();
+      const citasContainer = document.getElementById('citasContainer');
+      
+      citasContainer.innerHTML = '<p class="loading-citas">Cargando citas...</p>';
+      
+      try {
+        const { data: citas, error } = await supabase
+          .from('citas')
+          .select('nombre, hora, servicio, barbero')
+          .eq('fecha', fechaHoy)
+          .order('hora', { ascending: true });
+        
+        if (error) throw error;
+        
+        mostrarCitas(citas);
+        
+        // Configurar actualización automática cada 2 minutos
+        setTimeout(cargarCitasDelDia, 120000);
+      } catch (error) {
+        console.error('Error al cargar citas:', error);
+        citasContainer.innerHTML = '<p class="no-citas">Error al cargar citas. Intente recargar.</p>';
+      }
+    }
+
+    // Función para mostrar las citas en el panel
+    function mostrarCitas(citas) {
+      const citasContainer = document.getElementById('citasContainer');
+      
+      if (!citas || citas.length === 0) {
+        citasContainer.innerHTML = '<p class="no-citas">No hay citas agendadas para hoy</p>';
+        return;
+      }
+      
+      const lista = document.createElement('ul');
+      lista.className = 'citas-list';
+      
+      citas.forEach(cita => {
+        const item = document.createElement('li');
+        item.className = 'cita-item';
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'cita-time';
+        timeSpan.textContent = cita.hora;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'cita-name';
+        nameSpan.textContent = cita.nombre;
+        nameSpan.title = cita.nombre; // Mostrar nombre completo al hacer hover
+        
+        const serviceSpan = document.createElement('span');
+        serviceSpan.className = 'cita-service';
+        serviceSpan.textContent = cita.servicio;
+        
+        item.appendChild(timeSpan);
+        item.appendChild(nameSpan);
+        item.appendChild(serviceSpan);
+        
+        lista.appendChild(item);
+      });
+      
+      citasContainer.innerHTML = '';
+      citasContainer.appendChild(lista);
+    }
+
+    // Configurar botón de actualización manual
+    document.getElementById('refreshCitas')?.addEventListener('click', cargarCitasDelDia);
+
+    // Cargar citas al iniciar
+    document.addEventListener('DOMContentLoaded', cargarCitasDelDia);
   </script>
 </body>
 </html>
