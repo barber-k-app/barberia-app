@@ -649,118 +649,21 @@
       animation: spin 0.8s linear infinite;
     }
 
-    /* Nuevos estilos para el historial de citas */
-    .historial-container {
-      margin-top: 2rem;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 10px;
-      padding: 1.5rem;
-      border: 1px solid rgba(212, 175, 55, 0.2);
-    }
-
-    .historial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-    }
-
-    .historial-header h2 {
-      color: var(--gold);
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .historial-citas {
-      max-height: 300px;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
-
-    .historial-item {
-      background: rgba(0, 0, 0, 0.2);
-      border-left: 3px solid var(--gold);
-      padding: 1rem;
-      margin-bottom: 0.8rem;
-      border-radius: 0 5px 5px 0;
-      transition: all 0.3s ease;
-    }
-
-    .historial-item:hover {
-      background: rgba(0, 0, 0, 0.4);
-      transform: translateX(5px);
-    }
-
-    .historial-item-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-
-    .historial-cliente {
-      color: var(--gold);
-      font-weight: 600;
-    }
-
-    .historial-fecha {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.85rem;
-    }
-
-    .historial-servicio {
-      color: #ff4d4d;
-      margin-bottom: 0.3rem;
-    }
-
-    .historial-estado {
-      display: inline-block;
-      padding: 0.2rem 0.5rem;
-      border-radius: 3px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: capitalize;
-    }
-
-    .historial-estado.completado {
-      background: rgba(39, 174, 96, 0.2);
-      color: #27ae60;
-    }
-
-    .historial-estado.cancelado {
-      background: rgba(231, 76, 60, 0.2);
-      color: #e74c3c;
-    }
-
-    .historial-estado.pendiente {
-      background: rgba(241, 196, 15, 0.2);
-      color: #f1c40f;
-    }
-
-
-
     /* Personalización de la barra de desplazamiento */
-    .historial-citas::-webkit-scrollbar,
     .table-responsive::-webkit-scrollbar {
       width: 6px;
     }
 
-    .historial-citas::-webkit-scrollbar-track,
     .table-responsive::-webkit-scrollbar-track {
       background: rgba(0, 0, 0, 0.1);
       border-radius: 3px;
     }
 
-    .historial-citas::-webkit-scrollbar-thumb,
     .table-responsive::-webkit-scrollbar-thumb {
       background: var(--gold);
       border-radius: 3px;
     }
 
-    .historial-citas::-webkit-scrollbar-thumb:hover,
     .table-responsive::-webkit-scrollbar-thumb:hover {
       background: #c9a227;
     }
@@ -963,9 +866,7 @@
             
             <select id="filtro-barbero">
               <option value="todos">Todos los barberos</option>
-              <option value="Juan">Juan</option>
-              <option value="Carlos">Carlos</option>
-              <option value="Pedro">Pedro</option>
+              <option value="Kelvin">Kelvin</option>
             </select>
             
             <button id="btn-exportar" class="btn-export">
@@ -993,20 +894,6 @@
           <div class="stat-card">
             <h3>Completadas</h3>
             <p id="completadas-citas">0</p>
-          </div>
-        </div>
-
-        <!-- Sección de Historial de Citas -->
-        <div class="historial-container">
-          <div class="historial-header">
-            <h2><i class="fas fa-history"></i> Historial Reciente</h2>
-            <span id="contador-historial" style="color: var(--gold); font-weight: 600;">0 citas</span>
-          </div>
-          <div class="historial-citas" id="historialCitas">
-            <div class="loading">
-              <i class="fas fa-spinner"></i>
-              <p>Cargando historial...</p>
-            </div>
           </div>
         </div>
       </main>
@@ -1207,7 +1094,6 @@
         todasLasCitas = citas || [];
         mostrarCitas(todasLasCitas);
         actualizarEstadisticas(todasLasCitas);
-        mostrarHistorialCitas(todasLasCitas);
         
       } catch (error) {
         console.error('Error al cargar citas:', error);
@@ -1369,55 +1255,6 @@
         console.error('Error al eliminar citas:', error);
         mostrarNotificacion('Error al eliminar las citas seleccionadas', 'error');
       }
-    }
-
-    // Mostrar historial de citas
-    function mostrarHistorialCitas(citas) {
-      const contenedor = document.getElementById('historialCitas');
-      if (!contenedor) return;
-
-      // Ordenar citas por fecha más reciente primero
-      const citasOrdenadas = [...citas].sort((a, b) => {
-        const fechaA = new Date(`${a.fecha}T${a.hora}`);
-        const fechaB = new Date(`${b.fecha}T${b.hora}`);
-        return fechaB - fechaA;
-      });
-
-      // Limitar a las últimas 20 citas para el historial
-      const ultimasCitas = citasOrdenadas.slice(0, 20);
-
-      if (ultimasCitas.length === 0) {
-        contenedor.innerHTML = '<p style="color: rgba(255,255,255,0.6); text-align: center;">No hay citas en el historial</p>';
-        document.getElementById('contador-historial').textContent = '0 citas';
-        return;
-      }
-
-      let html = '';
-      
-      ultimasCitas.forEach(cita => {
-        const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        });
-        
-        const horaFormateada = cita.hora.substring(0, 5);
-        
-        html += `
-          <div class="historial-item">
-            <div class="historial-item-header">
-              <span class="historial-cliente">${cita.nombre}</span>
-              <span class="historial-fecha">${fechaFormateada} a las ${horaFormateada}</span>
-            </div>
-            <div class="historial-servicio">${cita.servicio} con ${cita.barbero}</div>
-            <span class="historial-estado ${cita.estado}">${cita.estado}</span>
-          </div>
-        `;
-      });
-
-      contenedor.innerHTML = html;
-      document.getElementById('contador-historial').textContent = `${ultimasCitas.length} citas recientes`;
     }
 
     // Agregar eventos a los botones de acción
