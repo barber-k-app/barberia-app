@@ -97,6 +97,32 @@ function validarTelefonoVenezolano(telefono) {
   return { valido: true, telefono: telefonoLimpio };
 }
 
+// Función para verificar si ya existe una cita con el mismo teléfono y nombre
+async function verificarCitaExistente(telefono, nombre, fecha) {
+  try {
+    const { data: citas, error } = await supabase
+      .from('citas')
+      .select('*')
+      .eq('telefono', telefono)
+      .eq('nombre', nombre)
+      .eq('fecha', fecha);
+
+    if (error) throw error;
+    
+    if (citas && citas.length > 0) {
+      return {
+        existe: true,
+        cita: citas[0]
+      };
+    }
+    
+    return { existe: false };
+  } catch (error) {
+    console.error('Error verificando cita existente:', error);
+    throw error;
+  }
+}
+
 // Función para verificar límite de citas
 async function verificarLimiteCitas(telefono, fecha) {
   const { data: citas, error } = await supabase
@@ -418,7 +444,18 @@ async function guardarCita(citaData) {
   }
 
   try {
-    // Primero verificar límite de citas
+    // Primero verificar si ya existe una cita con el mismo teléfono y nombre
+    const { existe: citaExistente } = await verificarCitaExistente(
+      citaData.telefono, 
+      citaData.nombre, 
+      citaData.fecha
+    );
+    
+    if (citaExistente) {
+      throw new Error('❌ Ya existe una cita registrada con este teléfono y nombre para esta fecha');
+    }
+    
+    // Luego verificar límite de citas
     await verificarLimiteCitas(citaData.telefono, citaData.fecha);
     
     // Luego verificar disponibilidad
