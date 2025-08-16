@@ -556,6 +556,13 @@ async function guardarCita(citaData) {
     BarberCache.clear(`limite_citas_${citaData.telefono}_${citaData.fecha}`);
     BarberCache.clear(`cita_existente_${citaData.telefono}_${citaData.nombre}_${citaData.fecha}`);
     
+    // Limpiar caché de citas del día actual si estamos en la misma fecha
+    const hoy = new Date();
+    const fechaHoy = formatDate(hoy);
+    if (citaData.fecha === fechaHoy) {
+      BarberCache.clear(`citas_hoy_${fechaHoy}`);
+    }
+    
     enviarNotificacionTelegram(citaData).catch(e => console.error(e));
     
     return data;
@@ -563,6 +570,72 @@ async function guardarCita(citaData) {
     console.error('Error al guardar cita:', error);
     throw error;
   }
+}
+
+// Función mejorada para actualizar el panel de citas
+function actualizarPanelCitas(citas) {
+  const panelCitas = document.getElementById('panel-citas-dia');
+  const totalCitas = document.querySelector('#total-citas span');
+  
+  if (!panelCitas) return;
+
+  // Mostrar estado de carga si no hay datos aún
+  if (!citas) {
+    panelCitas.innerHTML = `
+      <div class="actualizando-citas">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Cargando citas...</span>
+      </div>
+    `;
+    return;
+  }
+  
+  if (citas.length === 0) {
+    panelCitas.innerHTML = `
+      <div class="sin-citas">
+        <i class="fas fa-calendar-times"></i>
+        <p>No hay citas agendadas para hoy</p>
+      </div>
+    `;
+    if (totalCitas) totalCitas.textContent = '0 citas';
+    return;
+  }
+  
+  // Ordenar por hora
+  citas.sort((a, b) => {
+    const [horaA, minA] = a.hora.split(':').map(Number);
+    const [horaB, minB] = b.hora.split(':').map(Number);
+    return horaA - horaB || minA - minB;
+  });
+  
+  // Actualizar contador
+  if (totalCitas) {
+    totalCitas.textContent = `${citas.length} ${citas.length === 1 ? 'cita' : 'citas'}`;
+  }
+  
+  // Generar HTML
+  panelCitas.innerHTML = citas.map(cita => `
+    <div class="cita-item">
+      <div class="cita-hora">${cita.hora}</div>
+      <div class="cita-info">
+        <div class="cita-nombre">${cita.nombre}</div>
+        <div class="cita-detalle">
+          <span><i class="fas fa-cut"></i> ${cita.servicio}</span>
+          <span><i class="fas fa-user-tie"></i> ${cita.barbero}</span>
+          <span><i class="fas fa-phone"></i> ${formatearTelefono(cita.telefono)}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Función para formatear el teléfono
+function formatearTelefono(telefono) {
+  if (!telefono) return '';
+  if (telefono.length === 11) {
+    return `${telefono.substring(0, 4)}-${telefono.substring(4, 7)}-${telefono.substring(7)}`;
+  }
+  return telefono;
 }
 
 // Función para obtener y mostrar citas del día actual
@@ -629,53 +702,6 @@ async function mostrarCitasDelDia() {
   }
 }
 
-// Función para actualizar el panel de citas
-function actualizarPanelCitas(citas) {
-  const panelCitas = document.getElementById('panel-citas-dia');
-  if (!panelCitas) return;
-  
-  if (!citas || citas.length === 0) {
-    panelCitas.innerHTML = `
-      <div class="sin-citas">
-        <i class="fas fa-calendar-times"></i>
-        <p>No hay citas agendadas para hoy</p>
-      </div>
-    `;
-    return;
-  }
-  
-  // Ordenar citas por hora
-  citas.sort((a, b) => {
-    const [horaA, minA] = a.hora.split(':').map(Number);
-    const [horaB, minB] = b.hora.split(':').map(Number);
-    return horaA - horaB || minA - minB;
-  });
-  
-  // Generar HTML de las citas
-  panelCitas.innerHTML = citas.map(cita => `
-    <div class="cita-item">
-      <div class="cita-info">
-        <div class="cita-nombre">${cita.nombre}</div>
-        <div class="cita-detalle">
-          <span><i class="fas fa-cut"></i> ${cita.servicio}</span>
-          <span><i class="fas fa-user-tie"></i> ${cita.barbero}</span>
-          <span><i class="fas fa-phone"></i> ${formatearTelefono(cita.telefono)}</span>
-        </div>
-      </div>
-      <div class="cita-hora">${cita.hora}</div>
-    </div>
-  `).join('');
-}
-
-// Función para formatear el teléfono
-function formatearTelefono(telefono) {
-  if (!telefono) return '';
-  if (telefono.length === 11) {
-    return `${telefono.substring(0, 4)}-${telefono.substring(4, 7)}-${telefono.substring(7)}`;
-  }
-  return telefono;
-}
-
 // Función para verificar y actualizar citas al cambiar de día
 function verificarCambioDeDia() {
   const hoy = new Date();
@@ -691,6 +717,20 @@ function verificarCambioDeDia() {
     
     // Actualizar panel de citas
     mostrarCitasDelDia();
+  }
+}
+
+// Función para forzar actualización manual
+function actualizarCitasManual() {
+  const hoy = new Date();
+  const fechaHoy = formatDate(hoy);
+  BarberCache.clear(`citas_hoy_${fechaHoy}`);
+  mostrarCitasDelDia();
+  
+  // Mostrar mensaje de actualización
+  const mensajeDiv = document.getElementById('mensaje');
+  if (mensajeDiv) {
+    mostrarMensaje('✅ Lista de citas actualizada', 'exito');
   }
 }
 
@@ -800,6 +840,10 @@ document.addEventListener('DOMContentLoaded', function() {
         citaForm.reset();
         inicializarSelectores();
         
+        // Si estamos en la página principal, actualizar el panel de citas
+        if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+          mostrarCitasDelDia();
+        }
       } catch (error) {
         console.error('Error al procesar cita:', error);
         mostrarMensaje(`❌ ${error.message}`, 'error');
@@ -813,5 +857,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Iniciar sistema de citas del día si estamos en la página principal
   if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
     iniciarActualizacionCitas();
+    
+    // Agregar evento al botón de refrescar
+    const refreshBtn = document.getElementById('refresh-citas');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', actualizarCitasManual);
+    }
   }
 });
