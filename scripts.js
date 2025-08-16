@@ -489,6 +489,38 @@ async function guardarCita(citaData) {
   }
 }
 
+// Función para actualizar el contador de citas
+async function actualizarContador() {
+  const telefono = document.getElementById('telefono')?.value.trim();
+  const fecha = document.getElementById('fecha')?.value;
+  const contador = document.getElementById('contador-citas');
+
+  if (!telefono || !fecha || !contador || telefono.length < 11) {
+    contador.style.display = 'none';
+    return;
+  }
+
+  try {
+    const { count } = await supabase
+      .from('citas')
+      .select('*', { count: 'exact' })
+      .eq('telefono', telefono)
+      .eq('fecha', fecha);
+
+    if (count > 0) {
+      contador.innerHTML = `<i class="fas fa-exclamation-circle"></i>
+        <span>Este teléfono ya tiene una cita registrada hoy</span>`;
+      contador.style.display = 'flex';
+      contador.style.color = '#e74c3c';
+    } else {
+      contador.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error al contar citas:', error);
+    contador.style.display = 'none';
+  }
+}
+
 // 9. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', function() {
   // Verificar si Supabase está inicializado
@@ -499,30 +531,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
-
-  // Función para actualizar contador de citas
-  async function actualizarContador() {
-    const telefono = document.getElementById('telefono')?.value.trim();
-    const fecha = document.getElementById('fecha')?.value;
-    const contador = document.getElementById('contador-citas');
-
-    if (!telefono || !fecha || !contador) return;
-
-    try {
-      const { count } = await supabase
-        .from('citas')
-        .select('*', { count: 'exact' })
-        .eq('telefono', telefono)
-        .eq('fecha', fecha);
-
-      const restantes = 2 - (count || 0);
-      contador.innerHTML = `<i class="fas fa-info-circle"></i>
-        <span>Citas hoy: ${count || 0}/2 (${restantes} restantes)</span>`;
-      contador.style.color = count >= 2 ? '#e74c3c' : '#2ecc71';
-    } catch (error) {
-      console.error('Error al contar citas:', error);
-    }
-  }
 
   // Configurar listeners para actualizar contador
   document.getElementById('telefono')?.addEventListener('input', actualizarContador);
