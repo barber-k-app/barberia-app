@@ -17,6 +17,61 @@ if (!supabase) {
   document.head.appendChild(script);
 }
 
+/******************************************
+ * SISTEMA DE CACHÉ PARA BARBER-K (Producción)
+ * Mantiene los datos estáticos y reduce consultas a Supabase
+ ******************************************/
+const BarberCache = {
+  // Obtener datos del caché
+  get: (key) => {
+    try {
+      const cached = localStorage.getItem(`bk_${key}`);
+      if (!cached) return null;
+      
+      const { data, timestamp, ttl } = JSON.parse(cached);
+      
+      // Verificar si el caché ha expirado
+      if (ttl && Date.now() - timestamp > ttl) {
+        localStorage.removeItem(`bk_${key}`);
+        return null;
+      }
+      
+      return data;
+    } catch (e) {
+      console.error('Error leyendo caché:', e);
+      return null;
+    }
+  },
+  
+  // Guardar datos en caché
+  set: (key, data, ttl = 30 * 60 * 1000) => { // 30 minutos por defecto
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now(),
+        ttl
+      };
+      localStorage.setItem(`bk_${key}`, JSON.stringify(cacheData));
+    } catch (e) {
+      console.error('Error guardando en caché:', e);
+    }
+  },
+  
+  // Limpiar entradas específicas del caché
+  clear: (keyPattern) => {
+    Object.keys(localStorage)
+      .filter(key => key.startsWith(`bk_${keyPattern}`))
+      .forEach(key => localStorage.removeItem(key));
+  },
+  
+  // Limpiar todo el caché de la aplicación
+  clearAll: () => {
+    Object.keys(localStorage)
+      .filter(key => key.startsWith('bk_'))
+      .forEach(key => localStorage.removeItem(key));
+  }
+};
+
 // Configuración de horarios para Venezuela
 const CONFIG_VENEZUELA = {
   intervaloEntreCitas: 40, // minutos entre citas
@@ -99,6 +154,10 @@ function validarTelefonoVenezolano(telefono) {
 
 // Función para verificar si ya existe una cita con el mismo teléfono y nombre
 async function verificarCitaExistente(telefono, nombre, fecha) {
+  const cacheKey = `cita_existente_${telefono}_${nombre}_${fecha}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached) return cached;
+  
   try {
     const { data: citas, error } = await supabase
       .from('citas')
@@ -109,14 +168,12 @@ async function verificarCitaExistente(telefono, nombre, fecha) {
 
     if (error) throw error;
     
-    if (citas && citas.length > 0) {
-      return {
-        existe: true,
-        cita: citas[0]
-      };
-    }
+    const result = citas && citas.length > 0 
+      ? { existe: true, cita: citas[0] } 
+      : { existe: false };
     
-    return { existe: false };
+    BarberCache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutos de caché
+    return result;
   } catch (error) {
     console.error('Error verificando cita existente:', error);
     throw error;
@@ -125,13 +182,23 @@ async function verificarCitaExistente(telefono, nombre, fecha) {
 
 // Función para verificar límite de citas
 async function verificarLimiteCitas(telefono, fecha) {
+  const cacheKey = `limite_citas_${telefono}_${fecha}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached && cached.count < 2) return; // Si hay caché y no ha alcanzado límite
+  
   const { data: citas, error } = await supabase
     .from('citas')
-    .select('id', { count: 'exact' }) // Solo contar registros
+    .select('id', { count: 'exact' })
     .eq('telefono', telefono)
     .eq('fecha', fecha);
 
   if (error) throw error;
+  
+  // Guardar en caché solo si no ha alcanzado el límite
+  if (citas.length < 2) {
+    BarberCache.set(cacheKey, { count: citas.length }, 60 * 60 * 1000); // 1 hora
+  }
+  
   if (citas.length >= 2) {
     throw new Error('❌ Límite alcanzado: Máximo 2 citas por día por teléfono');
   }
@@ -189,39 +256,56 @@ function mostrarMensaje(texto, tipo = 'info') {
   }, 5000);
 }
 
-// 4. Función para verificar disponibilidad de horario
+// Nueva función auxiliar con caché para obtener citas
+async function obtenerCitasParaFecha(fecha) {
+  const cacheKey = `citas_${fecha}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached) return cached;
+  
+  const { data: citas, error } = await supabase
+    .from('citas')
+    .select('hora')
+    .eq('fecha', fecha);
+  
+  if (error) throw error;
+  
+  BarberCache.set(cacheKey, citas, 10 * 60 * 1000); // Cachear por 10 minutos
+  return citas;
+}
+
+// 4. Función para verificar disponibilidad de horario (actualizada con caché)
 async function verificarDisponibilidad(fecha, hora) {
+  const cacheKey = `disp_${fecha}_${hora}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached) return cached;
+  
   try {
-    // Convertir hora seleccionada a minutos
     const [horaSel, minSel] = hora.split(':').map(Number);
     const minutosSel = horaSel * 60 + minSel;
     
-    // Obtener todas las citas para esa fecha
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('hora')
-      .eq('fecha', fecha);
-    
-    if (error) throw error;
+    // Obtener citas con caché
+    const citas = await obtenerCitasParaFecha(fecha);
     
     // Verificar cada cita existente
     for (const cita of citas) {
       const [horaExistente, minExistente] = cita.hora.split(':').map(Number);
       const minutosExistente = horaExistente * 60 + minExistente;
       
-      // Calcular diferencia en minutos
       const diferencia = Math.abs(minutosSel - minutosExistente);
       
-      // Si hay menos del intervalo requerido, está ocupado
       if (diferencia < CONFIG_VENEZUELA.intervaloEntreCitas) {
-        return {
+        const result = {
           disponible: false,
           mensaje: `El horario ${hora} no está disponible. Por favor elige otro.`
         };
+        BarberCache.set(cacheKey, result, 5 * 60 * 1000); // Cachear por 5 minutos
+        return result;
       }
     }
     
-    return { disponible: true };
+    const result = { disponible: true };
+    BarberCache.set(cacheKey, result, 5 * 60 * 1000); // Cachear por 5 minutos
+    return result;
   } catch (error) {
     console.error('Error verificando disponibilidad:', error);
     return {
@@ -308,39 +392,32 @@ function generarHorariosDisponibles() {
   });
 }
 
-// Función para actualizar disponibilidad en tiempo real
+// Función para actualizar disponibilidad en tiempo real (actualizada con caché)
 async function actualizarDisponibilidadHorarios(fecha) {
   const selectHorario = document.getElementById('hora-select');
   if (!selectHorario || !fecha) return;
 
   try {
-    // Obtener citas existentes para esta fecha
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('hora')
-      .eq('fecha', fecha);
+    // Obtener citas con caché
+    const citas = await obtenerCitasParaFecha(fecha);
     
-    if (error) throw error;
-
     // Convertir horas de citas existentes a minutos
     const horasOcupadas = citas.map(cita => {
       const [h, m] = cita.hora.split(':').map(Number);
       return h * 60 + m;
     });
 
-    // Verificar cada opción de horario
+    // Procesar opciones de horario
     Array.from(selectHorario.options).forEach(option => {
-      if (!option.value) return; // Saltar la opción por defecto
+      if (!option.value) return;
       
       const [h, m] = option.value.split(':').map(Number);
       const minutos = h * 60 + m;
       
-      // Verificar si está ocupado (40 minutos antes o después)
       const ocupado = horasOcupadas.some(ocupado => {
         return Math.abs(ocupado - minutos) < CONFIG_VENEZUELA.intervaloEntreCitas;
       });
       
-      // Actualizar estilo según disponibilidad
       if (ocupado) {
         option.disabled = true;
         option.dataset.disponible = 'false';
@@ -437,14 +514,14 @@ async function enviarNotificacionTelegram(citaData) {
   }
 }
 
-// 8. Función para guardar cita con validación de horario
+// 8. Función para guardar cita con validación de horario (actualizada con caché)
 async function guardarCita(citaData) {
   if (!supabase) {
     throw new Error('Error de conexión con el servidor');
   }
 
   try {
-    // Primero verificar si ya existe una cita con el mismo teléfono y nombre
+    // Verificar cita existente con caché
     const { existe: citaExistente } = await verificarCitaExistente(
       citaData.telefono, 
       citaData.nombre, 
@@ -455,16 +532,13 @@ async function guardarCita(citaData) {
       throw new Error('❌ Ya existe una cita registrada con este teléfono y nombre para esta fecha');
     }
     
-    // Luego verificar límite de citas
     await verificarLimiteCitas(citaData.telefono, citaData.fecha);
     
-    // Luego verificar disponibilidad
     const disponibilidad = await verificarDisponibilidad(citaData.fecha, citaData.hora);
     if (!disponibilidad.disponible) {
       throw new Error(disponibilidad.mensaje);
     }
 
-    // Si está disponible, guardar la cita
     const { data, error } = await supabase
       .from('citas')
       .insert([{
@@ -474,17 +548,19 @@ async function guardarCita(citaData) {
       }])
       .select();
     
-    if (error) {
-      console.error('Error Supabase:', error);
-      throw new Error(error.message || 'Error al guardar la cita');
-    }
+    if (error) throw error;
     
-    // Enviar notificación a Telegram (no bloqueante)
+    // LIMPIAR CACHÉ RELACIONADO CON ESTA FECHA
+    BarberCache.clear(`citas_${citaData.fecha}`);
+    BarberCache.clear(`disp_${citaData.fecha}_`);
+    BarberCache.clear(`limite_citas_${citaData.telefono}_${citaData.fecha}`);
+    BarberCache.clear(`cita_existente_${citaData.telefono}_${citaData.nombre}_${citaData.fecha}`);
+    
     enviarNotificacionTelegram(citaData).catch(e => console.error(e));
     
     return data;
   } catch (error) {
-    console.error('Error completo:', error);
+    console.error('Error al guardar cita:', error);
     throw error;
   }
 }
