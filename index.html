@@ -221,6 +221,191 @@
       opacity: 0.8;
     }
     
+    /* Estilos para la sección de citas */
+    .citas-section {
+      background: rgba(18, 18, 18, 0.8);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      width: 100%;
+      max-width: 800px;
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    .section-title {
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+    }
+
+    .citas-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .citas-header {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1.5fr 1fr;
+      padding: 0.5rem 1rem;
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 6px;
+      font-weight: bold;
+      color: var(--gold);
+      margin-bottom: 5px;
+    }
+
+    .citas-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    /* Scrollbar personalizada */
+    .citas-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .citas-list::-webkit-scrollbar-track {
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 3px;
+    }
+
+    .citas-list::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 3px;
+    }
+
+    .cita-item {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1.5fr 1fr;
+      padding: 0.8rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      transition: all 0.3s;
+      align-items: center;
+    }
+
+    .cita-item:hover {
+      background: rgba(212, 175, 55, 0.1);
+      transform: translateX(5px);
+    }
+
+    .cita-item.actual {
+      background: rgba(212, 175, 55, 0.2);
+      border-left: 3px solid var(--gold);
+      font-weight: bold;
+    }
+
+    .cita-loading {
+      padding: 1.5rem;
+      text-align: center;
+      color: var(--gold);
+    }
+
+    .citas-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .btn-refresh {
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .btn-refresh:hover {
+      background: rgba(212, 175, 55, 0.2);
+    }
+
+    .btn-refresh:active {
+      transform: scale(0.95);
+    }
+
+    .btn-refresh.rotating {
+      animation: rotate 1s linear infinite;
+    }
+
+    .citas-counter {
+      color: var(--gold);
+      opacity: 0.8;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .citas-header,
+      .cita-item {
+        grid-template-columns: 1fr 1.5fr 1fr;
+      }
+      
+      .citas-header span:nth-child(4),
+      .cita-item div:nth-child(4) {
+        display: none;
+      }
+      
+      .citas-section {
+        padding: 1rem;
+      }
+      
+      .logo-main {
+        font-size: 2.5rem;
+      }
+      
+      .logo-main::before,
+      .logo-main::after {
+        font-size: 1.3rem;
+        margin: 0 8px;
+      }
+      
+      .logo-slogan {
+        font-size: 1.1rem;
+      }
+      
+      .buttons {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .scissors-bg {
+        font-size: 200px;
+      }
+      
+      .rating-section {
+        padding: 1rem;
+      }
+      
+      .stars {
+        font-size: 1.5rem;
+      }
+    }
+    
     footer {
       margin-top: auto;
       padding: 1.5rem;
@@ -267,39 +452,6 @@
       z-index: -1;
       pointer-events: none;
     }
-    
-    @media (max-width: 768px) {
-      .logo-main {
-        font-size: 2.5rem;
-      }
-      
-      .logo-main::before,
-      .logo-main::after {
-        font-size: 1.3rem;
-        margin: 0 8px;
-      }
-      
-      .logo-slogan {
-        font-size: 1.1rem;
-      }
-      
-      .buttons {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      
-      .scissors-bg {
-        font-size: 200px;
-      }
-      
-      .rating-section {
-        padding: 1rem;
-      }
-      
-      .stars {
-        font-size: 1.5rem;
-      }
-    }
   </style>
 </head>
 <body>
@@ -344,6 +496,37 @@
         </div>
         <p class="rating-text">Tu opinión nos ayuda a mejorar</p>
       </div>
+      
+      <!-- Sección de Status de Citas -->
+      <section class="citas-section">
+        <h3 class="section-title">
+          <i class="fas fa-calendar-day"></i> Status de Citas - <span id="fecha-hoy">16/08/2025</span>
+        </h3>
+        
+        <div class="citas-container">
+          <div class="citas-header">
+            <span>Hora</span>
+            <span>Cliente</span>
+            <span>Servicio</span>
+            <span>Barbero</span>
+          </div>
+          <div id="lista-citas" class="citas-list">
+            <!-- Las citas se cargarán aquí dinámicamente -->
+            <div class="cita-loading">
+              <i class="fas fa-spinner fa-spin"></i> Cargando citas del día...
+            </div>
+          </div>
+        </div>
+        
+        <div class="citas-footer">
+          <button id="actualizar-citas" class="btn-refresh">
+            <i class="fas fa-sync-alt"></i> Actualizar
+          </button>
+          <div class="citas-counter">
+            <i class="fas fa-users"></i> <span id="total-citas">0</span> citas hoy
+          </div>
+        </div>
+      </section>
     </main>
     
     <footer>
@@ -402,7 +585,57 @@
           scissor.style.animationPlayState = 'running';
         }, index * 300);
       });
+      
+      // Mostrar la fecha actual
+      const hoy = new Date();
+      const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+      document.getElementById('fecha-hoy').textContent = hoy.toLocaleDateString('es-ES', options);
+      
+      // Simular carga de citas (esto sería reemplazado por una llamada AJAX real)
+      setTimeout(cargarCitasDemo, 1500);
+      
+      // Configurar botón de actualización
+      document.getElementById('actualizar-citas').addEventListener('click', function() {
+        this.classList.add('rotating');
+        document.getElementById('lista-citas').innerHTML = 
+          '<div class="cita-loading"><i class="fas fa-spinner fa-spin"></i> Actualizando citas...</div>';
+        
+        // Simular recarga de datos
+        setTimeout(() => {
+          cargarCitasDemo();
+          this.classList.remove('rotating');
+        }, 1000);
+      });
     });
+    
+    // Función de demostración para cargar citas (simulación)
+    function cargarCitasDemo() {
+      const citas = [
+        { hora: '09:00', cliente: 'Juan Pérez', servicio: 'Corte Clásico', barbero: 'Carlos' },
+        { hora: '10:30', cliente: 'Luis González', servicio: 'Barba', barbero: 'Miguel', actual: true },
+        { hora: '11:15', cliente: 'Andrés Rodríguez', servicio: 'Corte + Barba', barbero: 'Carlos' },
+        { hora: '13:00', cliente: 'Pedro Martínez', servicio: 'Afeitado', barbero: 'Miguel' },
+        { hora: '15:45', cliente: 'José Fernández', servicio: 'Corte Moderno', barbero: 'Carlos' },
+        { hora: '17:30', cliente: 'Manuel López', servicio: 'Tinte', barbero: 'Miguel' }
+      ];
+      
+      const listaCitas = document.getElementById('lista-citas');
+      listaCitas.innerHTML = '';
+      
+      citas.forEach(cita => {
+        const citaItem = document.createElement('div');
+        citaItem.className = `cita-item ${cita.actual ? 'actual' : ''}`;
+        citaItem.innerHTML = `
+          <div>${cita.hora}</div>
+          <div>${cita.cliente}</div>
+          <div>${cita.servicio}</div>
+          <div>${cita.barbero}</div>
+        `;
+        listaCitas.appendChild(citaItem);
+      });
+      
+      document.getElementById('total-citas').textContent = citas.length;
+    }
   </script>
 </body>
 </html>
