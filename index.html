@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <title>Barber-K | Reserva de Citas</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Añade este script en el head para cargar Supabase primero -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --gold: #D4AF37;
@@ -363,6 +365,12 @@
       padding: 10px 0;
     }
     
+    .error-citas {
+      color: #ff6b6b;
+      text-align: center;
+      padding: 10px 0;
+    }
+    
     @media (max-width: 768px) {
       .logo-main {
         font-size: 2.5rem;
@@ -523,24 +531,30 @@
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-    // Inicializar Supabase
-    const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+    // Esperar a que todo el DOM esté cargado y Supabase esté disponible
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Verificar si Supabase está disponible
+      if (typeof supabase === 'undefined') {
+        console.error('Supabase no está cargado');
+        mostrarErrorCitas('Error: La biblioteca Supabase no se cargó correctamente');
+        return;
+      }
 
-    if (!supabase) {
-      console.error('Error: No se pudo inicializar Supabase');
-      // Cargar el script dinámicamente si es necesario
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/@supabase/supabase-js@2';
-      script.onload = () => {
-        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase cargado dinámicamente');
-        cargarCitasDelDia(); // Cargar citas después de inicializar Supabase
-      };
-      document.head.appendChild(script);
-    } else {
-      // Si Supabase ya está cargado, obtener citas inmediatamente
-      cargarCitasDelDia();
-    }
+      try {
+        // Inicializar Supabase
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        window.supabase = supabaseClient; // Guardar en el ámbito global para acceso fácil
+        
+        // Cargar citas del día
+        await cargarCitasDelDia();
+        
+        // Configurar el botón de refrescar
+        document.getElementById('refreshCitas')?.addEventListener('click', cargarCitasDelDia);
+      } catch (error) {
+        console.error('Error al inicializar Supabase:', error);
+        mostrarErrorCitas('Error al conectar con el servidor');
+      }
+    });
 
     // Función para formatear la fecha en formato YYYY-MM-DD
     function obtenerFechaActual() {
@@ -551,15 +565,30 @@
       return `${año}-${mes}-${dia}`;
     }
 
+    // Función para mostrar mensajes de error
+    function mostrarErrorCitas(mensaje) {
+      const citasContainer = document.getElementById('citasContainer');
+      if (citasContainer) {
+        citasContainer.innerHTML = `<p class="error-citas">${mensaje}</p>`;
+      }
+    }
+
     // Función para cargar las citas del día
     async function cargarCitasDelDia() {
       const fechaHoy = obtenerFechaActual();
       const citasContainer = document.getElementById('citasContainer');
       
+      if (!citasContainer) return;
+      
       citasContainer.innerHTML = '<p class="loading-citas">Cargando citas...</p>';
       
       try {
-        const { data: citas, error } = await supabase
+        // Verificar si Supabase está inicializado
+        if (!window.supabase) {
+          throw new Error('Supabase no está inicializado');
+        }
+        
+        const { data: citas, error } = await window.supabase
           .from('citas')
           .select('nombre, hora, servicio, barbero')
           .eq('fecha', fechaHoy)
@@ -573,13 +602,15 @@
         setTimeout(cargarCitasDelDia, 120000);
       } catch (error) {
         console.error('Error al cargar citas:', error);
-        citasContainer.innerHTML = '<p class="no-citas">Error al cargar citas. Intente recargar.</p>';
+        mostrarErrorCitas('Error al cargar citas. Intente recargar la página.');
       }
     }
 
     // Función para mostrar las citas en el panel
     function mostrarCitas(citas) {
       const citasContainer = document.getElementById('citasContainer');
+      
+      if (!citasContainer) return;
       
       if (!citas || citas.length === 0) {
         citasContainer.innerHTML = '<p class="no-citas">No hay citas agendadas para hoy</p>';
@@ -600,7 +631,7 @@
         const nameSpan = document.createElement('span');
         nameSpan.className = 'cita-name';
         nameSpan.textContent = cita.nombre;
-        nameSpan.title = cita.nombre; // Mostrar nombre completo al hacer hover
+        nameSpan.title = cita.nombre;
         
         const serviceSpan = document.createElement('span');
         serviceSpan.className = 'cita-service';
@@ -616,12 +647,6 @@
       citasContainer.innerHTML = '';
       citasContainer.appendChild(lista);
     }
-
-    // Configurar botón de actualización manual
-    document.getElementById('refreshCitas')?.addEventListener('click', cargarCitasDelDia);
-
-    // Cargar citas al iniciar
-    document.addEventListener('DOMContentLoaded', cargarCitasDelDia);
   </script>
 </body>
 </html>
