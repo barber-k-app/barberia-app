@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <title>Barber-K | Reserva de Citas</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --gold: #D4AF37;
@@ -221,98 +222,59 @@
       opacity: 0.8;
     }
     
-    /* Estilos mejorados para panel de citas */
-    .citas-dia-container {
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 10px;
-      padding: 1.5rem;
+    /* Estilos para la sección de citas del día */
+    .todays-appointments {
+      margin-bottom: 2rem;
       width: 100%;
-      max-width: 800px;
-      margin: 2rem auto;
-      border: 1px solid rgba(212, 175, 55, 0.2);
-      backdrop-filter: blur(5px);
+      max-width: 600px;
+      animation: fadeIn 0.8s ease-out;
     }
     
-    .cita-item {
-      background: rgba(0, 0, 0, 0.3);
-      border-left: 3px solid var(--gold);
-      padding: 12px 15px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      display: grid;
-      grid-template-columns: 80px 1fr;
-      gap: 15px;
-      transition: all 0.3s;
+    .todays-appointments h3 {
+      color: var(--gold);
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
     }
     
-    .cita-item:hover {
+    .appointments-container {
       background: rgba(212, 175, 55, 0.05);
-      transform: translateY(-2px);
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid rgba(212, 175, 55, 0.1);
     }
     
-    .cita-hora {
+    .appointments-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
       font-weight: bold;
-      color: var(--gold);
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+      padding-bottom: 0.5rem;
     }
     
-    .cita-info {
-      display: flex;
-      flex-direction: column;
+    .appointment-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
     }
     
-    .cita-nombre {
-      font-weight: 600;
-      margin-bottom: 5px;
+    .no-appointments {
+      font-style: italic;
+      padding: 1rem 0;
     }
     
-    .cita-detalle {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      font-size: 0.85rem;
+    .loading-appointments {
+      padding: 1rem 0;
     }
     
-    .cita-detalle span {
-      background: rgba(212, 175, 55, 0.1);
-      padding: 3px 8px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    .sin-citas {
-      text-align: center;
-      padding: 30px;
-      color: rgba(255,255,255,0.6);
-    }
-    
-    .sin-citas i {
-      font-size: 2rem;
-      margin-bottom: 10px;
-      color: var(--gold);
-    }
-    
-    .actualizando-citas {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      color: var(--gold);
-      padding: 15px;
-    }
-    
-    #refresh-citas:hover {
-      animation: spin 0.5s linear;
-    }
-    
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+    .error-appointments {
+      color: #e74c3c;
+      padding: 1rem 0;
     }
     
     footer {
@@ -335,11 +297,6 @@
     
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
@@ -399,17 +356,14 @@
         font-size: 1.5rem;
       }
       
-      .citas-dia-container {
-        padding: 1rem;
+      .appointments-header,
+      .appointment-item {
+        grid-template-columns: 1fr 1fr;
       }
       
-      .cita-item {
-        grid-template-columns: 70px 1fr;
-        gap: 10px;
-      }
-      
-      .cita-hora {
-        font-size: 1rem;
+      .appointment-item div:nth-child(3),
+      .appointments-header div:nth-child(3) {
+        display: none;
       }
     }
   </style>
@@ -430,6 +384,14 @@
     </header>
     
     <main>
+      <!-- Sección de citas del día -->
+      <div class="todays-appointments">
+        <h3>Citas de Hoy</h3>
+        <div class="appointments-container" id="citas-hoy">
+          <p class="loading-appointments">Cargando citas del día...</p>
+        </div>
+      </div>
+      
       <div class="buttons">
         <a href="cliente.html" class="btn btn-client">
           <i class="fas fa-user"></i> Soy Cliente
@@ -456,32 +418,6 @@
         </div>
         <p class="rating-text">Tu opinión nos ayuda a mejorar</p>
       </div>
-      
-      <!-- Panel de Citas del Día - Versión Mejorada -->
-      <div class="citas-dia-container" style="animation: fadeInUp 0.8s ease-out;">
-        <div class="glass-panel" style="padding: 1.5rem;">
-          <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--gold); display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <i class="fas fa-calendar-day"></i>
-            <span>CITAS DE HOY</span>
-            <i class="fas fa-sync-alt" id="refresh-citas" style="cursor: pointer; font-size: 0.8em;"></i>
-          </h2>
-          
-          <div id="panel-citas-dia" style="min-height: 100px; max-height: 400px; overflow-y: auto;">
-            <div style="display: flex; justify-content: center; align-items: center; height: 100px;">
-              <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold);"></i>
-            </div>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
-            <div id="contador-citas-dia" style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
-              <i class="fas fa-clock"></i> <span id="hora-actualizacion">cargando...</span>
-            </div>
-            <div id="total-citas" style="font-size: 0.8rem; color: var(--gold);">
-              <i class="fas fa-users"></i> <span>0 citas</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
     
     <footer>
@@ -491,6 +427,61 @@
   </div>
 
   <script>
+    // Configuración de Supabase
+    const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Función para formatear la fecha en formato YYYY-MM-DD
+    function formatDate(date) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Función para cargar las citas del día
+    async function cargarCitasDelDia() {
+      const hoy = formatDate(new Date());
+      const citasContainer = document.getElementById('citas-hoy');
+      
+      try {
+        const { data: citas, error } = await supabase
+          .from('citas')
+          .select('*')
+          .eq('fecha', hoy)
+          .order('hora', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (citas.length === 0) {
+          citasContainer.innerHTML = '<p class="no-appointments">No hay citas agendadas para hoy.</p>';
+          return;
+        }
+        
+        let html = '<div class="appointments-header">';
+        html += '<div>Hora</div><div>Cliente</div><div>Barbero</div>';
+        html += '</div>';
+        
+        citas.forEach(cita => {
+          html += `
+            <div class="appointment-item">
+              <div>${cita.hora}</div>
+              <div>${cita.nombre}</div>
+              <div>${cita.barbero || 'No asignado'}</div>
+            </div>
+          `;
+        });
+        
+        citasContainer.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error al cargar citas:', error);
+        citasContainer.innerHTML = '<p class="error-appointments">Error al cargar las citas. Intenta recargar la página.</p>';
+      }
+    }
+
     // Sistema de valoración por estrellas
     document.querySelectorAll('.stars i').forEach(star => {
       star.addEventListener('click', function() {
@@ -532,111 +523,18 @@
       });
     });
 
-    // Efecto adicional para las tijeras del logo al cargar la página
+    // Cargar citas del día cuando la página se carga
     document.addEventListener('DOMContentLoaded', function() {
+      cargarCitasDelDia();
+      
+      // Actualizar citas cada 5 minutos
+      setInterval(cargarCitasDelDia, 5 * 60 * 1000);
+      
       const scissors = document.querySelectorAll('.logo-main::before, .logo-main::after');
       scissors.forEach((scissor, index) => {
         setTimeout(() => {
           scissor.style.animationPlayState = 'running';
         }, index * 300);
-      });
-      
-      // Simulación de carga de citas (puedes reemplazar esto con tu lógica real)
-      setTimeout(() => {
-        const citasHoy = [
-          { hora: "09:30 AM", nombre: "Juan Pérez", servicio: "Corte Clásico", barbero: "Carlos" },
-          { hora: "11:15 AM", nombre: "Roberto Gómez", servicio: "Afeitado", barbero: "Luis" },
-          { hora: "02:45 PM", nombre: "Miguel Rodríguez", servicio: "Corte y Barba", barbero: "Carlos" }
-        ];
-        
-        const panelCitas = document.getElementById('panel-citas-dia');
-        
-        if(citasHoy.length > 0) {
-          let html = '';
-          citasHoy.forEach(cita => {
-            html += `
-              <div class="cita-item">
-                <div class="cita-hora">${cita.hora}</div>
-                <div class="cita-info">
-                  <div class="cita-nombre">${cita.nombre}</div>
-                  <div class="cita-detalle">
-                    <span><i class="fas fa-scissors"></i> ${cita.servicio}</span>
-                    <span><i class="fas fa-user-tie"></i> ${cita.barbero}</span>
-                  </div>
-                </div>
-              </div>
-            `;
-          });
-          panelCitas.innerHTML = html;
-          document.getElementById('total-citas').innerHTML = `<i class="fas fa-users"></i> <span>${citasHoy.length} citas</span>`;
-        } else {
-          panelCitas.innerHTML = `
-            <div class="sin-citas">
-              <i class="far fa-calendar-times"></i>
-              <div>No hay citas programadas para hoy</div>
-            </div>
-          `;
-          document.getElementById('total-citas').innerHTML = `<i class="fas fa-users"></i> <span>0 citas</span>`;
-        }
-        
-        // Actualizar hora
-        const ahora = new Date();
-        document.getElementById('hora-actualizacion').textContent = 
-          `${ahora.getHours()}:${String(ahora.getMinutes()).padStart(2, '0')}`;
-      }, 1500);
-      
-      // Botón de refrescar citas
-      document.getElementById('refresh-citas').addEventListener('click', function() {
-        const panelCitas = document.getElementById('panel-citas-dia');
-        panelCitas.innerHTML = `
-          <div class="actualizando-citas">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Actualizando citas...</span>
-          </div>
-        `;
-        
-        // Simular nueva carga de datos después de 1 segundo
-        setTimeout(() => {
-          // Aquí iría tu llamada real al servidor para obtener las citas actualizadas
-          const ahora = new Date();
-          document.getElementById('hora-actualizacion').textContent = 
-            `${ahora.getHours()}:${String(ahora.getMinutes()).padStart(2, '0')}`;
-          
-          // Por ahora usamos los mismos datos de ejemplo
-          const citasHoy = [
-            { hora: "09:30 AM", nombre: "Juan Pérez", servicio: "Corte Clásico", barbero: "Carlos" },
-            { hora: "11:15 AM", nombre: "Roberto Gómez", servicio: "Afeitado", barbero: "Luis" },
-            { hora: "02:45 PM", nombre: "Miguel Rodríguez", servicio: "Corte y Barba", barbero: "Carlos" }
-          ];
-          
-          if(citasHoy.length > 0) {
-            let html = '';
-            citasHoy.forEach(cita => {
-              html += `
-                <div class="cita-item">
-                  <div class="cita-hora">${cita.hora}</div>
-                  <div class="cita-info">
-                    <div class="cita-nombre">${cita.nombre}</div>
-                    <div class="cita-detalle">
-                      <span><i class="fas fa-scissors"></i> ${cita.servicio}</span>
-                      <span><i class="fas fa-user-tie"></i> ${cita.barbero}</span>
-                    </div>
-                  </div>
-                </div>
-              `;
-            });
-            panelCitas.innerHTML = html;
-            document.getElementById('total-citas').innerHTML = `<i class="fas fa-users"></i> <span>${citasHoy.length} citas</span>`;
-          } else {
-            panelCitas.innerHTML = `
-              <div class="sin-citas">
-                <i class="far fa-calendar-times"></i>
-                <div>No hay citas programadas para hoy</div>
-              </div>
-            `;
-            document.getElementById('total-citas').innerHTML = `<i class="fas fa-users"></i> <span>0 citas</span>`;
-          }
-        }, 1000);
       });
     });
   </script>
