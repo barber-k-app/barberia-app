@@ -26,6 +26,39 @@ const CONFIG_VENEZUELA = {
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
 
+// Función para validar nombre
+function validarNombre(nombre) {
+  // 1. Eliminar espacios al inicio y final
+  const nombreLimpio = nombre.trim();
+  
+  // 2. Verificar longitud (entre 3 y 50 caracteres)
+  if (nombreLimpio.length < 3 || nombreLimpio.length > 50) {
+    return {
+      valido: false,
+      error: 'El nombre debe tener entre 3 y 50 caracteres'
+    };
+  }
+  
+  // 3. Verificar que solo contenga letras, espacios y tildes
+  const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+  if (!regexNombre.test(nombreLimpio)) {
+    return {
+      valido: false,
+      error: 'Solo se permiten letras, espacios y tildes en el nombre'
+    };
+  }
+  
+  // 4. Verificar que no sean solo espacios
+  if (!nombreLimpio.replace(/\s/g, '').length) {
+    return {
+      valido: false,
+      error: 'El nombre no puede contener solo espacios'
+    };
+  }
+  
+  return { valido: true, nombre: nombreLimpio };
+}
+
 // Función para validar teléfono venezolano
 function validarTelefonoVenezolano(telefono) {
   // 1. Eliminar todos los caracteres no numéricos
@@ -174,8 +207,10 @@ async function verificarDisponibilidad(fecha, hora) {
 
 // 5. Validación mejorada de formulario con horario Venezuela
 function validarFormulario({nombre, telefono, fecha, hora}) {
-  if (!nombre || nombre.trim().length < 3) {
-    return {valido: false, error: 'El nombre debe tener al menos 3 caracteres'};
+  // Validación de nombre mejorada
+  const validacionNombre = validarNombre(nombre);
+  if (!validacionNombre.valido) {
+    return validacionNombre;
   }
   
   // Validación de teléfono mejorada
