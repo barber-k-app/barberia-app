@@ -82,6 +82,105 @@ const CONFIG_VENEZUELA = {
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] // Para mensajes más descriptivos
 };
 
+// Elementos del DOM para mantenimiento
+const maintenanceBtn = document.getElementById('maintenanceBtn');
+const maintenanceOverlay = document.getElementById('maintenanceOverlay');
+
+// Función para verificar estado de mantenimiento
+async function checkMaintenanceStatus() {
+  if (!supabase) return;
+  
+  try {
+    const { data, error } = await supabase
+      .from('app_config')
+      .select('maintenance_mode')
+      .eq('id', 1)
+      .single();
+
+    if (error) {
+      console.error("Error al verificar mantenimiento:", error);
+      return;
+    }
+
+    if (data?.maintenance_mode) {
+      maintenanceOverlay.style.display = 'flex';
+    } else {
+      maintenanceOverlay.style.display = 'none';
+    }
+  } catch (error) {
+    console.error("Error en checkMaintenanceStatus:", error);
+  }
+}
+
+// Activar/Desactivar mantenimiento
+async function toggleMaintenanceMode() {
+  if (!supabase) return;
+  
+  try {
+    const { data: config } = await supabase
+      .from('app_config')
+      .select('maintenance_mode, maintenance_password')
+      .eq('id', 1)
+      .single();
+
+    const password = prompt(
+      config.maintenance_mode 
+        ? "🔓 Contraseña para DESACTIVAR mantenimiento:" 
+        : "🔒 Contraseña para ACTIVAR mantenimiento:"
+    );
+
+    if (password !== config.maintenance_password) {
+      alert("❌ Contraseña incorrecta");
+      return;
+    }
+
+    // Actualiza el estado
+    const { error } = await supabase
+      .from('app_config')
+      .update({ maintenance_mode: !config.maintenance_mode })
+      .eq('id', 1);
+
+    if (error) {
+      alert("Error al actualizar estado");
+      return;
+    }
+
+    // Muestra/oculta el overlay
+    maintenanceOverlay.style.display = config.maintenance_mode ? 'none' : 'flex';
+    alert(config.maintenance_mode ? "✅ Modo mantenimiento DESACTIVADO" : "🛠 Modo mantenimiento ACTIVADO");
+  } catch (error) {
+    console.error("Error en toggleMaintenanceMode:", error);
+    alert("Ocurrió un error al cambiar el modo mantenimiento");
+  }
+}
+
+// Configura eventos de mantenimiento
+function setupMaintenanceListeners() {
+  if (maintenanceBtn) {
+    maintenanceBtn.addEventListener('click', toggleMaintenanceMode);
+  }
+
+  // Bloquear acceso a cliente.html si está en mantenimiento
+  document.querySelector('a[href="cliente.html"]')?.addEventListener('click', async (e) => {
+    if (!supabase) return;
+    
+    try {
+      const { data } = await supabase
+        .from('app_config')
+        .select('maintenance_mode')
+        .eq('id', 1)
+        .single();
+
+      if (data?.maintenance_mode) {
+        e.preventDefault();
+        maintenanceOverlay.style.display = 'flex';
+      }
+    } catch (error) {
+      console.error("Error al verificar mantenimiento:", error);
+    }
+  });
+}
+
 // Función para validar nombre
 function validarNombre(nombre) {
   // 1. Eliminar espacios al inicio y final
@@ -579,6 +678,10 @@ document.addEventListener('DOMContentLoaded', function() {
     mostrarMensaje('Error en la configuración del sistema. Recarga la página.', 'error');
     return;
   }
+
+  // Verificar estado de mantenimiento y configurar listeners
+  checkMaintenanceStatus();
+  setupMaintenanceListeners();
 
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
