@@ -316,43 +316,42 @@ async function verificarDisponibilidad(fecha, hora) {
   }
 }
 
-// 5. Validación mejorada de formulario con horario Venezuela (VERSIÓN MEJORADA)
+// 5. Validación mejorada de formulario con horario Venezuela (VERSIÓN CORREGIDA)
 function validarFormulario({nombre, telefono, fecha, hora}) {
   // Validación de nombre mejorada
   const validacionNombre = validarNombre(nombre);
-  if (!validacionNombre.valido) {
-    return validacionNombre;
-  }
+  if (!validacionNombre.valido) return validacionNombre;
   
   // Validación de teléfono mejorada
   const validacionTelefono = validarTelefonoVenezolano(telefono);
-  if (!validacionTelefono.valido) {
-    return validacionTelefono;
-  }
+  if (!validacionTelefono.valido) return validacionTelefono;
   
-  const fechaCita = new Date(`${fecha}T${hora}`);
+  // Crear objeto Date correctamente (considerando zona horaria)
+  const fechaCita = new Date(`${fecha}T${hora}:00-04:00`); // Ajuste para Venezuela UTC-4
   const ahora = new Date();
   
   if (fechaCita < ahora) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
-  // Validar que sea un día laborable (VERSIÓN MEJORADA)
-  const diaSemana = fechaCita.getDay(); // 0 es domingo, 1 es lunes, etc.
-  if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
-    const nombreDia = CONFIG_VENEZUELA.diasSemana[diaSemana];
+  // Validación CORREGIDA del día de la semana
+  const diaSemana = fechaCita.getUTCDay(); // Usamos getUTCDay para consistencia
+  
+  console.log('Día seleccionado:', diaSemana, 'Fecha:', fechaCita); // Para diagnóstico
+  
+  if (diaSemana === 0) { // 0 es Domingo
     return {
       valido: false, 
-      error: `No trabajamos los ${nombreDia.toLowerCase()}s. Por favor seleccione un día de Lunes a Sábado.`
+      error: 'No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.'
     };
   }
   
-  // Validar horario laboral en Venezuela
+  // Validación de horario laboral
   const [horaCita, minCita] = hora.split(':').map(Number);
-  const [horaApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
-  const [horaCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
+  const horaApertura = parseInt(CONFIG_VENEZUELA.horarioApertura.split(':')[0]);
+  const horaCierre = parseInt(CONFIG_VENEZUELA.horarioCierre.split(':')[0]);
   
-  if (horaCita < horaApertura || horaCita >= horaCierre) {
+  if (horaCita < horaApertura || (horaCita >= horaCierre && minCita > 0)) {
     return {
       valido: false, 
       error: `Horario no disponible (${CONFIG_VENEZUELA.horarioApertura} a ${CONFIG_VENEZUELA.horarioCierre})`
@@ -444,35 +443,36 @@ function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
   if (!fechaInput) return;
 
-  // Obtener fecha actual en Venezuela con formato correcto
+  // Configuración de fecha mínima (hoy)
   const hoy = new Date();
-  const anio = hoy.getFullYear();
-  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoy.getDate()).padStart(2, '0');
-  
-  const fechaMinima = `${anio}-${mes}-${dia}`;
-  
+  const fechaMinima = hoy.toISOString().split('T')[0];
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
-  
-  // Generar horarios disponibles
-  generarHorariosDisponibles();
-  
-  // Actualizar disponibilidad cuando cambia la fecha (VERSIÓN MEJORADA)
+
+  // Event listener CORREGIDO para cambio de fecha
   fechaInput.addEventListener('change', function() {
-    const fechaSeleccionada = new Date(this.value);
-    const diaSemana = fechaSeleccionada.getDay();
+    const fechaSeleccionada = new Date(this.value + 'T00:00:00-04:00'); // Ajuste zona horaria
     
-    // Verificar si es un día no laborable (versión mejorada)
-    if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
-      const nombreDia = CONFIG_VENEZUELA.diasSemana[diaSemana];
-      mostrarMensaje(`No trabajamos los ${nombreDia.toLowerCase()}s. Por favor seleccione un día de Lunes a Sábado.`, 'error');
-      this.value = fechaMinima; // Resetear al día actual
+    // Diagnóstico importante
+    console.log('Fecha seleccionada:', this.value, 'Día numérico:', fechaSeleccionada.getUTCDay());
+    
+    // Validación CORREGIDA
+    if (fechaSeleccionada.getUTCDay() === 0) { // 0 es Domingo
+      mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.', 'error');
+      
+      // Encuentra el próximo día laborable (Lunes)
+      const proximoLunes = new Date(fechaSeleccionada);
+      proximoLunes.setDate(proximoLunes.getDate() + 1);
+      this.value = proximoLunes.toISOString().split('T')[0];
+      
       return;
     }
     
     actualizarDisponibilidadHorarios(this.value);
   });
+
+  // Generar horarios disponibles
+  generarHorariosDisponibles();
   
   // Actualizar el input de hora oculto
   const selectHorario = document.getElementById('hora-select');
@@ -680,6 +680,23 @@ document.addEventListener('DOMContentLoaded', function() {
   const fechaInput = document.getElementById('fecha');
   if (fechaInput) {
     console.log("Fecha seleccionada:", fechaInput.value, "Día de la semana:", 
-      CONFIG_VENEZUELA.diasSemana[new Date(fechaInput.value).getDay()]);
+      CONFIG_VENEZUELA.diasSemana[new Date(fechaInput.value + 'T00:00:00-04:00').getUTCDay()]);
   }
+
+  // Prueba de diagnóstico en la consola
+  function probarFechas() {
+    const fechasPrueba = [
+      '2025-08-17', // Domingo
+      '2025-08-18', // Lunes
+      '2025-08-19'  // Martes
+    ];
+    
+    fechasPrueba.forEach(fecha => {
+      const dia = new Date(fecha + 'T00:00:00-04:00').getUTCDay();
+      console.log(`Fecha: ${fecha} - Día numérico: ${dia} - ${dia === 0 ? 'Domingo' : dia === 1 ? 'Lunes' : 'Otro día'}`);
+    });
+  }
+
+  // Ejecutar diagnóstico al cargar
+  probarFechas();
 });
