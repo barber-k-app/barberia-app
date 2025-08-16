@@ -315,7 +315,7 @@ async function verificarDisponibilidad(fecha, hora) {
   }
 }
 
-// 5. Validación mejorada de formulario con horario Venezuela
+// 5. Validación mejorada de formulario con horario Venezuela (VERSIÓN CORREGIDA)
 function validarFormulario({nombre, telefono, fecha, hora}) {
   // Validación de nombre mejorada
   const validacionNombre = validarNombre(nombre);
@@ -336,9 +336,13 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
-  // Validar que no sea domingo
-  if (fechaCita.getDay() === 0) {
-    return {valido: false, error: 'No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.'};
+  // Validar que sea un día laborable (CORRECCIÓN IMPLEMENTADA)
+  const diaSemana = fechaCita.getDay(); // 0 es domingo, 1 es lunes, etc.
+  if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
+    return {
+      valido: false, 
+      error: 'Día no laborable. Por favor seleccione un día de Lunes a Sábado.'
+    };
   }
   
   // Validar horario laboral en Venezuela
@@ -433,7 +437,7 @@ async function actualizarDisponibilidadHorarios(fecha) {
   }
 }
 
-// 6. Función para inicializar selectores con validación para Venezuela
+// 6. Función para inicializar selectores con validación para Venezuela (ACTUALIZADA)
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
   if (!fechaInput) return;
@@ -452,14 +456,14 @@ function inicializarSelectores() {
   // Generar horarios disponibles
   generarHorariosDisponibles();
   
-  // Actualizar disponibilidad cuando cambia la fecha
+  // Actualizar disponibilidad cuando cambia la fecha (VERSIÓN CORREGIDA)
   fechaInput.addEventListener('change', function() {
     const fechaSeleccionada = new Date(this.value);
-    const diaSemana = fechaSeleccionada.getDay(); // 0 es domingo, 1 es lunes, etc.
+    const diaSemana = fechaSeleccionada.getDay();
     
-    // Verificar si es domingo (0)
-    if (diaSemana === 0) {
-      mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.', 'error');
+    // Verificar si es un día no laborable
+    if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
+      mostrarMensaje('Día no laborable. Por favor seleccione un día de Lunes a Sábado.', 'error');
       this.value = fechaMinima; // Resetear al día actual
       return;
     }
@@ -629,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
           nombre: getElement('nombre').value.trim(),
           telefono: getElement('telefono').value.trim(),
           fecha: getElement('fecha').value,
-          hora: getElement('hora-select').value, // Usamos directamente el select
+          hora: getElement('hora-select').value,
           servicio: getElement('servicio').value,
           barbero: getElement('barbero').value
         };
