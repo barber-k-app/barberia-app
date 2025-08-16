@@ -72,114 +72,14 @@ const BarberCache = {
   }
 };
 
-// Configuración de horarios para Venezuela (versión mejorada)
+// Configuración de horarios para Venezuela
 const CONFIG_VENEZUELA = {
   intervaloEntreCitas: 40, // minutos entre citas
   horarioApertura: '08:00',
   horarioCierre: '21:00',
   zonaHoraria: 'America/Caracas',
-  diasTrabajo: [1, 2, 3, 4, 5, 6], // Lunes(1) a Sábado(6)
-  diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] // Para mensajes más descriptivos
+  diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
-
-// Elementos del DOM para mantenimiento
-const maintenanceBtn = document.getElementById('maintenanceBtn');
-const maintenanceOverlay = document.getElementById('maintenanceOverlay');
-
-// Función para verificar estado de mantenimiento
-async function checkMaintenanceStatus() {
-  if (!supabase) return;
-  
-  try {
-    const { data, error } = await supabase
-      .from('app_config')
-      .select('maintenance_mode')
-      .eq('id', 1)
-      .single();
-
-    if (error) {
-      console.error("Error al verificar mantenimiento:", error);
-      return;
-    }
-
-    if (data?.maintenance_mode) {
-      maintenanceOverlay.style.display = 'flex';
-    } else {
-      maintenanceOverlay.style.display = 'none';
-    }
-  } catch (error) {
-    console.error("Error en checkMaintenanceStatus:", error);
-  }
-}
-
-// Activar/Desactivar mantenimiento
-async function toggleMaintenanceMode() {
-  if (!supabase) return;
-  
-  try {
-    const { data: config } = await supabase
-      .from('app_config')
-      .select('maintenance_mode, maintenance_password')
-      .eq('id', 1)
-      .single();
-
-    const password = prompt(
-      config.maintenance_mode 
-        ? "🔓 Contraseña para DESACTIVAR mantenimiento:" 
-        : "🔒 Contraseña para ACTIVAR mantenimiento:"
-    );
-
-    if (password !== config.maintenance_password) {
-      alert("❌ Contraseña incorrecta");
-      return;
-    }
-
-    // Actualiza el estado
-    const { error } = await supabase
-      .from('app_config')
-      .update({ maintenance_mode: !config.maintenance_mode })
-      .eq('id', 1);
-
-    if (error) {
-      alert("Error al actualizar estado");
-      return;
-    }
-
-    // Muestra/oculta el overlay
-    maintenanceOverlay.style.display = config.maintenance_mode ? 'none' : 'flex';
-    alert(config.maintenance_mode ? "✅ Modo mantenimiento DESACTIVADO" : "🛠 Modo mantenimiento ACTIVADO");
-  } catch (error) {
-    console.error("Error en toggleMaintenanceMode:", error);
-    alert("Ocurrió un error al cambiar el modo mantenimiento");
-  }
-}
-
-// Configura eventos de mantenimiento
-function setupMaintenanceListeners() {
-  if (maintenanceBtn) {
-    maintenanceBtn.addEventListener('click', toggleMaintenanceMode);
-  }
-
-  // Bloquear acceso a cliente.html si está en mantenimiento
-  document.querySelector('a[href="cliente.html"]')?.addEventListener('click', async (e) => {
-    if (!supabase) return;
-    
-    try {
-      const { data } = await supabase
-        .from('app_config')
-        .select('maintenance_mode')
-        .eq('id', 1)
-        .single();
-
-      if (data?.maintenance_mode) {
-        e.preventDefault();
-        maintenanceOverlay.style.display = 'flex';
-      }
-    } catch (error) {
-      console.error("Error al verificar mantenimiento:", error);
-    }
-  });
-}
 
 // Función para validar nombre
 function validarNombre(nombre) {
@@ -415,42 +315,38 @@ async function verificarDisponibilidad(fecha, hora) {
   }
 }
 
-// 5. Validación mejorada de formulario con horario Venezuela (VERSIÓN CORREGIDA)
+// 5. Validación mejorada de formulario con horario Venezuela
 function validarFormulario({nombre, telefono, fecha, hora}) {
   // Validación de nombre mejorada
   const validacionNombre = validarNombre(nombre);
-  if (!validacionNombre.valido) return validacionNombre;
+  if (!validacionNombre.valido) {
+    return validacionNombre;
+  }
   
   // Validación de teléfono mejorada
   const validacionTelefono = validarTelefonoVenezolano(telefono);
-  if (!validacionTelefono.valido) return validacionTelefono;
+  if (!validacionTelefono.valido) {
+    return validacionTelefono;
+  }
   
-  // Crear objeto Date correctamente (considerando zona horaria)
-  const fechaCita = new Date(`${fecha}T${hora}:00-04:00`); // Ajuste para Venezuela UTC-4
+  const fechaCita = new Date(`${fecha}T${hora}`);
   const ahora = new Date();
   
   if (fechaCita < ahora) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
-  // Validación CORREGIDA del día de la semana
-  const diaSemana = fechaCita.getUTCDay(); // Usamos getUTCDay para consistencia
-  
-  console.log('Día seleccionado:', diaSemana, 'Fecha:', fechaCita); // Para diagnóstico
-  
-  if (diaSemana === 0) { // 0 es Domingo
-    return {
-      valido: false, 
-      error: 'No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.'
-    };
+  // Validar que no sea domingo
+  if (fechaCita.getDay() === 0) {
+    return {valido: false, error: 'No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.'};
   }
   
-  // Validación de horario laboral
+  // Validar horario laboral en Venezuela
   const [horaCita, minCita] = hora.split(':').map(Number);
-  const horaApertura = parseInt(CONFIG_VENEZUELA.horarioApertura.split(':')[0]);
-  const horaCierre = parseInt(CONFIG_VENEZUELA.horarioCierre.split(':')[0]);
+  const [horaApertura] = CONFIG_VENEZUELA.horarioApertura.split(':').map(Number);
+  const [horaCierre] = CONFIG_VENEZUELA.horarioCierre.split(':').map(Number);
   
-  if (horaCita < horaApertura || (horaCita >= horaCierre && minCita > 0)) {
+  if (horaCita < horaApertura || horaCita >= horaCierre) {
     return {
       valido: false, 
       error: `Horario no disponible (${CONFIG_VENEZUELA.horarioApertura} a ${CONFIG_VENEZUELA.horarioCierre})`
@@ -537,41 +433,39 @@ async function actualizarDisponibilidadHorarios(fecha) {
   }
 }
 
-// 6. Función para inicializar selectores con validación para Venezuela (ACTUALIZADA)
+// 6. Función para inicializar selectores con validación para Venezuela
 function inicializarSelectores() {
   const fechaInput = document.getElementById('fecha');
   if (!fechaInput) return;
 
-  // Configuración de fecha mínima (hoy)
+  // Obtener fecha actual en Venezuela con formato correcto
   const hoy = new Date();
-  const fechaMinima = hoy.toISOString().split('T')[0];
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  
+  const fechaMinima = `${anio}-${mes}-${dia}`;
+  
   fechaInput.min = fechaMinima;
   fechaInput.value = fechaMinima;
-
-  // Event listener CORREGIDO para cambio de fecha
+  
+  // Generar horarios disponibles
+  generarHorariosDisponibles();
+  
+  // Actualizar disponibilidad cuando cambia la fecha
   fechaInput.addEventListener('change', function() {
-    const fechaSeleccionada = new Date(this.value + 'T00:00:00-04:00'); // Ajuste zona horaria
+    const fechaSeleccionada = new Date(this.value);
+    const diaSemana = fechaSeleccionada.getDay(); // 0 es domingo, 1 es lunes, etc.
     
-    // Diagnóstico importante
-    console.log('Fecha seleccionada:', this.value, 'Día numérico:', fechaSeleccionada.getUTCDay());
-    
-    // Validación CORREGIDA
-    if (fechaSeleccionada.getUTCDay() === 0) { // 0 es Domingo
+    // Verificar si es domingo (0)
+    if (diaSemana === 0) {
       mostrarMensaje('No trabajamos los domingos. Por favor seleccione un día de Lunes a Sábado.', 'error');
-      
-      // Encuentra el próximo día laborable (Lunes)
-      const proximoLunes = new Date(fechaSeleccionada);
-      proximoLunes.setDate(proximoLunes.getDate() + 1);
-      this.value = proximoLunes.toISOString().split('T')[0];
-      
+      this.value = fechaMinima; // Resetear al día actual
       return;
     }
     
     actualizarDisponibilidadHorarios(this.value);
   });
-
-  // Generar horarios disponibles
-  generarHorariosDisponibles();
   
   // Actualizar el input de hora oculto
   const selectHorario = document.getElementById('hora-select');
@@ -679,10 +573,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  // Verificar estado de mantenimiento y configurar listeners
-  checkMaintenanceStatus();
-  setupMaintenanceListeners();
-
   // Inicializar selectores de fecha/hora para Venezuela
   inicializarSelectores();
 
@@ -739,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
           nombre: getElement('nombre').value.trim(),
           telefono: getElement('telefono').value.trim(),
           fecha: getElement('fecha').value,
-          hora: getElement('hora-select').value,
+          hora: getElement('hora-select').value, // Usamos directamente el select
           servicio: getElement('servicio').value,
           barbero: getElement('barbero').value
         };
@@ -777,29 +667,4 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-
-  // Código de diagnóstico
-  console.log("Días laborables configurados:", CONFIG_VENEZUELA.diasTrabajo);
-  const fechaInput = document.getElementById('fecha');
-  if (fechaInput) {
-    console.log("Fecha seleccionada:", fechaInput.value, "Día de la semana:", 
-      CONFIG_VENEZUELA.diasSemana[new Date(fechaInput.value + 'T00:00:00-04:00').getUTCDay()]);
-  }
-
-  // Prueba de diagnóstico en la consola
-  function probarFechas() {
-    const fechasPrueba = [
-      '2025-08-17', // Domingo
-      '2025-08-18', // Lunes
-      '2025-08-19'  // Martes
-    ];
-    
-    fechasPrueba.forEach(fecha => {
-      const dia = new Date(fecha + 'T00:00:00-04:00').getUTCDay();
-      console.log(`Fecha: ${fecha} - Día numérico: ${dia} - ${dia === 0 ? 'Domingo' : dia === 1 ? 'Lunes' : 'Otro día'}`);
-    });
-  }
-
-  // Ejecutar diagnóstico al cargar
-  probarFechas();
 });
