@@ -565,6 +565,144 @@ async function guardarCita(citaData) {
   }
 }
 
+/******************************************************
+ * SISTEMA DE VISUALIZACIÓN DE CITAS DEL DÍA (NUEVO)
+ * Muestra las citas agendadas para el día actual
+ ******************************************************/
+const CACHE_CITAS_DURACION = 5 * 60 * 1000; // 5 minutos
+
+// Obtener fecha actual en formato YYYY-MM-DD
+function getFechaHoy() {
+  const hoy = new Date();
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const anio = hoy.getFullYear();
+  return `${anio}-${mes}-${dia}`;
+}
+
+// Formatear hora para mostrar (8:00 AM)
+function formatHoraDisplay(hora) {
+  const [hh, mm] = hora.split(':');
+  const horas = parseInt(hh);
+  const ampm = horas >= 12 ? 'PM' : 'AM';
+  const horas12 = horas % 12 || 12;
+  return `${horas12}:${mm} ${ampm}`;
+}
+
+// Obtener citas del día con caché
+async function obtenerCitasDelDia() {
+  const fechaHoy = getFechaHoy();
+  const cacheKey = `citas_hoy_${fechaHoy}`;
+  
+  // Mostrar fecha en el UI
+  const fechaHoyElement = document.getElementById('fecha-hoy');
+  if (fechaHoyElement) {
+    fechaHoyElement.textContent = fechaHoy.split('-').reverse().join('/');
+  }
+  
+  // Verificar caché
+  const cachedCitas = BarberCache.get(cacheKey);
+  if (cachedCitas) {
+    return cachedCitas;
+  }
+  
+  // Obtener de Supabase si no hay caché válido
+  try {
+    const { data, error } = await supabase
+      .from('citas')
+      .select('*')
+      .eq('fecha', fechaHoy)
+      .order('hora', { ascending: true });
+    
+    if (error) throw error;
+    
+    // Guardar en caché
+    BarberCache.set(cacheKey, data, CACHE_CITAS_DURACION);
+    
+    return data;
+  } catch (error) {
+    console.error('Error obteniendo citas:', error);
+    return [];
+  }
+}
+
+// Mostrar citas en el UI
+async function mostrarCitas() {
+  const listaCitas = document.getElementById('lista-citas');
+  const btnRefresh = document.getElementById('actualizar-citas');
+  
+  if (!listaCitas) return;
+  
+  // Mostrar estado de carga
+  listaCitas.innerHTML = `
+    <div class="cita-loading">
+      <i class="fas fa-spinner fa-spin"></i> Cargando citas del día...
+    </div>
+  `;
+  
+  if (btnRefresh) {
+    btnRefresh.classList.add('rotating');
+  }
+  
+  // Obtener citas
+  const citas = await obtenerCitasDelDia();
+  
+  // Actualizar contador
+  const totalCitasElement = document.getElementById('total-citas');
+  if (totalCitasElement) {
+    totalCitasElement.textContent = citas.length;
+  }
+  
+  // Mostrar citas
+  if (citas.length === 0) {
+    listaCitas.innerHTML = `
+      <div class="cita-item">
+        <div colspan="4" style="grid-column: 1 / -1; text-align: center;">
+          No hay citas agendadas para hoy
+        </div>
+      </div>
+    `;
+  } else {
+    listaCitas.innerHTML = '';
+    
+    const ahora = new Date();
+    const horaActual = ahora.getHours() * 100 + ahora.getMinutes();
+    let citaActualEncontrada = false;
+    
+    citas.forEach(cita => {
+      const [hora, minuto] = cita.hora.split(':').map(Number);
+      const horaCita = hora * 100 + minuto;
+      
+      const citaItem = document.createElement('div');
+      citaItem.className = 'cita-item';
+      
+      // Resaltar cita actual
+      if (!citaActualEncontrada && horaCita >= horaActual) {
+        citaItem.classList.add('actual');
+        citaActualEncontrada = true;
+      }
+      
+      // Formatear teléfono (ocultar parte)
+      const telefono = cita.telefono.length > 4 
+        ? '...' + cita.telefono.slice(-4) 
+        : cita.telefono;
+      
+      citaItem.innerHTML = `
+        <div>${formatHoraDisplay(cita.hora)}</div>
+        <div>${cita.nombre} (${telefono})</div>
+        <div>${cita.servicio}</div>
+        <div>${cita.barbero}</div>
+      `;
+      
+      listaCitas.appendChild(citaItem);
+    });
+  }
+  
+  if (btnRefresh) {
+    btnRefresh.classList.remove('rotating');
+  }
+}
+
 // 9. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', function() {
   // Verificar si Supabase está inicializado
@@ -658,6 +796,9 @@ document.addEventListener('DOMContentLoaded', function() {
         citaForm.reset();
         inicializarSelectores();
         
+        // Actualizar lista de citas después de agendar una nueva
+        setTimeout(mostrarCitas, 1000);
+        
       } catch (error) {
         console.error('Error al procesar cita:', error);
         mostrarMensaje(`❌ ${error.message}`, 'error');
@@ -666,5 +807,25 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = originalText;
       }
     });
+  }
+
+  // Configurar evento de actualización para citas del día
+  const btnRefresh = document.getElementById('actualizar-citas');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', async function() {
+      // Limpiar caché para forzar actualización
+      const fechaHoy = getFechaHoy();
+      BarberCache.clear(`citas_hoy_${fechaHoy}`);
+      
+      await mostrarCitas();
+    });
+  }
+
+  // Actualizar citas cada 5 minutos si estamos en la página de visualización
+  if (document.getElementById('lista-citas')) {
+    setInterval(mostrarCitas, 5 * 60 * 1000);
+    
+    // Cargar citas al inicio con un pequeño retraso
+    setTimeout(mostrarCitas, 1000);
   }
 });
