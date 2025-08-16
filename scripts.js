@@ -72,13 +72,14 @@ const BarberCache = {
   }
 };
 
-// Configuración de horarios para Venezuela
+// Configuración de horarios para Venezuela (versión mejorada)
 const CONFIG_VENEZUELA = {
   intervaloEntreCitas: 40, // minutos entre citas
   horarioApertura: '08:00',
   horarioCierre: '21:00',
   zonaHoraria: 'America/Caracas',
-  diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
+  diasTrabajo: [1, 2, 3, 4, 5, 6], // Lunes(1) a Sábado(6)
+  diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] // Para mensajes más descriptivos
 };
 
 // Función para validar nombre
@@ -315,7 +316,7 @@ async function verificarDisponibilidad(fecha, hora) {
   }
 }
 
-// 5. Validación mejorada de formulario con horario Venezuela (VERSIÓN CORREGIDA)
+// 5. Validación mejorada de formulario con horario Venezuela (VERSIÓN MEJORADA)
 function validarFormulario({nombre, telefono, fecha, hora}) {
   // Validación de nombre mejorada
   const validacionNombre = validarNombre(nombre);
@@ -336,12 +337,13 @@ function validarFormulario({nombre, telefono, fecha, hora}) {
     return {valido: false, error: 'La cita no puede ser en el pasado'};
   }
   
-  // Validar que sea un día laborable (CORRECCIÓN IMPLEMENTADA)
+  // Validar que sea un día laborable (VERSIÓN MEJORADA)
   const diaSemana = fechaCita.getDay(); // 0 es domingo, 1 es lunes, etc.
   if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
+    const nombreDia = CONFIG_VENEZUELA.diasSemana[diaSemana];
     return {
       valido: false, 
-      error: 'Día no laborable. Por favor seleccione un día de Lunes a Sábado.'
+      error: `No trabajamos los ${nombreDia.toLowerCase()}s. Por favor seleccione un día de Lunes a Sábado.`
     };
   }
   
@@ -456,14 +458,15 @@ function inicializarSelectores() {
   // Generar horarios disponibles
   generarHorariosDisponibles();
   
-  // Actualizar disponibilidad cuando cambia la fecha (VERSIÓN CORREGIDA)
+  // Actualizar disponibilidad cuando cambia la fecha (VERSIÓN MEJORADA)
   fechaInput.addEventListener('change', function() {
     const fechaSeleccionada = new Date(this.value);
     const diaSemana = fechaSeleccionada.getDay();
     
-    // Verificar si es un día no laborable
+    // Verificar si es un día no laborable (versión mejorada)
     if (!CONFIG_VENEZUELA.diasTrabajo.includes(diaSemana)) {
-      mostrarMensaje('Día no laborable. Por favor seleccione un día de Lunes a Sábado.', 'error');
+      const nombreDia = CONFIG_VENEZUELA.diasSemana[diaSemana];
+      mostrarMensaje(`No trabajamos los ${nombreDia.toLowerCase()}s. Por favor seleccione un día de Lunes a Sábado.`, 'error');
       this.value = fechaMinima; // Resetear al día actual
       return;
     }
@@ -670,5 +673,13 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = originalText;
       }
     });
+  }
+
+  // Código de diagnóstico
+  console.log("Días laborables configurados:", CONFIG_VENEZUELA.diasTrabajo);
+  const fechaInput = document.getElementById('fecha');
+  if (fechaInput) {
+    console.log("Fecha seleccionada:", fechaInput.value, "Día de la semana:", 
+      CONFIG_VENEZUELA.diasSemana[new Date(fechaInput.value).getDay()]);
   }
 });
