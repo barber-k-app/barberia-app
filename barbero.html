@@ -1143,7 +1143,9 @@
       `;
 
       citas.forEach(cita => {
-        const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES');
+        // AJUSTE PARA VENEZUELA (UTC-4)
+        const fechaObj = new Date(cita.fecha + 'T04:00:00'); // Compensa UTC-4
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES');
         const horaFormateada = cita.hora.substring(0, 5);
         
         html += `
@@ -1333,7 +1335,9 @@
         
         if (error) throw error;
         
-        const fechaFormateada = new Date(cita.fecha).toLocaleDateString('es-ES', {
+        // AJUSTE PARA VENEZUELA (UTC-4)
+        const fechaObj = new Date(cita.fecha + 'T04:00:00'); // Compensa UTC-4
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
           weekday: 'long',
           year: 'numeric',
           month: 'long',
