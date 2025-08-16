@@ -565,6 +565,148 @@ async function guardarCita(citaData) {
   }
 }
 
+// Función para obtener y mostrar citas del día actual
+async function mostrarCitasDelDia() {
+  const panelCitas = document.getElementById('panel-citas-dia');
+  if (!panelCitas) return;
+  
+  const hoy = new Date();
+  const fechaHoy = formatDate(hoy);
+  
+  // Mostrar estado de carga
+  panelCitas.innerHTML = `
+    <div class="actualizando-citas">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Cargando citas...</span>
+    </div>
+  `;
+  
+  try {
+    // Verificar si tenemos datos en caché
+    const cacheKey = `citas_hoy_${fechaHoy}`;
+    const cached = BarberCache.get(cacheKey);
+    
+    if (cached) {
+      actualizarPanelCitas(cached);
+      return;
+    }
+    
+    // Obtener citas de Supabase
+    const { data: citas, error } = await supabase
+      .from('citas')
+      .select('*')
+      .eq('fecha', fechaHoy)
+      .order('hora', { ascending: true });
+    
+    if (error) throw error;
+    
+    // Guardar en caché por 5 minutos
+    BarberCache.set(cacheKey, citas, 5 * 60 * 1000);
+    
+    // Actualizar el panel
+    actualizarPanelCitas(citas);
+    
+    // Actualizar hora de actualización
+    const ahora = new Date();
+    const horaActualizacion = document.getElementById('hora-actualizacion');
+    if (horaActualizacion) {
+      horaActualizacion.textContent = 
+        ahora.toLocaleTimeString('es-VE', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          timeZone: CONFIG_VENEZUELA.zonaHoraria
+        });
+    }
+    
+  } catch (error) {
+    console.error('Error al obtener citas del día:', error);
+    panelCitas.innerHTML = `
+      <div class="sin-citas">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Error al cargar las citas. Intenta recargar la página.</p>
+      </div>
+    `;
+  }
+}
+
+// Función para actualizar el panel de citas
+function actualizarPanelCitas(citas) {
+  const panelCitas = document.getElementById('panel-citas-dia');
+  if (!panelCitas) return;
+  
+  if (!citas || citas.length === 0) {
+    panelCitas.innerHTML = `
+      <div class="sin-citas">
+        <i class="fas fa-calendar-times"></i>
+        <p>No hay citas agendadas para hoy</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Ordenar citas por hora
+  citas.sort((a, b) => {
+    const [horaA, minA] = a.hora.split(':').map(Number);
+    const [horaB, minB] = b.hora.split(':').map(Number);
+    return horaA - horaB || minA - minB;
+  });
+  
+  // Generar HTML de las citas
+  panelCitas.innerHTML = citas.map(cita => `
+    <div class="cita-item">
+      <div class="cita-info">
+        <div class="cita-nombre">${cita.nombre}</div>
+        <div class="cita-detalle">
+          <span><i class="fas fa-cut"></i> ${cita.servicio}</span>
+          <span><i class="fas fa-user-tie"></i> ${cita.barbero}</span>
+          <span><i class="fas fa-phone"></i> ${formatearTelefono(cita.telefono)}</span>
+        </div>
+      </div>
+      <div class="cita-hora">${cita.hora}</div>
+    </div>
+  `).join('');
+}
+
+// Función para formatear el teléfono
+function formatearTelefono(telefono) {
+  if (!telefono) return '';
+  if (telefono.length === 11) {
+    return `${telefono.substring(0, 4)}-${telefono.substring(4, 7)}-${telefono.substring(7)}`;
+  }
+  return telefono;
+}
+
+// Función para verificar y actualizar citas al cambiar de día
+function verificarCambioDeDia() {
+  const hoy = new Date();
+  const fechaHoy = formatDate(hoy);
+  
+  // Verificar si tenemos una fecha almacenada
+  const ultimaFecha = localStorage.getItem('ultima_fecha_verificada');
+  
+  if (ultimaFecha !== fechaHoy) {
+    // Día ha cambiado, limpiar caché de citas del día anterior
+    BarberCache.clear('citas_hoy_');
+    localStorage.setItem('ultima_fecha_verificada', fechaHoy);
+    
+    // Actualizar panel de citas
+    mostrarCitasDelDia();
+  }
+}
+
+// Función para iniciar el sistema de actualización periódica
+function iniciarActualizacionCitas() {
+  // Mostrar citas inmediatamente
+  mostrarCitasDelDia();
+  verificarCambioDeDia();
+  
+  // Actualizar cada 5 minutos
+  setInterval(() => {
+    verificarCambioDeDia();
+    mostrarCitasDelDia();
+  }, 5 * 60 * 1000);
+}
+
 // 9. Inicialización principal adaptada para Venezuela
 document.addEventListener('DOMContentLoaded', function() {
   // Verificar si Supabase está inicializado
@@ -666,5 +808,10 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = originalText;
       }
     });
+  }
+
+  // Iniciar sistema de citas del día si estamos en la página principal
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+    iniciarActualizacionCitas();
   }
 });
