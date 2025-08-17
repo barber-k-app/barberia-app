@@ -13,6 +13,7 @@
       --dark: #121212;
       --light: #f8f8f8;
       --red: #e74c3c;
+      --green: #2ecc71;
     }
     
     * {
@@ -376,12 +377,12 @@
     .maintenance-badge {
       position: fixed;
       top: 20px;
-      left: 20px;
+      right: 20px;
       background-color: var(--red);
       color: white;
-      padding: 8px 15px;
+      padding: 5px 10px;
       border-radius: 20px;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: bold;
       z-index: 1001;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
@@ -485,6 +486,13 @@
       display: none;
     }
     
+    .access-granted {
+      color: var(--green);
+      font-weight: bold;
+      margin-top: 10px;
+      display: none;
+    }
+    
     .maintenance-controls {
       margin-top: 20px;
       padding-top: 20px;
@@ -500,6 +508,25 @@
       cursor: pointer;
       font-size: 14px;
       margin-top: 10px;
+    }
+    
+    .protected-links {
+      margin-top: 15px;
+    }
+    
+    .protected-link {
+      display: block;
+      background-color: rgba(212, 175, 55, 0.1);
+      color: var(--gold);
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .protected-link:hover {
+      background-color: rgba(212, 175, 55, 0.3);
     }
     
     @media (max-width: 768px) {
@@ -543,7 +570,7 @@
       
       .maintenance-badge {
         top: 10px;
-        left: 10px;
+        right: 10px;
         font-size: 12px;
         padding: 5px 10px;
       }
@@ -585,6 +612,7 @@
       <button class="password-btn" id="submitPassword">Acceder</button>
       <button class="password-btn" id="cancelPassword">Cancelar</button>
       <p class="password-error" id="passwordError">Contraseña incorrecta</p>
+      <p class="access-granted" id="accessGranted">Acceso concedido ✓</p>
       
       <div class="maintenance-controls" id="maintenanceControls" style="display: none;">
         <h4>Control de Mantenimiento</h4>
@@ -592,6 +620,16 @@
           <i class="fas fa-power-off"></i> Desactivar Mantenimiento
         </button>
         <p id="maintenanceStatus">Estado actual: <strong>Activo</strong></p>
+        
+        <div class="protected-links">
+          <h4>Accesos Rápidos</h4>
+          <a href="cliente.html" class="protected-link" id="clientAccess">
+            <i class="fas fa-user"></i> Acceder como Cliente
+          </a>
+          <a href="barbero.html" class="protected-link" id="barberAccess">
+            <i class="fas fa-cut"></i> Acceder como Barbero
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -654,9 +692,11 @@
   </div>
 
   <script>
-    // 1. Configuración de la contraseña (cámbiala por una segura)
-    const ADMIN_PASSWORD = "BarberK2025";
+    // 1. Configuración de seguridad mejorada
+    const ADMIN_PASSWORD = "BarberK2025"; // Cambiar en producción
     const MAINTENANCE_KEY = "barberk_maintenance";
+    const ACCESS_KEY = "barberk_access_granted";
+    const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos de sesión
     
     // 2. Elementos del DOM
     const adminGear = document.getElementById('adminGear');
@@ -665,6 +705,7 @@
     const submitPassword = document.getElementById('submitPassword');
     const cancelPassword = document.getElementById('cancelPassword');
     const passwordError = document.getElementById('passwordError');
+    const accessGranted = document.getElementById('accessGranted');
     const clientLink = document.getElementById('clientLink');
     const barberLink = document.getElementById('barberLink');
     const maintenanceBadge = document.getElementById('maintenanceBadge');
@@ -672,10 +713,14 @@
     const maintenanceStatus = document.getElementById('maintenanceStatus');
     const maintenanceControls = document.getElementById('maintenanceControls');
     const modalTitle = document.getElementById('modalTitle');
+    const clientAccess = document.getElementById('clientAccess');
+    const barberAccess = document.getElementById('barberAccess');
     
-    // 3. Verificar estado de mantenimiento al cargar
+    // 3. Verificar estado de mantenimiento y sesión
     function checkMaintenanceStatus() {
       const isMaintenance = localStorage.getItem(MAINTENANCE_KEY) === 'true';
+      const accessTime = localStorage.getItem(ACCESS_KEY);
+      const hasAccess = accessTime && (Date.now() - parseInt(accessTime)) < SESSION_TIMEOUT;
       
       if(isMaintenance) {
         maintenanceBadge.style.display = 'block';
@@ -689,44 +734,70 @@
         maintenanceStatus.innerHTML = 'Estado actual: <strong>Inactivo</strong>';
       }
       
-      return isMaintenance;
+      return { isMaintenance, hasAccess };
     }
     
     // 4. Mostrar modal al hacer clic en el engranaje
     adminGear.addEventListener('click', function() {
-      modalTitle.textContent = 'Acceso Administrativo';
-      adminPassword.type = 'password';
-      adminPassword.placeholder = 'Ingrese la contraseña';
-      maintenanceControls.style.display = 'none';
-      passwordModal.style.display = 'flex';
-      adminPassword.focus();
+      const { hasAccess } = checkMaintenanceStatus();
+      
+      if(hasAccess) {
+        // Acceso ya concedido, mostrar panel de control directamente
+        modalTitle.textContent = 'Panel de Control';
+        adminPassword.style.display = 'none';
+        submitPassword.style.display = 'none';
+        cancelPassword.textContent = 'Cerrar';
+        accessGranted.style.display = 'block';
+        maintenanceControls.style.display = 'block';
+        passwordModal.style.display = 'flex';
+      } else {
+        // Pedir contraseña
+        modalTitle.textContent = 'Acceso Administrativo';
+        adminPassword.style.display = 'block';
+        submitPassword.style.display = 'inline-block';
+        cancelPassword.textContent = 'Cancelar';
+        accessGranted.style.display = 'none';
+        maintenanceControls.style.display = 'none';
+        adminPassword.type = 'password';
+        adminPassword.value = '';
+        adminPassword.placeholder = 'Ingrese la contraseña';
+        adminPassword.style.color = '';
+        adminPassword.style.borderColor = '';
+        passwordError.style.display = 'none';
+        passwordModal.style.display = 'flex';
+        adminPassword.focus();
+      }
     });
     
-    // 5. Validar contraseña
+    // 5. Validar contraseña mejorada
     submitPassword.addEventListener('click', function() {
       if(adminPassword.value === ADMIN_PASSWORD) {
         // Contraseña correcta
-        localStorage.setItem('barberk_admin_access', 'true');
+        localStorage.setItem(ACCESS_KEY, Date.now());
         passwordError.style.display = 'none';
+        adminPassword.style.borderColor = '';
         
-        // Mostrar controles de mantenimiento
+        // Mostrar panel de control
         modalTitle.textContent = 'Panel de Control';
+        adminPassword.style.display = 'none';
+        submitPassword.style.display = 'none';
+        cancelPassword.textContent = 'Cerrar';
+        accessGranted.style.display = 'block';
         maintenanceControls.style.display = 'block';
-        adminPassword.type = 'text';
-        adminPassword.value = 'Contraseña correcta ✓';
-        adminPassword.style.color = '#2ecc71';
-        adminPassword.style.borderColor = '#2ecc71';
+        adminPassword.value = '';
         
-        // Actualizar estado de mantenimiento
+        // Actualizar estado
         checkMaintenanceStatus();
       } else {
         // Contraseña incorrecta
         passwordError.style.display = 'block';
         adminPassword.style.borderColor = 'var(--red)';
+        adminPassword.value = '';
+        adminPassword.focus();
       }
     });
     
-    // 6. Cancelar modal
+    // 6. Cerrar modal
     cancelPassword.addEventListener('click', function() {
       passwordModal.style.display = 'none';
       adminPassword.value = '';
@@ -742,111 +813,87 @@
       checkMaintenanceStatus();
     });
     
-    // 8. Interceptar clics en los enlaces protegidos
-    [clientLink, barberLink].forEach(link => {
-      if(link) {
-        link.addEventListener('click', function(e) {
-          const isMaintenance = checkMaintenanceStatus();
-          
-          // Si está en mantenimiento o no hay acceso, pedir contraseña
-          if(isMaintenance || !localStorage.getItem('barberk_admin_access')) {
-            e.preventDefault();
-            modalTitle.textContent = isMaintenance ? 
-              'Sistema en Mantenimiento' : 'Acceso Restringido';
-            adminPassword.type = 'password';
-            adminPassword.placeholder = 'Ingrese la contraseña de mantenimiento';
-            maintenanceControls.style.display = 'none';
-            passwordModal.style.display = 'flex';
-            adminPassword.focus();
-          }
-        });
+    // 8. Control de acceso a las páginas protegidas
+    function setupProtectedLinks() {
+      [clientLink, barberLink, clientAccess, barberAccess].forEach(link => {
+        if(link) {
+          link.addEventListener('click', function(e) {
+            const { isMaintenance, hasAccess } = checkMaintenanceStatus();
+            
+            if(isMaintenance && !hasAccess) {
+              e.preventDefault();
+              modalTitle.textContent = 'Sistema en Mantenimiento';
+              adminPassword.style.display = 'block';
+              submitPassword.style.display = 'inline-block';
+              cancelPassword.textContent = 'Cancelar';
+              accessGranted.style.display = 'none';
+              maintenanceControls.style.display = 'none';
+              adminPassword.type = 'password';
+              adminPassword.placeholder = 'Ingrese la contraseña de mantenimiento';
+              passwordModal.style.display = 'flex';
+              adminPassword.focus();
+            }
+          });
+        }
+      });
+    }
+    
+    // 9. Verificar sesión al cargar
+    function checkSession() {
+      const accessTime = localStorage.getItem(ACCESS_KEY);
+      if(accessTime && (Date.now() - parseInt(accessTime)) > SESSION_TIMEOUT) {
+        localStorage.removeItem(ACCESS_KEY);
       }
-    });
-
-    // Sistema de valoración por estrellas
-    document.querySelectorAll('.stars i').forEach(star => {
-      star.addEventListener('click', function() {
-        const rating = this.getAttribute('data-rating');
-        const stars = document.querySelectorAll('.stars i');
-        
-        stars.forEach((s, index) => {
-          if(index < rating) {
-            s.classList.add('fas');
-            s.classList.remove('far');
-          } else {
-            s.classList.add('far');
-            s.classList.remove('fas');
-          }
+    }
+    
+    // 10. Sistema de valoración por estrellas
+    function setupRatingSystem() {
+      document.querySelectorAll('.stars i').forEach(star => {
+        star.addEventListener('click', function() {
+          const rating = this.getAttribute('data-rating');
+          const stars = document.querySelectorAll('.stars i');
+          
+          stars.forEach((s, index) => {
+            if(index < rating) {
+              s.classList.add('fas');
+              s.classList.remove('far');
+            } else {
+              s.classList.add('far');
+              s.classList.remove('fas');
+            }
+          });
+          
+          // Aquí podrías agregar código para enviar la valoración a tu backend
+          console.log(`Valoración enviada: ${rating} estrellas`);
+          alert(`¡Gracias por tu valoración de ${rating} estrellas!`);
         });
         
-        // Aquí podrías agregar código para enviar la valoración a tu backend
-        console.log(`Valoración enviada: ${rating} estrellas`);
-        alert(`¡Gracias por tu valoración de ${rating} estrellas!`);
-      });
-      
-      star.addEventListener('mouseover', function() {
-        const rating = this.getAttribute('data-rating');
-        const stars = document.querySelectorAll('.stars i');
+        star.addEventListener('mouseover', function() {
+          const rating = this.getAttribute('data-rating');
+          const stars = document.querySelectorAll('.stars i');
+          
+          stars.forEach((s, index) => {
+            if(index < rating) {
+              s.style.transform = 'scale(1.2)';
+              s.style.transition = 'all 0.3s';
+            }
+          });
+        });
         
-        stars.forEach((s, index) => {
-          if(index < rating) {
-            s.style.transform = 'scale(1.2)';
-            s.style.transition = 'all 0.3s';
-          }
+        star.addEventListener('mouseout', function() {
+          const stars = document.querySelectorAll('.stars i');
+          stars.forEach(s => {
+            s.style.transform = 'scale(1)';
+          });
         });
       });
-      
-      star.addEventListener('mouseout', function() {
-        const stars = document.querySelectorAll('.stars i');
-        stars.forEach(s => {
-          s.style.transform = 'scale(1)';
-        });
-      });
-    });
+    }
 
-    // Efecto adicional para las tijeras del logo al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-      const scissors = document.querySelectorAll('.logo-main::before, .logo-main::after');
-      scissors.forEach((scissor, index) => {
-        setTimeout(() => {
-          scissor.style.animationPlayState = 'running';
-        }, index * 300);
-      });
-    });
-
-    // Configuración Segura de Supabase
+    // 11. Configuración Segura de Supabase
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-    // Esperar a que todo el DOM esté cargado y Supabase esté disponible
-    document.addEventListener('DOMContentLoaded', async function() {
-      // Verificar estado de mantenimiento
-      checkMaintenanceStatus();
-      
-      // Verificar si Supabase está disponible
-      if (typeof supabase === 'undefined') {
-        console.error('Supabase no está cargado');
-        mostrarErrorCitas('Error: La biblioteca Supabase no se cargó correctamente');
-        return;
-      }
-
-      try {
-        // Inicializar Supabase
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-        window.supabase = supabaseClient; // Guardar en el ámbito global para acceso fácil
-        
-        // Cargar citas del día
-        await cargarCitasDelDia();
-        
-        // Configurar el botón de refrescar
-        document.getElementById('refreshCitas')?.addEventListener('click', cargarCitasDelDia);
-      } catch (error) {
-        console.error('Error al inicializar Supabase:', error);
-        mostrarErrorCitas('Error al conectar con el servidor');
-      }
-    });
-
-    // Función para formatear la fecha en formato YYYY-MM-DD
+    // 12. Función para formatear la fecha en formato YYYY-MM-DD
     function obtenerFechaActual() {
       const hoy = new Date();
       const año = hoy.getFullYear();
@@ -855,7 +902,7 @@
       return `${año}-${mes}-${dia}`;
     }
 
-    // Función para mostrar mensajes de error
+    // 13. Función para mostrar mensajes de error
     function mostrarErrorCitas(mensaje) {
       const citasContainer = document.getElementById('citasContainer');
       if (citasContainer) {
@@ -863,7 +910,7 @@
       }
     }
 
-    // Función para cargar las citas del día
+    // 14. Función para cargar las citas del día
     async function cargarCitasDelDia() {
       const fechaHoy = obtenerFechaActual();
       const citasContainer = document.getElementById('citasContainer');
@@ -896,7 +943,7 @@
       }
     }
 
-    // Función para mostrar las citas en el panel
+    // 15. Función para mostrar las citas en el panel
     function mostrarCitas(citas) {
       const citasContainer = document.getElementById('citasContainer');
       
@@ -937,6 +984,37 @@
       citasContainer.innerHTML = '';
       citasContainer.appendChild(lista);
     }
+    
+    // 16. Inicialización
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Verificar sesión y configuraciones iniciales
+      checkSession();
+      setupProtectedLinks();
+      setupRatingSystem();
+      checkMaintenanceStatus();
+      
+      // Configurar botón de refrescar citas
+      document.getElementById('refreshCitas')?.addEventListener('click', cargarCitasDelDia);
+      
+      // Inicializar Supabase si está disponible
+      if (typeof supabase === 'undefined') {
+        console.error('Supabase no está cargado');
+        mostrarErrorCitas('Error: La biblioteca Supabase no se cargó correctamente');
+        return;
+      }
+
+      try {
+        // Inicializar Supabase
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        window.supabase = supabaseClient;
+        
+        // Cargar citas del día
+        await cargarCitasDelDia();
+      } catch (error) {
+        console.error('Error al inicializar Supabase:', error);
+        mostrarErrorCitas('Error al conectar con el servidor');
+      }
+    });
   </script>
 </body>
 </html>
