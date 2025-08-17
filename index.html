@@ -12,6 +12,7 @@
       --gold: #D4AF37;
       --dark: #121212;
       --light: #f8f8f8;
+      --red: #e74c3c;
     }
     
     * {
@@ -371,6 +372,136 @@
       padding: 10px 0;
     }
     
+    /* Estilos para el sistema de mantenimiento */
+    .maintenance-badge {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: var(--red);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      z-index: 1001;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      display: none;
+    }
+    
+    .admin-gear {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background-color: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .admin-gear:hover {
+      transform: rotate(30deg) scale(1.1);
+    }
+    
+    .admin-gear.maintenance-active {
+      background-color: var(--red);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+    }
+    
+    .admin-gear i {
+      font-size: 24px;
+      color: var(--dark);
+    }
+    
+    .password-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      z-index: 1002;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .password-container {
+      background-color: var(--dark);
+      padding: 2rem;
+      border-radius: 10px;
+      border: 2px solid var(--gold);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    
+    .password-container h3 {
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    
+    .password-input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--gold);
+      background-color: #222;
+      color: var(--light);
+      border-radius: 5px;
+    }
+    
+    .password-btn {
+      background-color: var(--gold);
+      color: var(--dark);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      margin: 0 5px;
+    }
+    
+    .password-btn:hover {
+      background-color: #e6c52e;
+    }
+    
+    .password-error {
+      color: var(--red);
+      margin-top: 10px;
+      display: none;
+    }
+    
+    .maintenance-controls {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .maintenance-btn {
+      background-color: var(--red);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    
     @media (max-width: 768px) {
       .logo-main {
         font-size: 2.5rem;
@@ -409,6 +540,24 @@
         margin: 20px 0;
         max-height: none;
       }
+      
+      .maintenance-badge {
+        top: 10px;
+        left: 10px;
+        font-size: 12px;
+        padding: 5px 10px;
+      }
+      
+      .admin-gear {
+        width: 40px;
+        height: 40px;
+        bottom: 15px;
+        right: 15px;
+      }
+      
+      .admin-gear i {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
@@ -416,6 +565,35 @@
   <div class="gold-glow"></div>
   <div class="scissors-bg">
     <i class="fas fa-cut"></i>
+  </div>
+  
+  <!-- Badge de mantenimiento (visible solo cuando está activo) -->
+  <div class="maintenance-badge" id="maintenanceBadge">
+    <i class="fas fa-tools"></i> MODO MANTENIMIENTO
+  </div>
+  
+  <!-- Icono de engranaje para acceso admin -->
+  <div class="admin-gear" id="adminGear">
+    <i class="fas fa-cog"></i>
+  </div>
+  
+  <!-- Modal de contraseña -->
+  <div class="password-modal" id="passwordModal">
+    <div class="password-container">
+      <h3 id="modalTitle">Acceso Administrativo</h3>
+      <input type="password" class="password-input" id="adminPassword" placeholder="Ingrese la contraseña">
+      <button class="password-btn" id="submitPassword">Acceder</button>
+      <button class="password-btn" id="cancelPassword">Cancelar</button>
+      <p class="password-error" id="passwordError">Contraseña incorrecta</p>
+      
+      <div class="maintenance-controls" id="maintenanceControls" style="display: none;">
+        <h4>Control de Mantenimiento</h4>
+        <button class="maintenance-btn" id="toggleMaintenance">
+          <i class="fas fa-power-off"></i> Desactivar Mantenimiento
+        </button>
+        <p id="maintenanceStatus">Estado actual: <strong>Activo</strong></p>
+      </div>
+    </div>
   </div>
   
   <!-- Panel de Citas -->
@@ -442,10 +620,10 @@
     
     <main>
       <div class="buttons">
-        <a href="cliente.html" class="btn btn-client">
+        <a href="cliente.html" class="btn btn-client" id="clientLink">
           <i class="fas fa-user"></i> Soy Cliente
         </a>
-        <a href="barbero.html" class="btn btn-barber">
+        <a href="barbero.html" class="btn btn-barber" id="barberLink">
           <i class="fas fa-cut"></i> Soy Barbero
         </a>
       </div>
@@ -476,6 +654,115 @@
   </div>
 
   <script>
+    // 1. Configuración de la contraseña (cámbiala por una segura)
+    const ADMIN_PASSWORD = "BarberK2025";
+    const MAINTENANCE_KEY = "barberk_maintenance";
+    
+    // 2. Elementos del DOM
+    const adminGear = document.getElementById('adminGear');
+    const passwordModal = document.getElementById('passwordModal');
+    const adminPassword = document.getElementById('adminPassword');
+    const submitPassword = document.getElementById('submitPassword');
+    const cancelPassword = document.getElementById('cancelPassword');
+    const passwordError = document.getElementById('passwordError');
+    const clientLink = document.getElementById('clientLink');
+    const barberLink = document.getElementById('barberLink');
+    const maintenanceBadge = document.getElementById('maintenanceBadge');
+    const toggleMaintenance = document.getElementById('toggleMaintenance');
+    const maintenanceStatus = document.getElementById('maintenanceStatus');
+    const maintenanceControls = document.getElementById('maintenanceControls');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    // 3. Verificar estado de mantenimiento al cargar
+    function checkMaintenanceStatus() {
+      const isMaintenance = localStorage.getItem(MAINTENANCE_KEY) === 'true';
+      
+      if(isMaintenance) {
+        maintenanceBadge.style.display = 'block';
+        adminGear.classList.add('maintenance-active');
+        toggleMaintenance.innerHTML = '<i class="fas fa-power-off"></i> Desactivar Mantenimiento';
+        maintenanceStatus.innerHTML = 'Estado actual: <strong>Activo</strong>';
+      } else {
+        maintenanceBadge.style.display = 'none';
+        adminGear.classList.remove('maintenance-active');
+        toggleMaintenance.innerHTML = '<i class="fas fa-power-off"></i> Activar Mantenimiento';
+        maintenanceStatus.innerHTML = 'Estado actual: <strong>Inactivo</strong>';
+      }
+      
+      return isMaintenance;
+    }
+    
+    // 4. Mostrar modal al hacer clic en el engranaje
+    adminGear.addEventListener('click', function() {
+      modalTitle.textContent = 'Acceso Administrativo';
+      adminPassword.type = 'password';
+      adminPassword.placeholder = 'Ingrese la contraseña';
+      maintenanceControls.style.display = 'none';
+      passwordModal.style.display = 'flex';
+      adminPassword.focus();
+    });
+    
+    // 5. Validar contraseña
+    submitPassword.addEventListener('click', function() {
+      if(adminPassword.value === ADMIN_PASSWORD) {
+        // Contraseña correcta
+        localStorage.setItem('barberk_admin_access', 'true');
+        passwordError.style.display = 'none';
+        
+        // Mostrar controles de mantenimiento
+        modalTitle.textContent = 'Panel de Control';
+        maintenanceControls.style.display = 'block';
+        adminPassword.type = 'text';
+        adminPassword.value = 'Contraseña correcta ✓';
+        adminPassword.style.color = '#2ecc71';
+        adminPassword.style.borderColor = '#2ecc71';
+        
+        // Actualizar estado de mantenimiento
+        checkMaintenanceStatus();
+      } else {
+        // Contraseña incorrecta
+        passwordError.style.display = 'block';
+        adminPassword.style.borderColor = 'var(--red)';
+      }
+    });
+    
+    // 6. Cancelar modal
+    cancelPassword.addEventListener('click', function() {
+      passwordModal.style.display = 'none';
+      adminPassword.value = '';
+      passwordError.style.display = 'none';
+      adminPassword.style.color = '';
+      adminPassword.style.borderColor = '';
+    });
+    
+    // 7. Alternar modo mantenimiento
+    toggleMaintenance.addEventListener('click', function() {
+      const isMaintenance = localStorage.getItem(MAINTENANCE_KEY) === 'true';
+      localStorage.setItem(MAINTENANCE_KEY, !isMaintenance);
+      checkMaintenanceStatus();
+    });
+    
+    // 8. Interceptar clics en los enlaces protegidos
+    [clientLink, barberLink].forEach(link => {
+      if(link) {
+        link.addEventListener('click', function(e) {
+          const isMaintenance = checkMaintenanceStatus();
+          
+          // Si está en mantenimiento o no hay acceso, pedir contraseña
+          if(isMaintenance || !localStorage.getItem('barberk_admin_access')) {
+            e.preventDefault();
+            modalTitle.textContent = isMaintenance ? 
+              'Sistema en Mantenimiento' : 'Acceso Restringido';
+            adminPassword.type = 'password';
+            adminPassword.placeholder = 'Ingrese la contraseña de mantenimiento';
+            maintenanceControls.style.display = 'none';
+            passwordModal.style.display = 'flex';
+            adminPassword.focus();
+          }
+        });
+      }
+    });
+
     // Sistema de valoración por estrellas
     document.querySelectorAll('.stars i').forEach(star => {
       star.addEventListener('click', function() {
@@ -533,6 +820,9 @@
 
     // Esperar a que todo el DOM esté cargado y Supabase esté disponible
     document.addEventListener('DOMContentLoaded', async function() {
+      // Verificar estado de mantenimiento
+      checkMaintenanceStatus();
+      
       // Verificar si Supabase está disponible
       if (typeof supabase === 'undefined') {
         console.error('Supabase no está cargado');
