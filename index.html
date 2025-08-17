@@ -822,16 +822,8 @@
             
             if(isMaintenance && !hasAccess) {
               e.preventDefault();
-              modalTitle.textContent = 'Sistema en Mantenimiento';
-              adminPassword.style.display = 'block';
-              submitPassword.style.display = 'inline-block';
-              cancelPassword.textContent = 'Cancelar';
-              accessGranted.style.display = 'none';
-              maintenanceControls.style.display = 'none';
-              adminPassword.type = 'password';
-              adminPassword.placeholder = 'Ingrese la contraseña de mantenimiento';
-              passwordModal.style.display = 'flex';
-              adminPassword.focus();
+              alert('🚧 Acceso restringido durante mantenimiento');
+              document.getElementById('adminGear').click(); // Abre modal de acceso
             }
           });
         }
@@ -1015,6 +1007,40 @@
         mostrarErrorCitas('Error al conectar con el servidor');
       }
     });
+  </script>
+
+  <!-- ============================================= -->
+  <!-- PROTECCIÓN DE LINKS DURANTE MANTENIMIENTO -->
+  <!-- (Sin modificar cliente.html/barbero.html) -->
+  <!-- ============================================= -->
+  <script>
+    const protectedPaths = ['/cliente.html', '/barbero.html'];
+
+    function checkMaintenanceRedirect() {
+        if (localStorage.getItem('barberk_maintenance') === 'true' && 
+            !localStorage.getItem('barberk_access_granted')) {
+            
+            // Bloquea si la URL actual coincide con paths protegidos
+            if (protectedPaths.some(path => window.location.pathname.endsWith(path))) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Intercepta clicks en enlaces (incluye los de tu barberia-app)
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && protectedPaths.some(path => link.href.includes(path))) {
+                    e.preventDefault();
+                    alert('🚧 Acceso restringido durante mantenimiento');
+                    document.getElementById('adminGear').click(); // Abre modal de acceso
+                }
+            });
+        }
+    }
+
+    // Verificación al cargar y cada segundo (para capturar navegación manual)
+    checkMaintenanceRedirect();
+    setInterval(checkMaintenanceRedirect, 1000);
   </script>
 </body>
 </html>
