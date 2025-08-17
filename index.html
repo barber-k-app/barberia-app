@@ -1042,5 +1042,44 @@
     checkMaintenanceRedirect();
     setInterval(checkMaintenanceRedirect, 1000);
   </script>
+
+  <!-- ===== SISTEMA DE VERIFICACIÓN DE MANTENIMIENTO DESDE SUPABASE ===== -->
+  <script>
+    // Función para verificar el estado de mantenimiento desde Supabase
+    async function checkMaintenanceFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('maintenance_mode')
+          .eq('id', 1)
+          .single();
+
+        if (error) throw error;
+
+        // Actualiza el localStorage local
+        if (data?.maintenance_mode) {
+          localStorage.setItem('barberk_maintenance', 'true');
+          if (!localStorage.getItem('barberk_access_granted') && 
+             (location.pathname.includes('cliente.html') || location.pathname.includes('barbero.html'))) {
+            window.location.href = 'index.html';
+          }
+        } else {
+          localStorage.removeItem('barberk_maintenance');
+        }
+
+        // Actualiza la interfaz
+        checkMaintenanceStatus();
+      } catch (error) {
+        console.error('Error al verificar estado de mantenimiento:', error);
+      }
+    }
+
+    // Verificar cada 30 segundos y al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Espera a que Supabase esté inicializado
+      setTimeout(checkMaintenanceFromSupabase, 1000);
+    });
+    setInterval(checkMaintenanceFromSupabase, 30000);
+  </script>
 </body>
 </html>
