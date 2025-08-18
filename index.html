@@ -1,3 +1,8 @@
+# Código Completo con Mejoras Visuales
+
+Aquí está el código completo con todas las correcciones solicitadas, manteniendo la funcionalidad existente:
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,11 +11,13 @@
   <title>Barber-K | Reserva de Citas</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Añade este script en el head para cargar Supabase primero -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --gold: #D4AF37;
+      --dark-gold: #B08D57; /* Dorado oscuro */
+      --brown: #5E4B2B;    /* Marrón */
+      --light-gold: #F9F295; /* Dorado claro */
+      --white-gold: #FFF8E0; /* Blanco dorado */
       --dark: #121212;
       --light: #f8f8f8;
       --red: #e74c3c;
@@ -26,9 +33,9 @@
     
     body {
       background-color: var(--dark);
-      /* Fondo con capa oscura semitransparente */
+      color: var(--light);
       background-image: 
-        linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
+        linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.9)),
         url('https://barber-k-app.github.io/barberia-app/barber-k2.jpg');
       background-size: 300px;
       background-repeat: repeat;
@@ -37,6 +44,7 @@
       display: flex;
       flex-direction: column;
     }
+    
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -69,45 +77,19 @@
       font-weight: bold;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--gold);
-      text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-      margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, #D4AF37, #F9F295, #D4AF37);
+      background: linear-gradient(90deg, 
+        var(--brown) 0%, 
+        var(--dark-gold) 40%, 
+        var(--light-gold) 60%, 
+        var(--white-gold) 80%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      text-shadow: 0 0 10px rgba(180, 150, 50, 0.3);
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    
-    /* Animación de tijeras recortando - Versión Mejorada */
-    @keyframes cutting-scissors {
-      0% { transform: rotate(0deg) scale(1); }
-      25% { transform: rotate(15deg) scale(1.1); }
-      50% { transform: rotate(0deg) scale(1); }
-      75% { transform: rotate(-15deg) scale(1.1); }
-      100% { transform: rotate(0deg) scale(1); }
-    }
-    
-    .logo-main::before,
-    .logo-main::after {
-      content: "";
-      display: inline-block;
-      width: 100px;   /* Ajusta al ancho de tu imagen */
-      height: 100px;  /* Ajusta al alto de tu imagen */
-      margin-right: 2px;  /* Espacio mínimo entre imagen y "B" (usa 0 para pegado total) */
-      margin-left: 0;     /* Elimina margen izquierdo */
-      background-image: url('https://barber-k-app.github.io/barberia-app/barber-k.jpg');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      vertical-align: middle;  /* Alinea verticalmente con el texto */
-    }
-    
-    .logo-main::after {
-    
     }
     
     .logo-main::after {
@@ -115,26 +97,33 @@
       position: absolute;
       width: 100%;
       height: 3px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      background: linear-gradient(90deg, 
+        transparent, 
+        var(--dark-gold), 
+        transparent);
       bottom: -10px;
       left: 0;
     }
     
     .logo-slogan {
-      font-family: 'Poppins', sans-serif; /* Asegura que use Poppins */
-      font-weight: 500; /* Semi-bold (ni light ni bold) */
-      font-style: italic; /* Cursiva */
-      font-size: 1.3rem; /* Tamaño actual (ajusta si es necesario) */
-      color: white; /* Texto en blanco */
-      text-shadow: 0 0 5px rgba(212, 175, 55, 0.3); /* Sombra dorada sutil */
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-style: italic;
+      font-size: 1.3rem;
+      color: var(--light-gold);
+      text-shadow: 0 0 5px rgba(180, 150, 50, 0.5);
     }
     
     .slogan {
       font-size: 1.2rem;
       letter-spacing: 1px;
-      color: var(--gold); /* Cambiamos de blanco a dorado */
+      color: var(--light);
       margin-top: 1rem;
-      text-shadow: 0 0 3px rgba(0,0,0,0.5); /* Sombra para mejor legibilidad */ 
+      background-color: rgba(18, 18, 18, 0.7);
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
     }
     
     .buttons {
@@ -157,32 +146,33 @@
       gap: 0.5rem;
       min-width: 200px;
       justify-content: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
     
     .btn-client {
-      background-color: var(--gold);
+      background: linear-gradient(135deg, var(--dark-gold), var(--light-gold));
       color: var(--dark);
-      border: 2px solid var(--gold);
+      border: none;
     }
     
     .btn-barber {
-      background-color: transparent;
-      color: var(--gold);
-      border: 2px solid var(--gold);
+      background: transparent;
+      color: var(--light-gold);
+      border: 2px solid var(--dark-gold);
     }
     
     .btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
     }
     
     .btn-client:hover {
-      background-color: transparent;
-      color: var(--gold);
+      background: linear-gradient(135deg, var(--brown), var(--dark-gold));
+      color: var(--light);
     }
     
     .btn-barber:hover {
-      background-color: var(--gold);
+      background: var(--dark-gold);
       color: var(--dark);
     }
     
@@ -191,7 +181,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      color: var(--gold);
+      color: var(--light-gold);
       text-decoration: none;
       font-weight: 500;
       transition: all 0.3s;
@@ -206,26 +196,27 @@
       margin: 2rem 0;
       padding: 1.5rem;
       border-radius: 10px;
-      background: rgba(212, 175, 55, 0.05);
-      border: 1px solid rgba(212, 175, 55, 0.1);
+      background: rgba(180, 150, 50, 0.05);
+      border: 1px solid rgba(180, 150, 50, 0.1);
       max-width: 500px;
       width: 100%;
     }
     
     .rating-title {
-      color: var(--gold);
+      color: var(--light-gold);
       margin-bottom: 1rem;
     }
     
     .stars {
       font-size: 1.8rem;
-      color: var(--gold);
+      color: var(--light-gold);
       letter-spacing: 5px;
       margin-bottom: 1rem;
     }
     
     .rating-text {
       font-size: 0.9rem;
+      color: var(--light);
       opacity: 0.8;
     }
     
@@ -233,18 +224,22 @@
       margin-top: auto;
       padding: 1.5rem;
       text-align: center;
-      border-top: 1px solid rgba(212, 175, 55, 0.2);
+      border-top: 1px solid rgba(180, 150, 50, 0.3);
+      background-color: rgba(18, 18, 18, 0.9);
+    }
+    
+    .copyright, .author {
+      color: var(--light);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     }
     
     .copyright {
       margin-bottom: 0.5rem;
       font-size: 0.9rem;
-      opacity: 0.7;
     }
     
     .author {
       font-size: 0.8rem;
-      opacity: 0.5;
     }
     
     @keyframes fadeIn {
@@ -252,19 +247,16 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Efecto de brillo dorado */
     .gold-glow {
       position: fixed;
       top: 50%;
       left: 50%;
       width: 300px;
       height: 300px;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%);
+      background: radial-gradient(circle, rgba(180, 150, 50, 0.1) 0%, rgba(180, 150, 50, 0) 70%);
       transform: translate(-50%, -50%);
       z-index: -1;
     }
-    
-    
     
     /* Panel de Citas del Día */
     .citas-panel {
@@ -272,14 +264,15 @@
       top: 20px;
       right: 20px;
       width: 300px;
-      background: rgba(18, 18, 18, 0.9);
-      border: 1px solid var(--gold);
+      background: rgba(18, 18, 18, 0.95);
+      border: 2px solid var(--dark-gold);
       border-radius: 10px;
       padding: 15px;
-      box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+      box-shadow: 0 0 15px rgba(180, 150, 50, 0.3);
       z-index: 1000;
       max-height: 80vh;
       overflow-y: auto;
+      backdrop-filter: blur(5px);
     }
     
     .citas-header {
@@ -288,17 +281,17 @@
       align-items: center;
       margin-bottom: 10px;
       padding-bottom: 10px;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+      border-bottom: 1px solid rgba(180, 150, 50, 0.3);
     }
     
     .citas-title {
-      color: var(--gold);
+      color: var(--light-gold);
       font-size: 1.2rem;
       margin: 0;
     }
     
     .refresh-btn {
-      background: var(--gold);
+      background: var(--dark-gold);
       color: var(--dark);
       border: none;
       border-radius: 50%;
@@ -313,7 +306,7 @@
     
     .refresh-btn:hover {
       transform: rotate(180deg);
-      background: var(--light);
+      background: var(--light-gold);
     }
     
     .citas-list {
@@ -323,48 +316,52 @@
     }
     
     .cita-item {
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      border-radius: 4px;
       display: flex;
       justify-content: space-between;
+      background: rgba(30, 30, 30, 0.7);
     }
     
     .cita-time {
-      color: var(--gold);
+      color: var(--light-gold);
       font-weight: bold;
-      min-width: 50px;
+      min-width: 60px;
     }
     
     .cita-name {
       flex-grow: 1;
-      padding: 0 10px;
+      padding: 0 15px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: var(--gold); /* Cambiamos de blanco a dorado */
-      font-weight: bold; /* Añadimos negrita */
+      color: var(--light);
+      font-weight: 500;
     }
+    
     .cita-service {
-      color: var(--light-gold); /* Usamos dorado claro */
-      font-size: 0.8rem;
-      font-style: italic; /* Opcional: estilo cursiva */
+      color: var(--light-gold);
+      font-size: 0.85rem;
+      white-space: nowrap;
+      min-width: 100px;
     }
     
     .no-citas {
-      color: rgba(248, 248, 248, 0.5);
+      color: var(--light);
       font-style: italic;
       text-align: center;
       padding: 10px 0;
     }
     
     .loading-citas {
-      color: var(--gold);
+      color: var(--light-gold);
       text-align: center;
       padding: 10px 0;
     }
     
     .error-citas {
-      color: #ff6b6b;
+      color: var(--red);
       text-align: center;
       padding: 10px 0;
     }
@@ -391,7 +388,7 @@
       right: 20px;
       width: 50px;
       height: 50px;
-      background-color: var(--gold);
+      background-color: var(--dark-gold);
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -439,14 +436,14 @@
       background-color: var(--dark);
       padding: 2rem;
       border-radius: 10px;
-      border: 2px solid var(--gold);
+      border: 2px solid var(--dark-gold);
       max-width: 400px;
       width: 90%;
       text-align: center;
     }
     
     .password-container h3 {
-      color: var(--gold);
+      color: var(--light-gold);
       margin-bottom: 1rem;
     }
     
@@ -454,14 +451,14 @@
       width: 100%;
       padding: 10px;
       margin-bottom: 1rem;
-      border: 1px solid var(--gold);
+      border: 1px solid var(--dark-gold);
       background-color: #222;
       color: var(--light);
       border-radius: 5px;
     }
     
     .password-btn {
-      background-color: var(--gold);
+      background-color: var(--dark-gold);
       color: var(--dark);
       border: none;
       padding: 10px 20px;
@@ -473,7 +470,7 @@
     }
     
     .password-btn:hover {
-      background-color: #e6c52e;
+      background-color: var(--light-gold);
     }
     
     .password-error {
@@ -492,7 +489,7 @@
     .maintenance-controls {
       margin-top: 20px;
       padding-top: 20px;
-      border-top: 1px solid rgba(212, 175, 55, 0.3);
+      border-top: 1px solid rgba(180, 150, 50, 0.3);
     }
     
     .maintenance-btn {
@@ -512,8 +509,8 @@
     
     .protected-link {
       display: block;
-      background-color: rgba(212, 175, 55, 0.1);
-      color: var(--gold);
+      background-color: rgba(180, 150, 50, 0.1);
+      color: var(--light-gold);
       padding: 10px;
       margin: 5px 0;
       border-radius: 5px;
@@ -522,18 +519,12 @@
     }
     
     .protected-link:hover {
-      background-color: rgba(212, 175, 55, 0.3);
+      background-color: rgba(180, 150, 50, 0.3);
     }
     
     @media (max-width: 768px) {
       .logo-main {
         font-size: 2.5rem;
-      }
-      
-      .logo-main::before,
-      .logo-main::after {
-        font-size: 1.3rem;
-        margin: 0 8px;
       }
       
       .logo-slogan {
@@ -545,7 +536,6 @@
         gap: 1rem;
       }
       
-    
       .rating-section {
         padding: 1rem;
       }
@@ -559,8 +549,6 @@
         width: 100%;
         margin: 20px 0;
         max-height: none;
-        background: rgba(18, 18, 18, 0.95); /* Fondo más opaco */
-        border: 2px solid var(--gold); /* Borde más grueso */
       }
       
       .maintenance-badge {
@@ -586,8 +574,7 @@
 <body>
   <div class="gold-glow"></div>
   
-  
-  <!-- Badge de mantenimiento (visible solo cuando está activo) -->
+  <!-- Badge de mantenimiento -->
   <div class="maintenance-badge" id="maintenanceBadge">
     <i class="fas fa-tools"></i> MODO MANTENIMIENTO
   </div>
@@ -1002,10 +989,7 @@
     });
   </script>
 
-  <!-- ============================================= -->
   <!-- PROTECCIÓN DE LINKS DURANTE MANTENIMIENTO -->
-  <!-- (Sin modificar cliente.html/barbero.html) -->
-  <!-- ============================================= -->
   <script>
     const protectedPaths = ['/cliente.html', '/barbero.html'];
 
@@ -1076,3 +1060,11 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
