@@ -27,8 +27,6 @@
     body {
       background-color: var(--dark);
       color: var(--light);
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="50" y="50" font-family="Arial" font-size="60" fill="rgba(212, 175, 55, 0.05)" text-anchor="middle" dominant-baseline="middle">K</text></svg>'),
-                      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="rgba(212, 175, 55, 0.03)" d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256s256-114.6 256-256S397.4 0 256 0zM128.9 136.3c7.8-7.8 20.5-7.8 28.3 0l259.4 259.4c7.8 7.8 7.8 20.5 0 28.3s-20.5 7.8-28.3 0L128.9 164.6C121.1 156.8 121.1 144.1 128.9 136.3zM383.1 136.3c7.8 7.8 7.8 20.5 0 28.3L164.6 383.1c-7.8 7.8-20.5 7.8-28.3 0s-7.8-20.5 0-28.3l218.5-218.5C362.6 128.5 375.3 128.5 383.1 136.3z"/></svg>');
       background-size: 200px, 300px;
       background-repeat: repeat, no-repeat;
       background-position: center, center;
@@ -251,29 +249,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    /* Efecto de brillo dorado */
-    .gold-glow {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0) 70%);
-      transform: translate(-50%, -50%);
-      z-index: -1;
-    }
     
-    /* Tijera decorativa de fondo */
-    .scissors-bg {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 300px;
-      color: rgba(212, 175, 55, 0.03);
-      z-index: -1;
-      pointer-events: none;
-    }
     
     /* Panel de Citas del Día */
     .citas-panel {
@@ -592,8 +568,7 @@
   </style>
 </head>
 <body>
-  <div class="gold-glow"></div>
-  <div class="scissors-bg">
+
     <i class="fas fa-cut"></i>
   </div>
   
