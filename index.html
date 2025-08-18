@@ -31,9 +31,9 @@
       color: var(--light);
       background-image: 
         linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.9)),
-        url('https://barber-k-app.github.io/barberia-app/barber-k2.jpg');
-      background-size: 300px;
-      background-repeat: repeat;
+        url('https://barber-k-app.github.io/barberia-app/barber-k3.JPG');
+      background-size: cover;
+      background-repeat: no-repeat;
       background-position: center;
       min-height: 100vh;
       display: flex;
@@ -180,7 +180,7 @@
       margin: 2rem 0;
       display: inline-flex;
       align-items: center;
-      gap: 0; /* Cambiado a 0 para que el icono quede pegado */
+      gap: 8px;
       color: var(--light-gold);
       text-decoration: none;
       font-weight: 500;
@@ -340,11 +340,12 @@
     .cita-name {
       flex-grow: 1;
       padding: 0 15px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
+      text-overflow: clip;
       color: var(--light);
       font-weight: 500;
-      white-space: normal; /* Cambiado a normal para que se vean los nombres completos */
+      white-space: normal;
+      word-break: break-word;
     }
     
     .cita-service {
@@ -629,7 +630,7 @@
   <div class="citas-panel" id="citasPanel">
     <div class="citas-header">
       <h3 class="citas-title">
-        <img src="https://barber-k-app.github.io/barberia-app/barber-k.jpg" alt="Logo Barber-K" class="logo-title"> Citas de Hoy
+        <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Logo Barber-K" class="logo-title" style="height: 40px;"> Citas de Hoy
       </h3>
       <button class="refresh-btn" id="refreshCitas">
         <i class="fas fa-sync-alt"></i>
@@ -644,7 +645,7 @@
     <header>
       <div class="logo-container">
         <div class="logo-main">
-          <img src="https://barber-k-app.github.io/barberia-app/barber-k.jpg" alt="Barber-K Logo" style="height: 60px; margin-right: 10px;">BARBER-K
+          <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Barber-K Logo" style="height: 80px; margin-right: 10px;">BARBER-K
         </div>
         <div class="logo-slogan" style="font-weight: 500; font-style: italic;">¡MEJORAMOS TU ESTILO!</div>
       </div>
