@@ -92,17 +92,17 @@
     
     .logo-main::before,
     .logo-main::after {
-      font-family: "Font Awesome 6 Free";
-      font-weight: 900;
-      content: "\f0c4"; /* Icono de tijeras */
-      font-size: 1.8rem;
-      margin: 0 15px;
-      color: var(--gold);
-      text-shadow: 0 0 8px rgba(212, 175, 55, 0.7);
+      content: "";
       display: inline-block;
+      width: 40px; /* Ajusta según el tamaño de tu imagen */
+      height: 40px; /* Ajusta según el tamaño de tu imagen */
+      margin: 0 15px;
+      background-image: url('https://barber-k-app.github.io/barberia-app/barber-k.jpg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
       animation: cutting-scissors 2s infinite ease-in-out;
     }
-    
     .logo-main::after {
       animation-delay: 0.5s; /* Desfase para efecto alternado */
     }
