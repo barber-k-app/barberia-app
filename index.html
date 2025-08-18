@@ -902,12 +902,26 @@
       }
     }
 
-    // 14. Función para cargar las citas del día
+    // Modifica la función cargarCitasDelDia para incluir cache local
     async function cargarCitasDelDia() {
       const fechaHoy = obtenerFechaActual();
       const citasContainer = document.getElementById('citasContainer');
+      const CACHE_KEY = `citas_${fechaHoy}`;
+      const CACHE_EXPIRATION = 5 * 60 * 1000; // 5 minutos
       
       if (!citasContainer) return;
+
+      
+      // 1. Verificar si hay datos en cache válidos
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      const cacheTimestamp = localStorage.getItem(`${CACHE_KEY}_timestamp`);
+      
+      // 1. Verificar si hay datos en cache válidos  
+      if (cachedData && cacheTimestamp && 
+          (Date.now() - parseInt(cacheTimestamp)) < CACHE_EXPIRATION) {
+        mostrarCitas(JSON.parse(cachedData));
+        return;
+      }
       
       citasContainer.innerHTML = '<p class="loading-citas">Cargando citas...</p>';
       
@@ -924,14 +938,23 @@
           .order('hora', { ascending: true });
         
         if (error) throw error;
+
+        // Guardar en cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify(citas));
+        localStorage.setItem(`${CACHE_KEY}_timestamp`, Date.now());
         
         mostrarCitas(citas);
-        
-        // Configurar actualización automática cada 2 minutos
-        setTimeout(cargarCitasDelDia, 120000);
+
       } catch (error) {
         console.error('Error al cargar citas:', error);
-        mostrarErrorCitas('Error al cargar citas. Intente recargar la página.');
+        
+        // Mostrar datos cacheados aunque estén expirados si hay error
+        if (cachedData) {
+          mostrarCitas(JSON.parse(cachedData));
+          mostrarErrorCitas('Mostrando datos cacheados (última conexión falló)');
+        } else {
+          mostrarErrorCitas('Error al cargar citas. Intente recargar la página.');
+        }
       }
     }
 
@@ -985,9 +1008,14 @@
       setupRatingSystem();
       checkMaintenanceStatus();
       
-      // Configurar botón de refrescar citas
-      document.getElementById('refreshCitas')?.addEventListener('click', cargarCitasDelDia);
-      
+      // Configurar botón de refrescar citas con limpieza de cache
+      document.getElementById('refreshCitas')?.addEventListener('click', function() {
+        const fechaHoy = obtenerFechaActual();
+        localStorage.removeItem(`citas_${fechaHoy}`);
+        localStorage.removeItem(`citas_${fechaHoy}_timestamp`);
+        cargarCitasDelDia();
+      });
+  
       // Inicializar Supabase si está disponible
       if (typeof supabase === 'undefined') {
         console.error('Supabase no está cargado');
@@ -996,12 +1024,31 @@
       }
 
       try {
-        // Inicializar Supabase
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
         window.supabase = supabaseClient;
-        
+    
         // Cargar citas del día
         await cargarCitasDelDia();
+    
+        // Verificar mantenimiento con retraso inicial
+        setTimeout(checkMaintenanceFromSupabase, 2000);
+    
+        // Configurar actualizaciones periódicas con lógica inteligente:
+        // - Más frecuente si está en modo mantenimiento
+        // - Menos frecuente si todo está normal
+        setInterval(() => {
+          const isMaintenance = localStorage.getItem('barberk_maintenance') === 'true';
+          checkMaintenanceFromSupabase();
+      
+          // Actualizar citas más frecuentemente en horario laboral
+          const now = new Date();
+          const hour = now.getHours();
+          const isBusinessHours = hour >= 8 && hour < 20; // 8am a 8pm
+      
+          if (isBusinessHours) {
+            cargarCitasDelDia();
+          }
+        }, localStorage.getItem('barberk_maintenance') === 'true' ? 30000 : 120000);
       } catch (error) {
         console.error('Error al inicializar Supabase:', error);
         mostrarErrorCitas('Error al conectar con el servidor');
@@ -1047,6 +1094,22 @@
   <script>
     // Función para verificar el estado de mantenimiento desde Supabase
     async function checkMaintenanceFromSupabase() {
+      const MAINTENANCE_CACHE_KEY = 'maintenance_status';
+      const CACHE_EXPIRATION = 15 * 60 * 1000; // 15 minutos
+  
+      // Verificar cache primero
+      const cachedStatus = localStorage.getItem(MAINTENANCE_CACHE_KEY);
+      const cacheTimestamp = localStorage.getItem(`${MAINTENANCE_CACHE_KEY}_timestamp`);
+  
+      if (cachedStatus && cacheTimestamp && 
+          (Date.now() - parseInt(cacheTimestamp)) < CACHE_EXPIRATION) {
+        // Usar datos cacheados
+        localStorage.setItem('barberk_maintenance', cachedStatus);
+        checkMaintenanceStatus();
+        return;
+      }
+      
+      
       try {
         const { data, error } = await supabase
           .from('app_settings')
@@ -1056,16 +1119,30 @@
 
         if (error) throw error;
 
-        // Actualiza el localStorage local
-        if (data?.maintenance_mode) {
-          localStorage.setItem('barberk_maintenance', 'true');
-          if (!localStorage.getItem('barberk_access_granted') && 
-             (location.pathname.includes('cliente.html') || location.pathname.includes('barbero.html'))) {
-            window.location.href = 'index.html';
-          }
-        } else {
-          localStorage.removeItem('barberk_maintenance');
+        // Actualizar cache
+        const maintenanceStatus = data?.maintenance_mode ? 'true' : 'false';
+        localStorage.setItem(MAINTENANCE_CACHE_KEY, maintenanceStatus);
+        localStorage.setItem(`${MAINTENANCE_CACHE_KEY}_timestamp`, Date.now());
+
+        localStorage.setItem('barberk_maintenance', maintenanceStatus);
+        checkMaintenanceStatus()
+
+        // Redirigir solo si estamos en modo mantenimiento
+        if (maintenanceStatus === 'true' && 
+            !localStorage.getItem('barberk_access_granted') && 
+            (location.pathname.includes('cliente.html') || 
+             location.pathname.includes('barbero.html'))) {
+          window.location.href = 'index.html';
         }
+      } catch (error) {
+        console.error('Error al verificar estado de mantenimiento:', error);
+        // Usar último estado conocido si hay error
+        if (cachedStatus) {
+          localStorage.setItem('barberk_maintenance', cachedStatus);
+          checkMaintenanceStatus();
+        }
+      }
+    }
 
         // Actualiza la interfaz
         checkMaintenanceStatus();
