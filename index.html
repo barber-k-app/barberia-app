@@ -26,17 +26,17 @@
     
     body {
       background-color: var(--dark);
-      color: var(--light);
-      background-image: url('https://barber-k-app.github.io/barberia-app/barber-k2.jpg');
-      background-size: 200px; /* Ajusta este valor para cambiar el tamaño de las tijeras */
+      /* Fondo con capa oscura semitransparente */
+      background-image: 
+        linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
+        url('https://barber-k-app.github.io/barberia-app/barber-k2.jpg');
+      background-size: 300px;
       background-repeat: repeat;
       background-position: center;
-      background-attachment: fixed;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
-    
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -542,10 +542,7 @@
         gap: 1rem;
       }
       
-      .scissors-bg {
-        font-size: 200px;
-      }
-      
+    
       .rating-section {
         padding: 1rem;
       }
