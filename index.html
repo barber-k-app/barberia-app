@@ -132,8 +132,9 @@
     .slogan {
       font-size: 1.2rem;
       letter-spacing: 1px;
-      opacity: 0.8;
+      color: var(--gold); /* Cambiamos de blanco a dorado */
       margin-top: 1rem;
+      text-shadow: 0 0 3px rgba(0,0,0,0.5); /* Sombra para mejor legibilidad */ 
     }
     
     .buttons {
@@ -340,11 +341,13 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--gold); /* Cambiamos de blanco a dorado */
+      font-weight: bold; /* Añadimos negrita */
     }
-    
     .cita-service {
-      color: rgba(248, 248, 248, 0.7);
+      color: var(--light-gold); /* Usamos dorado claro */
       font-size: 0.8rem;
+      font-style: italic; /* Opcional: estilo cursiva */
     }
     
     .no-citas {
@@ -556,6 +559,8 @@
         width: 100%;
         margin: 20px 0;
         max-height: none;
+        background: rgba(18, 18, 18, 0.95); /* Fondo más opaco */
+        border: 2px solid var(--gold); /* Borde más grueso */
       }
       
       .maintenance-badge {
