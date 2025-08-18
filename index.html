@@ -94,15 +94,17 @@
     .logo-main::after {
       content: "";
       display: inline-block;
-      width: 100px; /* Ajusta según el tamaño de tu imagen */
-      height: 80px; /* Ajusta según el tamaño de tu imagen */
-      margin: 0 15px;
+      width: 100px;   /* Ajusta al ancho de tu imagen */
+      height: 80px;  /* Ajusta al alto de tu imagen */
+      margin-right: 2px;  /* Espacio mínimo entre imagen y "B" (usa 0 para pegado total) */
+      margin-left: 0;     /* Elimina margen izquierdo */
       background-image: url('https://barber-k-app.github.io/barberia-app/barber-k.jpg');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-   
+      vertical-align: middle;  /* Alinea verticalmente con el texto */
     }
+    
     .logo-main::after {
     
     }
