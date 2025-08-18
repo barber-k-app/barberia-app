@@ -67,6 +67,11 @@
       position: relative;
     }
     
+    .logo-image {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+    
     .logo-main {
       font-size: 3.5rem;
       font-weight: bold;
@@ -175,7 +180,7 @@
       margin: 2rem 0;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 5px; /* Reducido el espacio entre el icono y el texto */
       color: var(--light-gold);
       text-decoration: none;
       font-weight: 500;
@@ -518,6 +523,10 @@
     }
     
     @media (max-width: 768px) {
+      .logo-image {
+        height: 50px;
+      }
+      
       .logo-main {
         font-size: 2.5rem;
       }
@@ -625,8 +634,9 @@
   <div class="container">
     <header>
       <div class="logo-container">
+        <img src="https://barber-k-app.github.io/barberia-app/barber-k.jpg" alt="Barber-K Logo" class="logo-image">
         <div class="logo-main">BARBER-K</div>
-        <div class="logo-slogan">¡MEJORAMOS TU ESTILO!</div>
+        <div class="logo-slogan" style="font-weight: 500; font-style: italic;">¡MEJORAMOS TU ESTILO!</div>
       </div>
       <p class="slogan">Estilo premium para caballeros modernos</p>
     </header>
@@ -1055,11 +1065,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
