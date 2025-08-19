@@ -480,6 +480,40 @@
       animation: fadeInUp 0.8s ease-out;
     }
 
+    /* ESTILO PARA BARBERO SELECCIONADO */
+    .barbero-seleccionado {
+      background: rgba(212, 175, 55, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    .barbero-seleccionado img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--gold);
+    }
+
+    .barbero-info {
+      flex: 1;
+    }
+
+    .barbero-nombre {
+      font-weight: bold;
+      color: var(--gold);
+    }
+
+    .barbero-especialidad {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -585,8 +619,20 @@
           <div class="input-group">
             <i class="fas fa-user-tie"></i>
             <select id="barbero" required>
-              <option value="Kelvin" selected>Kelvin Vielma (Barbero Principal)</option>
+              <option value="" disabled selected>Selecciona un barbero</option>
+              <option value="kelvin" data-especialidad="Cortes Clásicos y Modernos">Kelvin Vielma (Barbero Principal)</option>
+              <option value="carlos" data-especialidad="Barbas y Diseños">Carlos Rodríguez</option>
+              <option value="miguel" data-especialidad="Cortes de Niños y Juveniles">Miguel Ángel</option>
             </select>
+          </div>
+          
+          <!-- Información del barbero seleccionado -->
+          <div id="barbero-info" class="barbero-seleccionado" style="display: none;">
+            <img id="barbero-img" src="" alt="Barbero">
+            <div class="barbero-info">
+              <div id="barbero-nombre" class="barbero-nombre"></div>
+              <div id="barbero-especialidad" class="barbero-especialidad"></div>
+            </div>
           </div>
           
           <button type="submit">
@@ -643,11 +689,110 @@
     </footer>
   </div>
 
-  <script src="scripts.js"></script>
-  
   <script>
-    // Animación adicional para elementos al hacer scroll
+    // Datos de ejemplo para horarios disponibles por barbero
+    const horariosPorBarbero = {
+      kelvin: ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'],
+      carlos: ['08:30', '10:00', '11:30', '13:00', '14:30', '16:00', '17:30', '19:00'],
+      miguel: ['09:00', '10:30', '12:00', '13:30', '15:00', '16:30', '18:00', '19:30']
+    };
+
+    // Imágenes de barberos (puedes reemplazar con URLs reales)
+    const imagenesBarberos = {
+      kelvin: 'https://placehold.co/100x100/121212/D4AF37?text=K',
+      carlos: 'https://placehold.co/100x100/121212/D4AF37?text=C',
+      miguel: 'https://placehold.co/100x100/121212/D4AF37?text=M'
+    };
+
+    // Función para actualizar los horarios disponibles
+    function actualizarHorarios(barberoId) {
+      const horaSelect = document.getElementById('hora-select');
+      
+      // Limpiar opciones existentes excepto la primera
+      while (horaSelect.options.length > 1) {
+        horaSelect.remove(1);
+      }
+      
+      // Obtener horarios para el barbero seleccionado
+      const horarios = horariosPorBarbero[barberoId] || [];
+      
+      // Agregar nuevos horarios
+      horarios.forEach(hora => {
+        const option = document.createElement('option');
+        option.value = hora;
+        option.textContent = hora;
+        option.setAttribute('data-disponible', 'true');
+        horaSelect.appendChild(option);
+      });
+      
+      // Si no hay horarios, mostrar mensaje
+      if (horarios.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No hay horarios disponibles";
+        option.disabled = true;
+        horaSelect.appendChild(option);
+      }
+    }
+
+    // Función para mostrar información del barbero seleccionado
+    function mostrarInfoBarbero(barberoSelect) {
+      const selectedOption = barberoSelect.options[barberoSelect.selectedIndex];
+      const barberoId = selectedOption.value;
+      const barberoInfoDiv = document.getElementById('barbero-info');
+      
+      if (barberoId && barberoId !== "") {
+        // Mostrar información del barbero
+        document.getElementById('barbero-img').src = imagenesBarberos[barberoId];
+        document.getElementById('barbero-nombre').textContent = selectedOption.textContent;
+        document.getElementById('barbero-especialidad').textContent = selectedOption.getAttribute('data-especialidad');
+        barberoInfoDiv.style.display = 'flex';
+      } else {
+        barberoInfoDiv.style.display = 'none';
+      }
+    }
+
+    // Inicializar cuando el documento esté listo
     document.addEventListener('DOMContentLoaded', function() {
+      const barberoSelect = document.getElementById('barbero');
+      const fechaInput = document.getElementById('fecha');
+      
+      // Establecer fecha mínima como hoy
+      const hoy = new Date();
+      const fechaHoy = hoy.toISOString().split('T')[0];
+      fechaInput.setAttribute('min', fechaHoy);
+      
+      // Escuchar cambios en el barbero
+      if (barberoSelect) {
+        barberoSelect.addEventListener('change', function() {
+          const barberoId = this.value;
+          actualizarHorarios(barberoId);
+          mostrarInfoBarbero(this);
+          
+          // Si hay una fecha seleccionada, actualizar disponibilidad
+          if (fechaInput.value) {
+            // Aquí puedes agregar lógica adicional para verificar disponibilidad
+            // en función de la fecha seleccionada
+            console.log(`Actualizando disponibilidad para ${fechaInput.value} con el barbero ${barberoId}`);
+          }
+        });
+      }
+      
+      // Escuchar cambios en la fecha
+      if (fechaInput) {
+        fechaInput.addEventListener('change', function() {
+          const barberoId = barberoSelect.value;
+          
+          // Si hay un barbero seleccionado, actualizar disponibilidad
+          if (barberoId && barberoId !== "") {
+            // Aquí puedes agregar lógica adicional para verificar disponibilidad
+            // en función de la fecha seleccionada
+            console.log(`Actualizando disponibilidad para ${this.value} con el barbero ${barberoId}`);
+          }
+        });
+      }
+      
+      // Animación adicional para elementos al hacer scroll
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
       
       const observer = new IntersectionObserver((entries) => {
@@ -665,26 +810,6 @@
         el.style.transition = 'all 0.6s ease-out';
         observer.observe(el);
       });
-
-      // Generar horarios disponibles (ejemplo)
-      const horaSelect = document.getElementById('hora-select');
-      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-      
-      horasDisponibles.forEach(hora => {
-        const option = document.createElement('option');
-        option.value = hora;
-        option.textContent = hora;
-        option.setAttribute('data-disponible', 'true');
-        horaSelect.appendChild(option);
-      });
-
-      // Agregar algunos horarios no disponibles como ejemplo
-      const optionNoDisponible = document.createElement('option');
-      optionNoDisponible.value = "10:00";
-      optionNoDisponible.textContent = "10:00";
-      optionNoDisponible.setAttribute('data-disponible', 'false');
-      optionNoDisponible.disabled = true;
-      horaSelect.appendChild(optionNoDisponible);
     });
   </script>
 </body>
