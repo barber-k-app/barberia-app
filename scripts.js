@@ -547,8 +547,14 @@ async function guardarCita(citaData) {
         creado_en: new Date().toISOString()
       }])
       .select();
-    
-    if (error) throw error;
+
+    if (error) {
+      // Verificar si es error de duplicado (código 23505)
+      if (error.code === '23505') {
+        throw new Error('❌ Este horario ya fue reservado. Por favor elige otro.');
+      }
+      throw error; // Propagar otros errores
+    }
     
     // LIMPIAR CACHÉ RELACIONADO CON ESTA FECHA
     BarberCache.clear(`citas_${citaData.fecha}`);
