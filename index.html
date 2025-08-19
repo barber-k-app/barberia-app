@@ -710,7 +710,15 @@
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-    // 4. Inicialización de Supabase
+    // 4. Claves para el sistema de caché mejorado
+    const CACHE_KEYS = {
+      CITAS: 'citas_cache',
+      CITAS_TIMESTAMP: 'citas_timestamp',
+      MAINTENANCE: 'maintenance_cache',
+      MAINTENANCE_TIMESTAMP: 'maintenance_timestamp'
+    };
+
+    // 5. Inicialización de Supabase
     async function initializeSupabase() {
       if (supabaseInitialized || typeof supabase === 'undefined') return false;
       
@@ -725,21 +733,25 @@
       }
     }
 
-    // 5. Función para obtener fecha actual en formato YYYY-MM-DD
+    // 6. Función para obtener fecha actual en formato YYYY-MM-DD
     function obtenerFechaActual() {
       const hoy = new Date();
       return hoy.toISOString().split('T')[0];
     }
 
-    // 6. Sistema de caché para citas
+    // 7. Sistema de caché mejorado para citas
     async function cargarCitasDelDia(forceRefresh = false) {
       const now = Date.now();
       const fechaHoy = obtenerFechaActual();
       const citasContainer = document.getElementById('citasContainer');
       
       // Usar caché si está disponible y no está expirado
-      if (!forceRefresh && cachedCitas && (now - lastCitasFetchTime) < CACHE_EXPIRATION) {
-        mostrarCitas(cachedCitas);
+      const cacheData = localStorage.getItem(CACHE_KEYS.CITAS);
+      const cacheTime = localStorage.getItem(CACHE_KEYS.CITAS_TIMESTAMP);
+      
+      if (!forceRefresh && cacheData && cacheTime && (now - parseInt(cacheTime)) < CACHE_EXPIRATION) {
+        console.log('Devolviendo datos desde caché');
+        mostrarCitas(JSON.parse(cacheData));
         return;
       }
       
@@ -748,13 +760,15 @@
       try {
         const { data: citas, error } = await window.supabase
           .from('citas')
-          .select('nombre, hora, servicio, barbero')
+          .select('nombre, hora, servicio, barbero') // Solo campos necesarios
           .eq('fecha', fechaHoy)
           .order('hora', { ascending: true });
         
         if (error) throw error;
         
         // Actualizar caché
+        localStorage.setItem(CACHE_KEYS.CITAS, JSON.stringify(citas));
+        localStorage.setItem(CACHE_KEYS.CITAS_TIMESTAMP, now.toString());
         cachedCitas = citas;
         lastCitasFetchTime = now;
         mostrarCitas(citas);
@@ -762,8 +776,8 @@
       } catch (error) {
         console.error('Error al cargar citas:', error);
         // Mostrar datos cacheados si hay error
-        if (cachedCitas) {
-          mostrarCitas(cachedCitas);
+        if (cacheData) {
+          mostrarCitas(JSON.parse(cacheData));
           mostrarErrorCitas('Mostrando datos cacheados. Error al actualizar: ' + error.message);
         } else {
           mostrarErrorCitas('Error al cargar citas. Intente recargar.');
@@ -771,7 +785,7 @@
       }
     }
 
-    // 7. Mostrar citas en el panel
+    // 8. Mostrar citas en el panel
     function mostrarCitas(citas) {
       const citasContainer = document.getElementById('citasContainer');
       if (!citasContainer) return;
@@ -801,7 +815,7 @@
       citasContainer.appendChild(lista);
     }
 
-    // 8. Manejo de errores
+    // 9. Manejo de errores
     function mostrarErrorCitas(mensaje) {
       const citasContainer = document.getElementById('citasContainer');
       if (citasContainer) {
@@ -812,10 +826,17 @@
       }
     }
 
-    // 9. Sistema de mantenimiento
+    // 10. Sistema de mantenimiento con caché
     async function checkMaintenanceFromSupabase() {
       const now = Date.now();
-      if ((now - lastMaintenanceCheck) < MAINTENANCE_CHECK_INTERVAL) {
+      
+      // Verificar caché primero
+      const cacheData = localStorage.getItem(CACHE_KEYS.MAINTENANCE);
+      const cacheTime = localStorage.getItem(CACHE_KEYS.MAINTENANCE_TIMESTAMP);
+      
+      if (cacheData && cacheTime && (now - parseInt(cacheTime)) < MAINTENANCE_CHECK_INTERVAL) {
+        localStorage.setItem(MAINTENANCE_KEY, cacheData);
+        checkMaintenanceStatus();
         return;
       }
       
@@ -828,7 +849,10 @@
 
         if (error) throw error;
 
-        localStorage.setItem(MAINTENANCE_KEY, data?.maintenance_mode ? 'true' : 'false');
+        const maintenanceMode = data?.maintenance_mode ? 'true' : 'false';
+        localStorage.setItem(MAINTENANCE_KEY, maintenanceMode);
+        localStorage.setItem(CACHE_KEYS.MAINTENANCE, maintenanceMode);
+        localStorage.setItem(CACHE_KEYS.MAINTENANCE_TIMESTAMP, now.toString());
         lastMaintenanceCheck = now;
         
         checkMaintenanceStatus();
@@ -846,19 +870,25 @@
       // Actualizar UI
       const maintenanceBadge = document.getElementById('maintenanceBadge');
       const adminGear = document.getElementById('adminGear');
+      const toggleBtn = document.getElementById('toggleMaintenance');
+      const statusText = document.getElementById('maintenanceStatus');
       
       if (isMaintenance) {
         maintenanceBadge.style.display = 'block';
         adminGear.classList.add('maintenance-active');
+        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-power-off"></i> Desactivar Mantenimiento';
+        if (statusText) statusText.innerHTML = 'Estado actual: <strong>Activo</strong>';
       } else {
         maintenanceBadge.style.display = 'none';
         adminGear.classList.remove('maintenance-active');
+        if (toggleBtn) toggleBtn.innerHTML = '<i class="fas fa-power-off"></i> Activar Mantenimiento';
+        if (statusText) statusText.innerHTML = 'Estado actual: <strong>Inactivo</strong>';
       }
       
       return { isMaintenance, hasAccess };
     }
 
-    // 10. Sistema de rating optimizado
+    // 11. Sistema de rating optimizado
     function setupRatingSystem() {
       const starsContainer = document.querySelector('.stars');
       if (!starsContainer) return;
@@ -882,7 +912,7 @@
       });
     }
 
-    // 11. Protección de rutas durante mantenimiento
+    // 12. Protección de rutas durante mantenimiento
     function checkMaintenanceRedirect() {
       const protectedPaths = ['/cliente.html', '/barbero.html'];
       const currentPath = window.location.pathname;
@@ -894,7 +924,7 @@
       }
     }
 
-    // 12. Configuración de event listeners
+    // 13. Configuración de event listeners
     function setupEventListeners() {
       // Botón de refrescar citas
       document.getElementById('refreshCitas')?.addEventListener('click', () => {
@@ -931,32 +961,37 @@
       });
     }
 
-    // 13. Funciones de administración
+    // 14. Funciones de administración
     function handleAdminGearClick() {
       const { hasAccess } = checkMaintenanceStatus();
       const modalTitle = document.getElementById('modalTitle');
       const passwordModal = document.getElementById('passwordModal');
+      const passwordInput = document.getElementById('adminPassword');
+      const submitBtn = document.getElementById('submitPassword');
+      const cancelBtn = document.getElementById('cancelPassword');
+      const accessMsg = document.getElementById('accessGranted');
+      const controls = document.getElementById('maintenanceControls');
       
       if (hasAccess) {
         modalTitle.textContent = 'Panel de Control';
-        document.getElementById('adminPassword').style.display = 'none';
-        document.getElementById('submitPassword').style.display = 'none';
-        document.getElementById('cancelPassword').textContent = 'Cerrar';
-        document.getElementById('accessGranted').style.display = 'block';
-        document.getElementById('maintenanceControls').style.display = 'block';
+        passwordInput.style.display = 'none';
+        submitBtn.style.display = 'none';
+        cancelBtn.textContent = 'Cerrar';
+        accessMsg.style.display = 'block';
+        controls.style.display = 'block';
       } else {
         modalTitle.textContent = 'Acceso Administrativo';
-        document.getElementById('adminPassword').style.display = 'block';
-        document.getElementById('submitPassword').style.display = 'inline-block';
-        document.getElementById('cancelPassword').textContent = 'Cancelar';
-        document.getElementById('accessGranted').style.display = 'none';
-        document.getElementById('maintenanceControls').style.display = 'none';
-        document.getElementById('adminPassword').value = '';
+        passwordInput.style.display = 'block';
+        submitBtn.style.display = 'inline-block';
+        cancelBtn.textContent = 'Cancelar';
+        accessMsg.style.display = 'none';
+        controls.style.display = 'none';
+        passwordInput.value = '';
         document.getElementById('passwordError').style.display = 'none';
       }
       
       passwordModal.style.display = 'flex';
-      document.getElementById('adminPassword').focus();
+      passwordInput.focus();
     }
 
     function handlePasswordSubmit() {
@@ -979,13 +1014,46 @@
       document.getElementById('passwordModal').style.display = 'none';
     }
 
-    function toggleMaintenanceMode() {
+    async function toggleMaintenanceMode() {
       const isMaintenance = localStorage.getItem(MAINTENANCE_KEY) === 'true';
-      localStorage.setItem(MAINTENANCE_KEY, !isMaintenance);
-      checkMaintenanceStatus();
+      const newMode = !isMaintenance;
+      
+      try {
+        // Actualizar en Supabase
+        const { error } = await supabase
+          .from('app_settings')
+          .update({ maintenance_mode: newMode })
+          .eq('id', 1);
+          
+        if (error) throw error;
+        
+        // Actualizar en localStorage
+        localStorage.setItem(MAINTENANCE_KEY, newMode.toString());
+        localStorage.setItem(CACHE_KEYS.MAINTENANCE, newMode.toString());
+        localStorage.setItem(CACHE_KEYS.MAINTENANCE_TIMESTAMP, Date.now().toString());
+        
+        checkMaintenanceStatus();
+      } catch (error) {
+        console.error('Error al cambiar modo mantenimiento:', error);
+        alert('Error al cambiar el modo de mantenimiento');
+      }
     }
 
-    // 14. Inicialización de la aplicación
+    // 15. Función con reintentos para consultas a Supabase
+    async function queryWithRetry(queryFn, maxRetries = 3) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const result = await queryFn();
+          return result;
+        } catch (error) {
+          if (i === maxRetries - 1) throw error;
+          // Esperar antes de reintentar (backoff exponencial)
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+        }
+      }
+    }
+
+    // 16. Inicialización de la aplicación
     document.addEventListener('DOMContentLoaded', async function() {
       // 1. Configuración inicial
       checkMaintenanceRedirect();
@@ -1007,7 +1075,7 @@
       }, 300000); // 5 minutos
     });
 
-    // 15. Verificación periódica de mantenimiento (adicional al intervalo)
+    // 17. Verificación periódica de mantenimiento (adicional al intervalo)
     setInterval(checkMaintenanceRedirect, 1000);
   </script>
 </body>
