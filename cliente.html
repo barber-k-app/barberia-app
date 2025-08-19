@@ -139,21 +139,23 @@
       gap: 10px;
     }
 
+    /* SOLUCIÓN DEFINITIVA PARA EL LOGO */
     .logo-contenedor {
       position: relative;
       display: inline-block;
       height: 40px;
       width: 40px;
       margin-right: 10px;
+      overflow: hidden;
+      border-radius: 5px;
     }
 
     .logo-titulo {
       height: 100%;
       width: 100%;
       object-fit: contain;
-      /* Eliminar cualquier fondo blanco */
+      /* Filtro para eliminar el fondo blanco y hacer el logo blanco */
       filter: brightness(0) invert(1);
-      /* Asegurar que no haya espacios en blanco */
       display: block;
     }
 
@@ -646,7 +648,7 @@
         
         <div class="info-horario">
           <i class="fas fa-info-circle"></i>
-          <p>Horario de atención: Lunes a Sábado de 8:00 AM a 9:00 PM</p>
+          <p>Horario de atención: Lunes a Sábado de 8:00 AM to 9:00 PM</p>
         </div>
       </main>
     </div>
