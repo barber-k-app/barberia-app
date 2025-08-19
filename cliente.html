@@ -6,11 +6,12 @@
   <title>Agendar Cita | Barber-K</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #D4AF37;
       --dark: #121212;
-      --darker: #0a0a0;
+      --darker: #0a0a0a;
       --light: #f8f8f8;
       --glass: rgba(255, 255, 255, 0.05);
     }
@@ -49,6 +50,9 @@
       animation: fadeInUp 0.8s ease-out;
     }
     
+    /* ---------------------- */
+    /* ANIMACIONES MEJORADAS */
+    /* ---------------------- */
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -80,6 +84,9 @@
       100% { transform: rotate(0deg); }
     }
     
+    /* ---------------------- */
+    /* ESTILOS PREMIUM (NUEVO) */
+    /* ---------------------- */
     header {
       text-align: center;
       margin-bottom: 2.5rem;
@@ -133,7 +140,9 @@
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--gold), transparent);
     }
+    /* ---------------------- */
     
+    /* Panel de Contacto Premium */
     .contacto-premium {
       background: rgba(212, 175, 55, 0.15);
       backdrop-filter: blur(5px);
@@ -190,6 +199,7 @@
       animation: float 4s ease-in-out infinite;
     }
     
+    /* Animaciones individuales para cada red social */
     .contacto-item:nth-child(1) { animation-delay: 0s; }
     .contacto-item:nth-child(2) { animation-delay: 0.3s; }
     .contacto-item:nth-child(3) { animation-delay: 0.6s; }
@@ -405,6 +415,7 @@
       animation: pulse 4s infinite alternate;
     }
 
+    /* REDES SOCIALES CON ANIMACIONES */
     .redes-simplificadas {
       margin: 2rem 0;
       text-align: center;
@@ -418,6 +429,7 @@
       margin-top: 1rem;
     }
 
+    /* Tijeras animadas en el título */
     .titulo-efecto::before,
     .titulo-efecto::after {
       font-family: "Font Awesome 6 Free";
@@ -434,17 +446,18 @@
       animation-delay: 0.5s;
     }
 
+    /* Estilos para el select de horarios */
     #hora-select option {
       padding: 8px 12px;
     }
 
     #hora-select option[data-disponible="true"] {
-      color: #2ecc71;
+      color: #2ecc71; /* Verde para horarios disponibles */
       font-weight: bold;
     }
 
     #hora-select option[data-disponible="false"] {
-      color: #e74c3c;
+      color: #e74c3c; /* Rojo para horarios no disponibles */
       text-decoration: line-through;
     }
 
@@ -452,6 +465,7 @@
       background-color: rgba(231, 76, 60, 0.1);
     }
 
+    /* NUEVO ESTILO PARA EL CONTADOR DE CITAS */
     .info-citas {
       background: rgba(212, 175, 55, 0.1);
       padding: 8px 12px;
@@ -464,20 +478,6 @@
       color: var(--gold);
       border-left: 3px solid var(--gold);
       animation: fadeInUp 0.8s ease-out;
-    }
-
-    .cargando {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: var(--gold);
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
 
     @media (max-width: 768px) {
@@ -524,6 +524,7 @@
   
   <div class="container">
     <div class="glass-panel">
+      <!-- HEADER PREMIUM -->
       <header>
         <h1 class="titulo-premium">
           <span class="diamond">◆</span>
@@ -549,9 +550,10 @@
             <input type="tel" id="telefono" placeholder="Teléfono" required>
           </div>
 
+          <!-- NUEVO CONTADOR DE CITAS -->
           <div id="contador-citas" class="info-citas" style="display:none;">
             <i class="fas fa-info-circle"></i>
-            <span id="contador-texto">Verificando disponibilidad...</span>
+            <span>Verificando disponibilidad...</span>
           </div>
           
           <div class="form-row">
@@ -564,6 +566,7 @@
               <i class="fas fa-clock"></i>
               <select id="hora-select" required>
                 <option value="" disabled selected>Selecciona un horario</option>
+                <!-- Los horarios se llenarán dinámicamente -->
               </select>
             </div>
 
@@ -600,6 +603,7 @@
       </main>
     </div>
 
+    <!-- REDES SOCIALES CON ANIMACIONES -->
     <div class="redes-simplificadas">
       <div class="contacto-titulo">
         <span class="estrellas-premium">★★★★★</span> Contáctanos
@@ -639,240 +643,48 @@
     </footer>
   </div>
 
+  <script src="scripts.js"></script>
+  
   <script>
-    // Configuración de Supabase
-    const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
-    const SUPABASE_ANON_KEY = 'tu-anon-key';
-    
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // Variables globales
-    let citasCache = {};
-    let fechaSeleccionada = '';
-    const horariosDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-    const MAX_CITAS_POR_DIA = 30;
-
+    // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
-      inicializarFecha();
-      configurarEventListeners();
-    });
-
-    function inicializarFecha() {
-      const fechaInput = document.getElementById('fecha');
-      const hoy = new Date();
-      const manana = new Date(hoy);
-      manana.setDate(manana.getDate() + 1);
+      const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
       
-      // Establecer la fecha mínima como mañana
-      fechaInput.min = manana.toISOString().split('T')[0];
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = 1;
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, { threshold: 0.1 });
       
-      // Establecer una fecha por defecto (2 días después)
-      const fechaDefecto = new Date(hoy);
-      fechaDefecto.setDate(fechaDefecto.getDate() + 2);
-      fechaInput.value = fechaDefecto.toISOString().split('T')[0];
-      
-      // Cargar horarios para la fecha por defecto
-      fechaSeleccionada = fechaInput.value;
-      cargarHorariosDisponibles(fechaSeleccionada);
-    }
-
-    function configurarEventListeners() {
-      const fechaInput = document.getElementById('fecha');
-      fechaInput.addEventListener('change', function() {
-        fechaSeleccionada = this.value;
-        cargarHorariosDisponibles(fechaSeleccionada);
+      animatedElements.forEach(el => {
+        el.style.opacity = 0;
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease-out';
+        observer.observe(el);
       });
 
-      const formulario = document.getElementById('citaForm');
-      formulario.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await enviarFormulario();
-      });
-    }
-
-    async function cargarHorariosDisponibles(fecha) {
-      const selectHora = document.getElementById('hora-select');
-      const contadorCitas = document.getElementById('contador-citas');
-      const contadorTexto = document.getElementById('contador-texto');
+      // Generar horarios disponibles (ejemplo)
+      const horaSelect = document.getElementById('hora-select');
+      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
       
-      // Mostrar estado de carga
-      contadorCitas.style.display = 'flex';
-      contadorTexto.innerHTML = '<span class="cargando"></span> Verificando disponibilidad...';
-      
-      // Limpiar select excepto la primera opción
-      while (selectHora.options.length > 1) {
-        selectHora.remove(1);
-      }
-      
-      // Verificar si tenemos datos en caché para esta fecha
-      if (citasCache[fecha] && (Date.now() - citasCache[fecha].timestamp) < 300000) { // 5 minutos de caché
-        console.log('Usando datos en caché para', fecha);
-        actualizarSelectHorarios(citasCache[fecha].citas, fecha);
-        actualizarContadorCitas(citasCache[fecha].citas.length);
-        return;
-      }
-      
-      try {
-        // Consultar citas existentes para esta fecha
-        const { data, error } = await supabase
-          .from('citas')
-          .select('hora')
-          .eq('fecha', fecha)
-          .eq('barbero', 'Kelvin');
-        
-        if (error) {
-          console.error('Error al cargar citas:', error);
-          contadorTexto.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al cargar disponibilidad';
-          return;
-        }
-        
-        // Guardar en caché
-        citasCache[fecha] = {
-          citas: data,
-          timestamp: Date.now()
-        };
-        
-        // Actualizar UI
-        actualizarSelectHorarios(data, fecha);
-        actualizarContadorCitas(data.length);
-        
-      } catch (error) {
-        console.error('Error:', error);
-        contadorTexto.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error de conexión';
-      }
-    }
-
-    function actualizarSelectHorarios(citasExistentes, fecha) {
-      const selectHora = document.getElementById('hora-select');
-      const horasOcupadas = citasExistentes.map(cita => cita.hora);
-      
-      // Agregar opciones de horario
-      horariosDisponibles.forEach(hora => {
+      horasDisponibles.forEach(hora => {
         const option = document.createElement('option');
         option.value = hora;
         option.textContent = hora;
-        
-        if (horasOcupadas.includes(hora)) {
-          option.disabled = true;
-          option.setAttribute('data-disponible', 'false');
-          option.textContent += ' (No disponible)';
-        } else {
-          option.setAttribute('data-disponible', 'true');
-        }
-        
-        selectHora.appendChild(option);
+        option.setAttribute('data-disponible', 'true');
+        horaSelect.appendChild(option);
       });
-    }
 
-    function actualizarContadorCitas(cantidad) {
-      const contadorTexto = document.getElementById('contador-texto');
-      const porcentaje = Math.round((cantidad / MAX_CITAS_POR_DIA) * 100);
-      
-      if (cantidad >= MAX_CITAS_POR_DIA) {
-        contadorTexto.innerHTML = `<i class="fas fa-calendar-times"></i> ¡Completo! (${cantidad}/${MAX_CITAS_POR_DIA} citas)`;
-      } else {
-        contadorTexto.innerHTML = `<i class="fas fa-calendar-check"></i> ${cantidad}/${MAX_CITAS_POR_DIA} citas (${porcentaje}% ocupado)`;
-      }
-    }
-
-    async function enviarFormulario() {
-      const formulario = document.getElementById('citaForm');
-      const submitBtn = formulario.querySelector('button[type="submit"]');
-      const mensajeDiv = document.getElementById('mensaje');
-      
-      // Obtener datos del formulario
-      const nombre = document.getElementById('nombre').value;
-      const telefono = document.getElementById('telefono').value;
-      const fecha = document.getElementById('fecha').value;
-      const hora = document.getElementById('hora-select').value;
-      const servicio = document.getElementById('servicio').value;
-      const barbero = document.getElementById('barbero').value;
-      
-      // Validar que el horario siga disponible
-      if (citasCache[fecha] && citasCache[fecha].citas.some(cita => cita.hora === hora)) {
-        mostrarMensaje('Este horario ya no está disponible. Por favor, selecciona otro.', 'error');
-        cargarHorariosDisponibles(fecha); // Actualizar la lista
-        return;
-      }
-      
-      // Deshabilitar botón para evitar envíos duplicados
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-      
-      try {
-        // Insertar la cita en Supabase
-        const { data, error } = await supabase
-          .from('citas')
-          .insert([
-            { 
-              nombre, 
-              telefono, 
-              fecha, 
-              hora, 
-              servicio, 
-              barbero,
-              creado: new Date().toISOString()
-            }
-          ])
-          .select();
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Actualizar caché local
-        if (!citasCache[fecha]) {
-          citasCache[fecha] = { citas: [], timestamp: Date.now() };
-        }
-        citasCache[fecha].citas.push({ hora: hora });
-        citasCache[fecha].timestamp = Date.now();
-        
-        // Mostrar mensaje de éxito
-        mostrarMensaje(`¡Cita agendada con éxito para el ${fecha} a las ${hora}! Te contactaremos para confirmar.`, 'exito');
-        
-        // Reiniciar formulario
-        formulario.reset();
-        inicializarFecha();
-        
-      } catch (error) {
-        console.error('Error al agendar cita:', error);
-        mostrarMensaje('Error al agendar la cita. Por favor, intenta nuevamente.', 'error');
-      } finally {
-        // Reactivar botón
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Cita';
-      }
-    }
-
-    function mostrarMensaje(texto, tipo) {
-      const mensajeDiv = document.getElementById('mensaje');
-      mensajeDiv.textContent = texto;
-      mensajeDiv.className = tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error';
-      mensajeDiv.style.display = 'block';
-      
-      // Ocultar mensaje después de 5 segundos
-      setTimeout(() => {
-        mensajeDiv.style.display = 'none';
-      }, 5000);
-    }
-
-    // Animación adicional para elementos al hacer scroll
-    const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = 1;
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, { threshold: 0.1 });
-    
-    animatedElements.forEach(el => {
-      el.style.opacity = 0;
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'all 0.6s ease-out';
-      observer.observe(el);
+      // Agregar algunos horarios no disponibles como ejemplo
+      const optionNoDisponible = document.createElement('option');
+      optionNoDisponible.value = "10:00";
+      optionNoDisponible.textContent = "10:00";
+      optionNoDisponible.setAttribute('data-disponible', 'false');
+      optionNoDisponible.disabled = true;
+      horaSelect.appendChild(optionNoDisponible);
     });
   </script>
 </body>
