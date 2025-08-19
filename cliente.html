@@ -480,21 +480,6 @@
       animation: fadeInUp 0.8s ease-out;
     }
 
-    /* Indicador de carga */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: var(--gold);
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -658,42 +643,31 @@
     </footer>
   </div>
 
+  <script src="scripts.js"></script>
+  
   <script>
-    // Configuración de Supabase (reemplaza con tus credenciales)
-    const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
-    const SUPABASE_KEY = 'tu-clave-anon-publica';
-    
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // Variables para optimización
-    let cacheHorarios = {}; // Cache para horarios por fecha
-    let lastFetchedDate = null; // Última fecha consultada
-    let debounceTimer = null; // Temporizador para debounce
-    
-    // Inicialización cuando el DOM está listo
+    // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
-      // Configurar fecha mínima (hoy)
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('fecha').setAttribute('min', today);
+      const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
       
-      // Cargar horarios predefinidos
-      cargarHorariosPredefinidos();
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = 1;
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, { threshold: 0.1 });
       
-      // Event listeners
-      document.getElementById('fecha').addEventListener('change', manejarCambioFecha);
-      document.getElementById('citaForm').addEventListener('submit', manejarEnvioFormulario);
-      
-      // Prefetch de datos para la fecha de hoy
-      setTimeout(() => {
-        verificarDisponibilidadFecha(today);
-      }, 1000);
-    });
-    
-    // Función para cargar horarios predefinidos
-    function cargarHorariosPredefinidos() {
+      animatedElements.forEach(el => {
+        el.style.opacity = 0;
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease-out';
+        observer.observe(el);
+      });
+
+      // Generar horarios disponibles (ejemplo)
       const horaSelect = document.getElementById('hora-select');
-      horaSelect.innerHTML = '<option value="" disabled selected>Selecciona un horario</option>';
-      
       const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
       
       horasDisponibles.forEach(hora => {
@@ -703,179 +677,15 @@
         option.setAttribute('data-disponible', 'true');
         horaSelect.appendChild(option);
       });
-    }
-    
-    // Función para manejar el cambio de fecha con debounce
-    function manejarCambioFecha(event) {
-      const fechaSeleccionada = event.target.value;
-      
-      // Limpiar temporizador anterior
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-      
-      // Mostrar indicador de carga
-      mostrarContadorCitas('Verificando disponibilidad...', true);
-      
-      // Configurar nuevo temporizador (debounce de 500ms)
-      debounceTimer = setTimeout(() => {
-        verificarDisponibilidadFecha(fechaSeleccionada);
-      }, 500);
-    }
-    
-    // Función para verificar disponibilidad de una fecha
-    async function verificarDisponibilidadFecha(fecha) {
-      // Verificar si ya tenemos esta fecha en caché
-      if (cacheHorarios[fecha] && Date.now() - cacheHorarios[fecha].timestamp < 300000) { // 5 minutos de cache
-        actualizarInterfazConHorarios(cacheHorarios[fecha].data);
-        return;
-      }
-      
-      try {
-        // Consultar a Supabase
-        const { data, error } = await supabase
-          .from('citas')
-          .select('hora')
-          .eq('fecha', fecha)
-          .eq('barbero', document.getElementById('barbero').value);
-        
-        if (error) throw error;
-        
-        // Procesar y guardar en caché
-        const horasOcupadas = data.map(cita => cita.hora);
-        cacheHorarios[fecha] = {
-          data: horasOcupadas,
-          timestamp: Date.now()
-        };
-        
-        // Guardar en localStorage para persistencia
-        localStorage.setItem('cacheHorarios', JSON.stringify(cacheHorarios));
-        
-        // Actualizar interfaz
-        actualizarInterfazConHorarios(horasOcupadas);
-        
-      } catch (error) {
-        console.error('Error al verificar disponibilidad:', error);
-        mostrarContadorCitas('Error al verificar disponibilidad', false);
-      }
-    }
-    
-    // Función para actualizar la interfaz con los horarios disponibles/ocupados
-    function actualizarInterfazConHorarios(horasOcupadas) {
-      const horaSelect = document.getElementById('hora-select');
-      const options = horaSelect.querySelectorAll('option');
-      
-      // Contador de horarios disponibles
-      let disponibles = 0;
-      let ocupados = 0;
-      
-      options.forEach(option => {
-        if (option.value) {
-          const estaOcupado = horasOcupadas.includes(option.value);
-          
-          if (estaOcupado) {
-            option.disabled = true;
-            option.setAttribute('data-disponible', 'false');
-            option.textContent = `${option.value} (Ocupado)`;
-            ocupados++;
-          } else {
-            option.disabled = false;
-            option.setAttribute('data-disponible', 'true');
-            option.textContent = option.value;
-            disponibles++;
-          }
-        }
-      });
-      
-      // Actualizar contador
-      mostrarContadorCitas(`${disponibles} horarios disponibles de ${options.length - 1}`, false);
-    }
-    
-    // Función para mostrar el contador de citas
-    function mostrarContadorCitas(mensaje, cargando = false) {
-      const contador = document.getElementById('contador-citas');
-      contador.style.display = 'flex';
-      
-      if (cargando) {
-        contador.innerHTML = `<i class="fas fa-info-circle"></i> <span>${mensaje} <span class="loading"></span></span>`;
-      } else {
-        contador.innerHTML = `<i class="fas fa-info-circle"></i> <span>${mensaje}</span>`;
-      }
-    }
-    
-    // Función para manejar el envío del formulario
-    async function manejarEnvioFormulario(event) {
-      event.preventDefault();
-      
-      // Obtener datos del formulario
-      const citaData = {
-        nombre: document.getElementById('nombre').value,
-        telefono: document.getElementById('telefono').value,
-        fecha: document.getElementById('fecha').value,
-        hora: document.getElementById('hora-select').value,
-        servicio: document.getElementById('servicio').value,
-        barbero: document.getElementById('barbero').value,
-        creado: new Date().toISOString()
-      };
-      
-      // Validar que se haya seleccionado un horario disponible
-      const horaSelect = document.getElementById('hora-select');
-      const optionSeleccionada = horaSelect.options[horaSelect.selectedIndex];
-      
-      if (optionSeleccionada.getAttribute('data-disponible') === 'false') {
-        mostrarMensaje('Este horario ya no está disponible. Por favor, selecciona otro.', 'error');
-        return;
-      }
-      
-      try {
-        // Insertar en Supabase
-        const { data, error } = await supabase
-          .from('citas')
-          .insert([citaData]);
-        
-        if (error) throw error;
-        
-        // Mostrar mensaje de éxito
-        mostrarMensaje('¡Cita agendada exitosamente! Te esperamos.', 'exito');
-        
-        // Limpiar formulario
-        document.getElementById('citaForm').reset();
-        
-        // Invalidar caché para esta fecha
-        delete cacheHorarios[citaData.fecha];
-        
-        // Recargar horarios
-        verificarDisponibilidadFecha(citaData.fecha);
-        
-      } catch (error) {
-        console.error('Error al agendar cita:', error);
-        mostrarMensaje('Error al agendar la cita. Intenta nuevamente.', 'error');
-      }
-    }
-    
-    // Función para mostrar mensajes al usuario
-    function mostrarMensaje(texto, tipo) {
-      const mensajeDiv = document.getElementById('mensaje');
-      mensajeDiv.textContent = texto;
-      mensajeDiv.className = tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error';
-      mensajeDiv.style.display = 'block';
-      
-      // Ocultar mensaje después de 5 segundos
-      setTimeout(() => {
-        mensajeDiv.style.display = 'none';
-      }, 5000);
-    }
-    
-    // Cargar caché desde localStorage al iniciar
-    function cargarCacheDesdeAlmacenamiento() {
-      const cacheGuardado = localStorage.getItem('cacheHorarios');
-      if (cacheGuardado) {
-        cacheHorarios = JSON.parse(cacheGuardado);
-      }
-    }
-    
-    // Inicializar carga de caché
-    cargarCacheDesdeAlmacenamiento();
+
+      // Agregar algunos horarios no disponibles como ejemplo
+      const optionNoDisponible = document.createElement('option');
+      optionNoDisponible.value = "10:00";
+      optionNoDisponible.textContent = "10:00";
+      optionNoDisponible.setAttribute('data-disponible', 'false');
+      optionNoDisponible.disabled = true;
+      horaSelect.appendChild(optionNoDisponible);
+    });
   </script>
 </body>
 </html>
