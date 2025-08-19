@@ -257,15 +257,22 @@ function mostrarMensaje(texto, tipo = 'info') {
 }
 
 // Nueva función auxiliar con caché para obtener citas
-async function obtenerCitasParaFecha(fecha) {
-  const cacheKey = `citas_${fecha}`;
+async function obtenerCitasParaFecha(fecha, barbero = null) {
+  const cacheKey = barbero ? `citas_${fecha}_${barbero}` : `citas_${fecha}`;
   const cached = BarberCache.get(cacheKey);
   if (cached) return cached;
   
-  const { data: citas, error } = await supabase
+  let query = supabase
     .from('citas')
-    .select('hora')
-    .eq('fecha', fecha);
+    .select('hora, barbero');
+  
+  query = query.eq('fecha', fecha);
+  
+  if (barbero) {
+    query = query.eq('barbero', barbero);
+  }
+  
+  const { data: citas, error } = await query;
   
   if (error) throw error;
   
@@ -274,8 +281,8 @@ async function obtenerCitasParaFecha(fecha) {
 }
 
 // 4. Función para verificar disponibilidad de horario (actualizada con caché)
-async function verificarDisponibilidad(fecha, hora) {
-  const cacheKey = `disp_${fecha}_${hora}`;
+async function verificarDisponibilidad(fecha, hora, barbero) {
+  const cacheKey = `disp_${fecha}_${hora}_${barbero}`;
   const cached = BarberCache.get(cacheKey);
   if (cached) return cached;
   
@@ -283,8 +290,8 @@ async function verificarDisponibilidad(fecha, hora) {
     const [horaSel, minSel] = hora.split(':').map(Number);
     const minutosSel = horaSel * 60 + minSel;
     
-    // Obtener citas con caché
-    const citas = await obtenerCitasParaFecha(fecha);
+    // Obtener citas con caché (específicas para el barbero)
+    const citas = await obtenerCitasParaFecha(fecha, barbero);
     
     // Verificar cada cita existente
     for (const cita of citas) {
@@ -393,13 +400,29 @@ function generarHorariosDisponibles() {
 }
 
 // Función para actualizar disponibilidad en tiempo real (actualizada con caché)
-async function actualizarDisponibilidadHorarios(fecha) {
+async function actualizarDisponibilidadHorarios(fecha, barbero = 'Kelvin') {
   const selectHorario = document.getElementById('hora-select');
   if (!selectHorario || !fecha) return;
 
   try {
-    // Obtener citas con caché
-    const citas = await obtenerCitasParaFecha(fecha);
+    // Obtener citas con caché - específicas para el barbero seleccionado
+    const cacheKey = `citas_${fecha}_${barbero}`;
+    const cached = BarberCache.get(cacheKey);
+    let citas;
+    
+    if (cached) {
+      citas = cached;
+    } else {
+      const { data, error } = await supabase
+        .from('citas')
+        .select('hora')
+        .eq('fecha', fecha)
+        .eq('barbero', barbero);
+      
+      if (error) throw error;
+      citas = data;
+      BarberCache.set(cacheKey, citas, 5 * 60 * 1000); // Cachear por 5 minutos
+    }
     
     // Convertir horas de citas existentes a minutos
     const horasOcupadas = citas.map(cita => {
@@ -464,8 +487,20 @@ function inicializarSelectores() {
       return;
     }
     
-    actualizarDisponibilidadHorarios(this.value);
+    const barberoSeleccionado = document.getElementById('barbero').value;
+    actualizarDisponibilidadHorarios(this.value, barberoSeleccionado);
   });
+  
+  // Actualizar disponibilidad cuando cambia el barbero
+  const barberoSelect = document.getElementById('barbero');
+  if (barberoSelect) {
+    barberoSelect.addEventListener('change', function() {
+      const fechaSeleccionada = document.getElementById('fecha').value;
+      if (fechaSeleccionada) {
+        actualizarDisponibilidadHorarios(fechaSeleccionada, this.value);
+      }
+    });
+  }
   
   // Actualizar el input de hora oculto
   const selectHorario = document.getElementById('hora-select');
@@ -478,7 +513,8 @@ function inicializarSelectores() {
   }
   
   // Actualizar disponibilidad inicial
-  actualizarDisponibilidadHorarios(fechaInput.value);
+  const barberoInicial = barberoSelect ? barberoSelect.value : 'Kelvin';
+  actualizarDisponibilidadHorarios(fechaInput.value, barberoInicial);
 }
 
 // 7. Función para enviar notificación a Telegram
@@ -514,31 +550,41 @@ async function enviarNotificacionTelegram(citaData) {
   }
 }
 
-// 8. Función para guardar cita con validación de horario (actualizada con caché)
+// 8. Función para guardar cita con validación atómica de horario
 async function guardarCita(citaData) {
   if (!supabase) {
     throw new Error('Error de conexión con el servidor');
   }
 
   try {
-    // Verificar cita existente con caché
-    const { existe: citaExistente } = await verificarCitaExistente(
+    // VERIFICACIÓN ATÓMICA: Comprobar si ya existe una cita para ese barbero, fecha y hora
+    const { data: citaExistente, error: errorVerificacion } = await supabase
+      .from('citas')
+      .select('id')
+      .eq('fecha', citaData.fecha)
+      .eq('hora', citaData.hora)
+      .eq('barbero', citaData.barbero)
+      .maybeSingle();
+    
+    if (errorVerificacion) throw errorVerificacion;
+    if (citaExistente) {
+      throw new Error('❌ Lo sentimos, este horario ya no está disponible. Por favor elige otro.');
+    }
+
+    // Verificar cita existente con caché (mantener tu lógica existente)
+    const { existe: citaClienteExistente } = await verificarCitaExistente(
       citaData.telefono, 
       citaData.nombre, 
       citaData.fecha
     );
     
-    if (citaExistente) {
+    if (citaClienteExistente) {
       throw new Error('❌ Ya existe una cita registrada con este teléfono y nombre para esta fecha');
     }
     
     await verificarLimiteCitas(citaData.telefono, citaData.fecha);
-    
-    const disponibilidad = await verificarDisponibilidad(citaData.fecha, citaData.hora);
-    if (!disponibilidad.disponible) {
-      throw new Error(disponibilidad.mensaje);
-    }
 
+    // Insertar la nueva cita
     const { data, error } = await supabase
       .from('citas')
       .insert([{
@@ -552,6 +598,7 @@ async function guardarCita(citaData) {
     
     // LIMPIAR CACHÉ RELACIONADO CON ESTA FECHA
     BarberCache.clear(`citas_${citaData.fecha}`);
+    BarberCache.clear(`citas_${citaData.fecha}_${citaData.barbero}`);
     BarberCache.clear(`disp_${citaData.fecha}_`);
     BarberCache.clear(`limite_citas_${citaData.telefono}_${citaData.fecha}`);
     BarberCache.clear(`cita_existente_${citaData.telefono}_${citaData.nombre}_${citaData.fecha}`);
@@ -654,9 +701,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const citaGuardada = await guardarCita(formData);
         console.log('Cita guardada:', citaGuardada);
         
+        // ACTUALIZAR HORARIOS DESPUÉS DE AGENDAR
+        await actualizarDisponibilidadHorarios(formData.fecha, formData.barbero);
+        
         mostrarMensaje('✅ Cita agendada correctamente. Te esperamos!', 'exito');
-        citaForm.reset();
-        inicializarSelectores();
+        // No resetear completamente el formulario, mantener fecha y barbero
+        document.getElementById('nombre').value = '';
+        document.getElementById('telefono').value = '';
+        document.getElementById('hora-select').value = '';
+        document.getElementById('servicio').value = '';
         
       } catch (error) {
         console.error('Error al procesar cita:', error);
