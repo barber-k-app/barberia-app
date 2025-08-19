@@ -139,19 +139,22 @@
       gap: 10px;
     }
 
-    .logo-titulo {
+    .logo-contenedor {
+      position: relative;
+      display: inline-block;
       height: 40px;
-      width: auto;
-      vertical-align: middle;
-      /* SOLUCIÓN DEFINITIVA: Filtro mejorado para eliminar completamente el fondo blanco */
-      filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
-      /* Forzar que no haya fondo de ningún tipo */
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      /* Asegurar que no haya espacios blancos alrededor */
-      display: block;
+      width: 40px;
+      margin-right: 10px;
+    }
+
+    .logo-titulo {
+      height: 100%;
+      width: 100%;
       object-fit: contain;
+      /* Eliminar cualquier fondo blanco */
+      filter: brightness(0) invert(1);
+      /* Asegurar que no haya espacios en blanco */
+      display: block;
     }
 
     .subtitulo-lujo {
@@ -347,7 +350,7 @@
       background: linear-gradient(135deg, var(--gold-dark), var(--gold));
       color: var(--darker);
       padding: 15px;
-      border: null;
+      border: none;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: bold;
@@ -556,8 +559,9 @@
         gap: 15px;
       }
       
-      .logo-titulo {
+      .logo-contenedor {
         height: 30px;
+        width: 30px;
       }
     }
   </style>
@@ -571,7 +575,9 @@
       <header>
         <h1 class="titulo-premium">
           <span class="titulo-efecto">
-            <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Barber-K Logo" class="logo-titulo">
+            <span class="logo-contenedor">
+              <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Barber-K Logo" class="logo-titulo">
+            </span>
             AGENDAR CITA
           </span>
         </h1>
