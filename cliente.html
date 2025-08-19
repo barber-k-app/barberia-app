@@ -143,8 +143,15 @@
       height: 40px;
       width: auto;
       vertical-align: middle;
-      /* Filtro corregido para eliminar el fondo blanco y hacer el logo blanco */
+      /* SOLUCIÓN DEFINITIVA: Filtro mejorado para eliminar completamente el fondo blanco */
       filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+      /* Forzar que no haya fondo de ningún tipo */
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      /* Asegurar que no haya espacios blancos alrededor */
+      display: block;
+      object-fit: contain;
     }
 
     .subtitulo-lujo {
@@ -340,7 +347,7 @@
       background: linear-gradient(135deg, var(--gold-dark), var(--gold));
       color: var(--darker);
       padding: 15px;
-      border: none;
+      border: null;
       border-radius: 8px;
       font-size: 1rem;
       font-weight: bold;
