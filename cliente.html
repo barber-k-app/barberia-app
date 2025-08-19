@@ -6,6 +6,8 @@
   <title>Agendar Cita | Barber-K</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #B8860B;        /* Dorado más oscuro */
@@ -94,6 +96,14 @@
       100% { transform: translateY(0px); }
     }
     
+    @keyframes cutting {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(10deg); }
+      50% { transform: rotate(0deg); }
+      75% { transform: rotate(-10deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
     /* ---------------------- */
     /* ESTILOS PREMIUM (NUEVO) */
     /* ---------------------- */
@@ -133,12 +143,8 @@
       height: 40px;
       width: auto;
       vertical-align: middle;
-      /* Filtro mejorado para eliminar completamente el fondo blanco */
+      /* Filtro corregido para eliminar el fondo blanco y hacer el logo blanco */
       filter: brightness(0) invert(1) drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
-      /* Aseguramos que no haya fondo */
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
     }
 
     .subtitulo-lujo {
