@@ -57,6 +57,10 @@
     header {
       margin-bottom: 3rem;
       animation: fadeIn 1s ease-out;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     
     .logo-container {
@@ -132,6 +136,7 @@
       margin: 3rem 0;
       flex-wrap: wrap;
       justify-content: center;
+      width: 100%;
     }
     
     .btn {
@@ -180,11 +185,14 @@
       margin: 2rem 0;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
       color: var(--light-gold);
       text-decoration: none;
       font-weight: 500;
       transition: all 0.3s;
+      text-align: center;
+      max-width: 600px;
+      padding: 0 15px;
     }
     
     .location-btn:hover {
@@ -226,6 +234,7 @@
       text-align: center;
       border-top: 1px solid rgba(180, 150, 50, 0.3);
       background-color: rgba(18, 18, 18, 0.9);
+      width: 100%;
     }
     
     .copyright, .author {
@@ -668,8 +677,8 @@
       
       <!-- Ubicación de la barbería -->
       <a href="https://www.google.com/maps?q=10.4954872131348,-66.7982482910156" target="_blank" class="location-btn">
-        <i class="fas fa-map-marker-alt"></i>Petare, detrás de Makro la Urbina; 2da alcabala, frente a la iglesia ebenezer, 
-        Barbería Barber-k
+        <i class="fas fa-map-marker-alt"></i>Urb. Petare, detrás de Makro La Urbina; 2da alcabala, frente a la Iglesia Ebenezer, 
+        Barbería Barber-K
       </a>
       
       <!-- Valoración de la app -->
