@@ -638,7 +638,7 @@ async function guardarCita(citaData) {
     
     // LIMPIAR CACHÉ RELACIONADO CON ESTA FECHA
     BarberCache.clear(`citas_${citaData.fecha}`);
-    BarberCache.clear(`disp_${citaData.fecha}_`);
+    BarberCache.clear(`disp_${citaData.fecha}`);
     BarberCache.clear(`limite_citas_${citaData.telefono}_${citaData.fecha}`);
     BarberCache.clear(`cita_existente_${citaData.telefono}_${citaData.nombre}_${citaData.fecha}`);
     
