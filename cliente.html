@@ -138,6 +138,14 @@
       align-items: center;
       gap: 10px;
     }
+    
+    /* Estilo para el logo en el título */
+    .logo-titulo {
+      height: 1.8em; /* Un poco más grande que la letra A */
+      vertical-align: middle;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
 
     .subtitulo-lujo {
       font-size: 0.9rem;
@@ -540,6 +548,10 @@
         flex-direction: column;
         gap: 15px;
       }
+      
+      .logo-titulo {
+        height: 1.5em; /* Ajuste para móviles */
+      }
     }
   </style>
 </head>
@@ -552,6 +564,7 @@
       <header>
         <h1 class="titulo-premium">
           <span class="titulo-efecto">
+            <img src="https://barber-k-app.github.io/barberia-app/barber-k.jpg" alt="Barber-K Logo" class="logo-titulo">
             AGENDAR CITA
           </span>
         </h1>
