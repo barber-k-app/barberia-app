@@ -666,10 +666,13 @@
   </div>
 
   <script>
-    // Configuración de Supabase (reemplaza con tus valores reales)
+    // Configuración de Supabase
     const supabaseUrl = 'https://azjlrbmgpczuintqyosm.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM2MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    // Variables de estado
+    let consultaEnCurso = false;
 
     document.addEventListener('DOMContentLoaded', function() {
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
@@ -697,9 +700,9 @@
       const formulario = document.getElementById('citaForm');
       const mensajeDiv = document.getElementById('mensaje');
 
-      // 2. Clave para el localStorage basada en la fecha de HOY (para invalidar al día siguiente)
+      // 2. Clave para el localStorage basada en la fecha de HOY
       const cacheKey = `barberk_cache_invalidator`;
-      const today = new Date().toDateString(); // Ej: "Mon Mar 10 2025"
+      const today = new Date().toDateString();
 
       // Verificar si el cache es de hoy, sino, limpiarlo todo
       const cacheInvalidator = localStorage.getItem(cacheKey);
@@ -710,98 +713,149 @@
             localStorage.removeItem(key);
           }
         });
-        // Establecer la nueva clave de invalidación para hoy
         localStorage.setItem(cacheKey, today);
       }
 
-      // 3. Función PRINCIPAL: Obtener horarios ocupados (con cache)
-      async function obtenerHorariosOcupados(fecha) {
-        const cacheKeyFecha = `horarios_ocupados_${fecha}`;
-
-        // Primero, intentar obtener del cache
-        const horariosEnCache = localStorage.getItem(cacheKeyFecha);
-        if (horariosEnCache) {
-          console.log('Cache hit para la fecha:', fecha);
-          contadorCitas.querySelector('span').textContent = `Datos en cache para hoy.`;
-          return JSON.parse(horariosEnCache);
-        }
-
-        console.log('Cache miss. Consultando Supabase para la fecha:', fecha);
-        contadorCitas.querySelector('span').textContent = `Consultando disponibilidad...`;
-
-        // Si no está en cache, consultar a Supabase
-        const { data, error } = await supabase
-          .from('citas')
-          .select('hora')
-          .eq('fecha', fecha); // Asegúrate de que el nombre de la columna en tu DB sea 'fecha'
-
-        if (error) {
-          console.error('Error al consultar horarios ocupados:', error);
-          contadorCitas.querySelector('span').textContent = `Error al cargar disponibilidad.`;
-          return [];
-        }
-
-        // Extraer solo las horas y guardar en cache
-        const horariosOcupados = data.map(cita => cita.hora);
-        localStorage.setItem(cacheKeyFecha, JSON.stringify(horariosOcupados));
-
-        // Mostrar el conteo de citas agendadas para esa fecha
-        contadorCitas.querySelector('span').textContent = `Hay ${horariosOcupados.length} citas agendadas para esta fecha.`;
-        
-        return horariosOcupados;
-      }
-
-      // 4. Función para actualizar el dropdown de horarios
-      async function actualizarHorariosDisponibles() {
-        const fechaSeleccionada = fechaInput.value;
-        if (!fechaSeleccionada) return;
-
-        // Mostrar el contador
-        contadorCitas.style.display = 'flex';
-
-        // Obtener horarios ocupados (usa cache si puede)
-        const horariosOcupados = await obtenerHorariosOcupados(fechaSeleccionada);
-
-        // Generar todos los horarios posibles (AJUSTA ESTOS HORARIOS SEGÚN TUS REGLAS)
-        const todosLosHorarios = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-        
-        // Limpiar select actual, manteniendo la primera opción
-        while (horaSelect.options.length > 1) {
-          horaSelect.remove(1);
-        }
-
-        // Llenar el select, marcando los ocupados
-        todosLosHorarios.forEach(hora => {
-          const estaOcupado = horariosOcupados.includes(hora);
-          const option = document.createElement('option');
-          option.value = hora;
-          option.textContent = hora;
-          option.disabled = estaOcupado;
-          option.setAttribute('data-disponible', !estaOcupado);
-          horaSelect.appendChild(option);
-        });
-      }
-
-      // 5. Event Listeners
-      fechaInput.addEventListener('change', actualizarHorariosDisponibles);
-
-      // 6. Prefetching: Cargar los horarios de la fecha actual al iniciar la página
-      // Esto hace una consulta inicial pero previene muchas otras.
+      // 3. Precargar fechas comunes al iniciar
       window.addEventListener('load', function() {
-        // Establecer la fecha mínima como hoy (si no lo está ya)
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         const todayString = `${year}-${month}-${day}`;
         fechaInput.setAttribute('min', todayString);
-
-        // Opcional: Establecer la fecha de hoy por defecto y cargar sus horarios
-        // fechaInput.value = todayString;
-        // actualizarHorariosDisponibles();
+        
+        // Precargar hoy y los próximos 2 días
+        for (let i = 0; i < 3; i++) {
+          const nextDate = new Date(today);
+          nextDate.setDate(today.getDate() + i);
+          const dateString = nextDate.toISOString().split('T')[0];
+          obtenerHorariosOcupados(dateString); // Llenar cache en segundo plano
+        }
       });
 
-      // 7. Manejar el envío del formulario (INVALIDAR CACHE si se agrega una nueva cita)
+      // 4. Función con reintentos para consultas
+      async function consultaConReintentos(consulta, maxReintentos = 2) {
+        let reintentos = 0;
+        
+        while (reintentos < maxReintentos) {
+          try {
+            const { data, error } = await consulta();
+            if (error) throw error;
+            return data;
+          } catch (error) {
+            reintentos++;
+            if (reintentos >= maxReintentos) throw error;
+            
+            await new Promise(resolve => 
+              setTimeout(resolve, 1000 * Math.pow(2, reintentos))
+            );
+          }
+        }
+      }
+
+      // 5. Función PRINCIPAL mejorada: Obtener horarios ocupados
+      async function obtenerHorariosOcupados(fecha) {
+        const cacheKeyFecha = `horarios_ocupados_${fecha}`;
+
+        // Primero, intentar obtener del cache
+        const horariosEnCache = localStorage.getItem(cacheKeyFecha);
+        if (horariosEnCache) {
+          try {
+            const cacheData = JSON.parse(horariosEnCache);
+            const horarios = Array.isArray(cacheData) ? cacheData : cacheData.horarios;
+            console.log('Cache hit para la fecha:', fecha);
+            contadorCitas.querySelector('span').textContent = `Datos en cache para hoy.`;
+            return horarios;
+          } catch (e) {
+            console.warn('Datos en cache corruptos, procediendo a consulta');
+          }
+        }
+
+        console.log('Cache miss. Consultando Supabase para la fecha:', fecha);
+        contadorCitas.querySelector('span').textContent = `Consultando disponibilidad...`;
+
+        try {
+          // Consultar con reintentos
+          const data = await consultaConReintentos(() => 
+            supabase.from('citas').select('hora').eq('fecha', fecha)
+          );
+
+          // Extraer solo las horas y guardar en cache
+          const horariosOcupados = data.map(cita => cita.hora);
+          
+          // Guardar con timestamp
+          const cacheData = {
+            horarios: horariosOcupados,
+            timestamp: new Date().getTime()
+          };
+          
+          localStorage.setItem(cacheKeyFecha, JSON.stringify(cacheData));
+
+          // Mostrar el conteo de citas
+          contadorCitas.querySelector('span').textContent = `Hay ${horariosOcupados.length} citas agendadas para esta fecha.`;
+          
+          return horariosOcupados;
+        } catch (error) {
+          console.error('Error al consultar horarios ocupados:', error);
+          contadorCitas.querySelector('span').textContent = `Error al cargar disponibilidad.`;
+          
+          // Intentar usar cache viejo si existe
+          if (horariosEnCache) {
+            try {
+              const cacheViejo = JSON.parse(horariosEnCache);
+              return Array.isArray(cacheViejo) ? cacheViejo : cacheViejo.horarios;
+            } catch (e) {
+              return [];
+            }
+          }
+          
+          return [];
+        }
+      }
+
+      // 6. Función para actualizar el dropdown de horarios
+      async function actualizarHorariosDisponibles() {
+        if (consultaEnCurso) return;
+        
+        const fechaSeleccionada = fechaInput.value;
+        if (!fechaSeleccionada) return;
+
+        consultaEnCurso = true;
+        contadorCitas.style.display = 'flex';
+
+        try {
+          const horariosOcupados = await obtenerHorariosOcupados(fechaSeleccionada);
+
+          // Generar todos los horarios posibles
+          const todosLosHorarios = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
+          
+          // Limpiar select actual, manteniendo la primera opción
+          while (horaSelect.options.length > 1) {
+            horaSelect.remove(1);
+          }
+
+          // Llenar el select, marcando los ocupados
+          todosLosHorarios.forEach(hora => {
+            const estaOcupado = horariosOcupados.includes(hora);
+            const option = document.createElement('option');
+            option.value = hora;
+            option.textContent = hora;
+            option.disabled = estaOcupado;
+            option.setAttribute('data-disponible', !estaOcupado);
+            horaSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error al actualizar horarios:', error);
+        } finally {
+          consultaEnCurso = false;
+        }
+      }
+
+      // 7. Event Listeners
+      fechaInput.addEventListener('change', actualizarHorariosDisponibles);
+
+      // 8. Manejar el envío del formulario
       formulario.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -873,7 +927,29 @@
         }, 5000);
       }
 
+      // 9. Programar limpieza periódica de cache
+      setInterval(limpiarCacheAntiguo, 60 * 60 * 1000); // Cada hora
     });
+
+    // Función para limpiar cache antiguo
+    function limpiarCacheAntiguo() {
+      const umbralDias = 7;
+      const hoy = new Date();
+      const umbralTiempo = hoy.getTime() - (umbralDias * 24 * 60 * 60 * 1000);
+      
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('horarios_ocupados_')) {
+          try {
+            const cacheData = JSON.parse(localStorage.getItem(key));
+            if (cacheData && cacheData.timestamp && cacheData.timestamp < umbralTiempo) {
+              localStorage.removeItem(key);
+            }
+          } catch (e) {
+            // Si no tiene timestamp, es formato antiguo, conservarlo
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
