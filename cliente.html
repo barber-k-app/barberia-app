@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #B8860B;        /* Dorado más oscuro */
@@ -498,7 +497,7 @@
     .red-social {
       display: flex;
       align-items: center;
-      text-decoration: nil;
+      text-decoration: none;
       color: white;
       transition: all 0.3s;
     }
@@ -667,6 +666,18 @@
   </div>
 
   <script>
+    // Configuración de Supabase
+    const SUPABASE_URL = 'https://tu-url-de-supabase.supabase.co';
+    const SUPABASE_ANON_KEY = 'tu-anon-key-de-supabase';
+    
+    // Inicializar Supabase
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Variables para cache
+    let cachedCitas = {};
+    let lastFetchedDate = null;
+    let timeoutId = null;
+
     // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
@@ -687,8 +698,35 @@
         observer.observe(el);
       });
 
-      // Generar horarios disponibles (ejemplo)
+      // Configurar fecha mínima como hoy
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fecha').setAttribute('min', today);
+      
+      // Event listeners para los campos del formulario
+      document.getElementById('fecha').addEventListener('change', function(e) {
+        // Usar debounce para evitar múltiples consultas rápidas
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          verificarDisponibilidadFecha(e.target.value);
+        }, 500);
+      });
+      
+      // Envío del formulario
+      document.getElementById('citaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await enviarCita();
+      });
+      
+      // Cargar horarios disponibles iniciales
+      cargarHorariosDisponibles();
+    });
+
+    // Función para cargar horarios disponibles (sin consultar a Supabase inicialmente)
+    function cargarHorariosDisponibles() {
       const horaSelect = document.getElementById('hora-select');
+      horaSelect.innerHTML = '<option value="" disabled selected>Selecciona un horario</option>';
+      
+      // Horarios base (pueden ser modificados según disponibilidad)
       const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
       
       horasDisponibles.forEach(hora => {
@@ -698,15 +736,128 @@
         option.setAttribute('data-disponible', 'true');
         horaSelect.appendChild(option);
       });
+    }
 
-      // Agregar algunos horarios no disponibles como ejemplo
-      const optionNoDisponible = document.createElement('option');
-      optionNoDisponible.value = "10:00";
-      optionNoDisponible.textContent = "10:00";
-      optionNoDisponible.setAttribute('data-disponible', 'false');
-      optionNoDisponible.disabled = true;
-      horaSelect.appendChild(optionNoDisponible);
-    });
+    // Función para verificar disponibilidad con debounce y cache
+    async function verificarDisponibilidadFecha(fecha) {
+      // Si ya tenemos los datos en cache, usarlos
+      if (cachedCitas[fecha] && lastFetchedDate === fecha) {
+        actualizarInterfazDisponibilidad(cachedCitas[fecha]);
+        return;
+      }
+      
+      // Mostrar carga
+      const contador = document.getElementById('contador-citas');
+      contador.style.display = 'flex';
+      contador.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Verificando disponibilidad...</span>';
+      
+      try {
+        // Consultar citas para la fecha seleccionada
+        const { data, error } = await supabase
+          .from('citas')
+          .select('hora')
+          .eq('fecha', fecha)
+          .eq('barbero', document.getElementById('barbero').value);
+        
+        if (error) throw error;
+        
+        // Guardar en cache
+        cachedCitas[fecha] = data;
+        lastFetchedDate = fecha;
+        
+        // Actualizar interfaz
+        actualizarInterfazDisponibilidad(data);
+        
+      } catch (error) {
+        console.error('Error al verificar disponibilidad:', error);
+        document.getElementById('contador-citas').innerHTML = 
+          '<i class="fas fa-exclamation-triangle"></i><span>Error al verificar disponibilidad</span>';
+      }
+    }
+
+    // Actualizar interfaz según disponibilidad
+    function actualizarInterfazDisponibilidad(citas) {
+      const contador = document.getElementById('contador-citas');
+      const horasOcupadas = citas.map(cita => cita.hora);
+      const totalCitas = citas.length;
+      
+      // Actualizar contador
+      contador.innerHTML = `<i class="fas fa-info-circle"></i><span>${totalCitas} citas agendadas para esta fecha</span>`;
+      
+      // Actualizar opciones de horario
+      const horaSelect = document.getElementById('hora-select');
+      const options = horaSelect.querySelectorAll('option');
+      
+      options.forEach(option => {
+        if (option.value) {
+          const estaOcupado = horasOcupadas.includes(option.value);
+          option.disabled = estaOcupado;
+          option.setAttribute('data-disponible', !estaOcupado);
+          option.style.color = estaOcupado ? '#e74c3c' : '#2ecc71';
+        }
+      });
+    }
+
+    // Enviar cita a Supabase
+    async function enviarCita() {
+      const nombre = document.getElementById('nombre').value;
+      const telefono = document.getElementById('telefono').value;
+      const fecha = document.getElementById('fecha').value;
+      const hora = document.getElementById('hora-select').value;
+      const servicio = document.getElementById('servicio').value;
+      const barbero = document.getElementById('barbero').value;
+      
+      // Validación básica
+      if (!nombre || !telefono || !fecha || !hora || !servicio) {
+        mostrarMensaje('Por favor, completa todos los campos', 'error');
+        return;
+      }
+      
+      try {
+        // Insertar cita en Supabase
+        const { data, error } = await supabase
+          .from('citas')
+          .insert([
+            { 
+              nombre, 
+              telefono, 
+              fecha, 
+              hora, 
+              servicio, 
+              barbero,
+              creado_en: new Date()
+            }
+          ]);
+        
+        if (error) throw error;
+        
+        // Mostrar mensaje de éxito
+        mostrarMensaje('¡Cita agendada exitosamente! Te esperamos.', 'exito');
+        
+        // Limpiar formulario
+        document.getElementById('citaForm').reset();
+        
+        // Invalidar cache para esta fecha
+        delete cachedCitas[fecha];
+        
+      } catch (error) {
+        console.error('Error al agendar cita:', error);
+        mostrarMensaje('Error al agendar la cita. Intenta nuevamente.', 'error');
+      }
+    }
+
+    // Mostrar mensajes al usuario
+    function mostrarMensaje(texto, tipo) {
+      const mensaje = document.getElementById('mensaje');
+      mensaje.textContent = texto;
+      mensaje.className = tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error';
+      mensaje.style.display = 'block';
+      
+      // Ocultar mensaje después de 5 segundos
+      setTimeout(() => {
+        mensaje.style.display = 'none';
+      }, 5000);
+    }
   </script>
 </body>
 </html>
