@@ -6,8 +6,6 @@
   <title>Agendar Cita | Barber-K</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #B8860B;        /* Dorado más oscuro */
@@ -122,7 +120,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 5px; /* Reducido para acercar el logo a la A */
     }
 
     .titulo-efecto {
@@ -136,15 +134,16 @@
       font-style: italic;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 5px; /* Reducido para acercar el logo a la A */
     }
     
-    /* Estilo para el logo en el título */
+    /* Estilo para el logo en el título - MÁS GRANDE */
     .logo-titulo {
-      height: 1.8em; /* Un poco más grande que la letra A */
+      height: 2.2em; /* Aumentado para hacerlo más grande */
       vertical-align: middle;
-      margin-right: 8px;
+      margin-right: 5px; /* Reducido para acercar a la A */
       animation: pulse 2s infinite;
+      transform: translateY(-2px); /* Ajuste fino de posición vertical */
     }
 
     .subtitulo-lujo {
@@ -550,7 +549,7 @@
       }
       
       .logo-titulo {
-        height: 1.5em; /* Ajuste para móviles */
+        height: 1.8em; /* Ajuste para móviles */
       }
     }
   </style>
