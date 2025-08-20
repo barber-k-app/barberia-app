@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #B8860B;        /* Dorado más oscuro */
@@ -498,7 +497,7 @@
     .red-social {
       display: flex;
       align-items: center;
-      text-decoration: nil;
+      text-decoration: none;
       color: white;
       transition: all 0.3s;
     }
@@ -667,7 +666,11 @@
   </div>
 
   <script>
-    // Animación adicional para elementos al hacer scroll
+    // Configuración de Supabase (reemplaza con tus valores reales)
+    const supabaseUrl = 'https://tu-proyecto.supabase.co';
+    const supabaseAnonKey = 'tu-anon-key';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
     document.addEventListener('DOMContentLoaded', function() {
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
       
@@ -687,25 +690,189 @@
         observer.observe(el);
       });
 
-      // Generar horarios disponibles (ejemplo)
+      // 1. Referencias a los elementos del DOM
+      const fechaInput = document.getElementById('fecha');
       const horaSelect = document.getElementById('hora-select');
-      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-      
-      horasDisponibles.forEach(hora => {
-        const option = document.createElement('option');
-        option.value = hora;
-        option.textContent = hora;
-        option.setAttribute('data-disponible', 'true');
-        horaSelect.appendChild(option);
+      const contadorCitas = document.getElementById('contador-citas');
+      const formulario = document.getElementById('citaForm');
+      const mensajeDiv = document.getElementById('mensaje');
+
+      // 2. Clave para el localStorage basada en la fecha de HOY (para invalidar al día siguiente)
+      const cacheKey = `barberk_cache_invalidator`;
+      const today = new Date().toDateString(); // Ej: "Mon Mar 10 2025"
+
+      // Verificar si el cache es de hoy, sino, limpiarlo todo
+      const cacheInvalidator = localStorage.getItem(cacheKey);
+      if (cacheInvalidator !== today) {
+        // Borrar todo el cache de horarios si es un día nuevo
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('horarios_ocupados_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        // Establecer la nueva clave de invalidación para hoy
+        localStorage.setItem(cacheKey, today);
+      }
+
+      // 3. Función PRINCIPAL: Obtener horarios ocupados (con cache)
+      async function obtenerHorariosOcupados(fecha) {
+        const cacheKeyFecha = `horarios_ocupados_${fecha}`;
+
+        // Primero, intentar obtener del cache
+        const horariosEnCache = localStorage.getItem(cacheKeyFecha);
+        if (horariosEnCache) {
+          console.log('Cache hit para la fecha:', fecha);
+          contadorCitas.querySelector('span').textContent = `Datos en cache para hoy.`;
+          return JSON.parse(horariosEnCache);
+        }
+
+        console.log('Cache miss. Consultando Supabase para la fecha:', fecha);
+        contadorCitas.querySelector('span').textContent = `Consultando disponibilidad...`;
+
+        // Si no está en cache, consultar a Supabase
+        const { data, error } = await supabase
+          .from('citas')
+          .select('hora')
+          .eq('fecha', fecha); // Asegúrate de que el nombre de la columna en tu DB sea 'fecha'
+
+        if (error) {
+          console.error('Error al consultar horarios ocupados:', error);
+          contadorCitas.querySelector('span').textContent = `Error al cargar disponibilidad.`;
+          return [];
+        }
+
+        // Extraer solo las horas y guardar en cache
+        const horariosOcupados = data.map(cita => cita.hora);
+        localStorage.setItem(cacheKeyFecha, JSON.stringify(horariosOcupados));
+
+        // Mostrar el conteo de citas agendadas para esa fecha
+        contadorCitas.querySelector('span').textContent = `Hay ${horariosOcupados.length} citas agendadas para esta fecha.`;
+        
+        return horariosOcupados;
+      }
+
+      // 4. Función para actualizar el dropdown de horarios
+      async function actualizarHorariosDisponibles() {
+        const fechaSeleccionada = fechaInput.value;
+        if (!fechaSeleccionada) return;
+
+        // Mostrar el contador
+        contadorCitas.style.display = 'flex';
+
+        // Obtener horarios ocupados (usa cache si puede)
+        const horariosOcupados = await obtenerHorariosOcupados(fechaSeleccionada);
+
+        // Generar todos los horarios posibles (AJUSTA ESTOS HORARIOS SEGÚN TUS REGLAS)
+        const todosLosHorarios = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
+        
+        // Limpiar select actual, manteniendo la primera opción
+        while (horaSelect.options.length > 1) {
+          horaSelect.remove(1);
+        }
+
+        // Llenar el select, marcando los ocupados
+        todosLosHorarios.forEach(hora => {
+          const estaOcupado = horariosOcupados.includes(hora);
+          const option = document.createElement('option');
+          option.value = hora;
+          option.textContent = hora;
+          option.disabled = estaOcupado;
+          option.setAttribute('data-disponible', !estaOcupado);
+          horaSelect.appendChild(option);
+        });
+      }
+
+      // 5. Event Listeners
+      fechaInput.addEventListener('change', actualizarHorariosDisponibles);
+
+      // 6. Prefetching: Cargar los horarios de la fecha actual al iniciar la página
+      // Esto hace una consulta inicial pero previene muchas otras.
+      window.addEventListener('load', function() {
+        // Establecer la fecha mínima como hoy (si no lo está ya)
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayString = `${year}-${month}-${day}`;
+        fechaInput.setAttribute('min', todayString);
+
+        // Opcional: Establecer la fecha de hoy por defecto y cargar sus horarios
+        // fechaInput.value = todayString;
+        // actualizarHorariosDisponibles();
       });
 
-      // Agregar algunos horarios no disponibles como ejemplo
-      const optionNoDisponible = document.createElement('option');
-      optionNoDisponible.value = "10:00";
-      optionNoDisponible.textContent = "10:00";
-      optionNoDisponible.setAttribute('data-disponible', 'false');
-      optionNoDisponible.disabled = true;
-      horaSelect.appendChild(optionNoDisponible);
+      // 7. Manejar el envío del formulario (INVALIDAR CACHE si se agrega una nueva cita)
+      formulario.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Obtener valores del formulario
+        const nombre = document.getElementById('nombre').value;
+        const telefono = document.getElementById('telefono').value;
+        const fecha = document.getElementById('fecha').value;
+        const hora = document.getElementById('hora-select').value;
+        const servicio = document.getElementById('servicio').value;
+        const barbero = document.getElementById('barbero').value;
+        
+        // Validación básica
+        if (!nombre || !telefono || !fecha || !hora || !servicio || !barbero) {
+          mostrarMensaje('Por favor, complete todos los campos.', 'error');
+          return;
+        }
+        
+        try {
+          // Insertar la cita en Supabase
+          const { data, error } = await supabase
+            .from('citas')
+            .insert([
+              { 
+                nombre, 
+                telefono, 
+                fecha, 
+                hora, 
+                servicio, 
+                barbero,
+                creado_en: new Date().toISOString()
+              }
+            ]);
+            
+          if (error) {
+            console.error('Error al insertar cita:', error);
+            mostrarMensaje('Error al agendar la cita. Intente nuevamente.', 'error');
+            return;
+          }
+          
+          // DESPUÉS de enviar la cita exitosamente, INVALIDA el CACHE para esa fecha
+          const cacheKeyFecha = `horarios_ocupados_${fecha}`;
+          localStorage.removeItem(cacheKeyFecha); // Borra el cache de esa fecha
+
+          console.log(`Cache invalidado para la fecha: ${fecha}`);
+          // Vuelve a cargar los horarios para esa fecha (hará una nueva consulta a Supabase)
+          await actualizarHorariosDisponibles();
+          
+          // Mostrar mensaje de éxito
+          mostrarMensaje('¡Cita agendada exitosamente! Te esperamos en Barber-K.', 'exito');
+          
+          // Limpiar formulario (opcional)
+          formulario.reset();
+          
+        } catch (err) {
+          console.error('Error inesperado:', err);
+          mostrarMensaje('Error inesperado. Intente nuevamente.', 'error');
+        }
+      });
+      
+      // Función para mostrar mensajes
+      function mostrarMensaje(texto, tipo) {
+        mensajeDiv.textContent = texto;
+        mensajeDiv.className = tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error';
+        mensajeDiv.style.display = 'block';
+        
+        // Ocultar mensaje después de 5 segundos
+        setTimeout(() => {
+          mensajeDiv.style.display = 'none';
+        }, 5000);
+      }
+
     });
   </script>
 </body>
