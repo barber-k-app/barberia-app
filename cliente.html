@@ -7,12 +7,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="scripts.js"></script>
   <style>
-    /* Estilos existentes (se mantienen igual) */
     :root {
-      --gold: #B8860B;
-      --gold-light: #DAA520;
-      --gold-dark: #8B6914;
+      --gold: #B8860B;        /* Dorado más oscuro */
+      --gold-light: #DAA520;  /* Dorado medio */
+      --gold-dark: #8B6914;   /* Dorado oscuro */
       --dark: #121212;
       --darker: #0a0a0a;
       --light: #f8f8f8;
@@ -34,6 +34,7 @@
       overflow-x: hidden;
     }
     
+    /* Fondo con imagen dividida - múltiples tijeras */
     body::before {
       content: '';
       position: fixed;
@@ -69,6 +70,9 @@
       animation: fadeInUp 0.8s ease-out;
     }
     
+    /* ---------------------- */
+    /* ANIMACIONES MEJORADAS */
+    /* ---------------------- */
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -100,6 +104,9 @@
       100% { transform: rotate(0deg); }
     }
     
+    /* ---------------------- */
+    /* ESTILOS PREMIUM (NUEVO) */
+    /* ---------------------- */
     header {
       text-align: center;
       margin-bottom: 2.5rem;
@@ -115,7 +122,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0px;
+      gap: 0px; /* Reducido a 0 para eliminar espacio entre logo y texto */
     }
 
     .titulo-efecto {
@@ -129,13 +136,14 @@
       font-style: italic;
       display: flex;
       align-items: center;
-      gap: 0px;
+      gap: 0px; /* Reducido a 0 para eliminar espacio entre logo y texto */
     }
     
+    /* Estilo para el logo en el título - MÁS GRANDE */
     .logo-titulo {
-      height: 2.5em;
+      height: 2.5em; /* Aumentado aún más para hacerlo más grande */
       vertical-align: middle;
-      margin-right: 2px;
+      margin-right: 2px; /* Reducido para acercar la A al logo */
       animation: pulse 2s infinite;
     }
 
@@ -149,6 +157,9 @@
       font-style: italic;
     }
 
+    /* ---------------------- */
+    
+    /* Panel de Contacto Premium */
     .contacto-premium {
       background: rgba(184, 134, 11, 0.15);
       backdrop-filter: blur(5px);
@@ -207,6 +218,7 @@
       min-width: 80px;
     }
     
+    /* Animaciones individuales para cada red social */
     .contacto-item:nth-child(1) { animation-delay: 0s; }
     .contacto-item:nth-child(2) { animation-delay: 0.3s; }
     .contacto-item:nth-child(3) { animation-delay: 0.6s; }
@@ -425,6 +437,7 @@
       animation: pulse 4s infinite alternate;
     }
 
+    /* REDES SOCIALES CON ANIMACIONES */
     .redes-simplificadas {
       margin: 2rem 0;
       text-align: center;
@@ -439,17 +452,18 @@
       flex-wrap: wrap;
     }
 
+    /* Estilos para el select de horarios */
     #hora-select option {
       padding: 8px 12px;
     }
 
     #hora-select option[data-disponible="true"] {
-      color: #2ecc71;
+      color: #2ecc71; /* Verde para horarios disponibles */
       font-weight: bold;
     }
 
     #hora-select option[data-disponible="false"] {
-      color: #e74c3c;
+      color: #e74c3c; /* Rojo para horarios no disponibles */
       text-decoration: line-through;
     }
 
@@ -457,6 +471,7 @@
       background-color: rgba(231, 76, 60, 0.1);
     }
 
+    /* NUEVO ESTILO PARA EL CONTADOR DE CITAS */
     .info-citas {
       background: rgba(184, 134, 11, 0.1);
       padding: 8px 12px;
@@ -471,6 +486,7 @@
       animation: fadeInUp 0.8s ease-out;
     }
 
+    /* Estilos para redes sociales simplificadas */
     .redes-simple {
       display: flex;
       justify-content: center;
@@ -482,7 +498,7 @@
     .red-social {
       display: flex;
       align-items: center;
-      text-decoration: none;
+      text-decoration: nil;
       color: white;
       transition: all 0.3s;
     }
@@ -499,11 +515,6 @@
 
     .texto-red {
       font-size: 0.9rem;
-    }
-
-    .cargando {
-      opacity: 0.7;
-      pointer-events: none;
     }
 
     @media (max-width: 768px) {
@@ -539,7 +550,7 @@
       }
       
       .logo-titulo {
-        height: 1.8em;
+        height: 1.8em; /* Ajuste para móviles */
       }
     }
   </style>
@@ -549,6 +560,7 @@
   
   <div class="container">
     <div class="glass-panel">
+      <!-- HEADER PREMIUM -->
       <header>
         <h1 class="titulo-premium">
           <span class="titulo-efecto">
@@ -573,6 +585,7 @@
             <input type="tel" id="telefono" placeholder="Teléfono" required>
           </div>
 
+          <!-- NUEVO CONTADOR DE CITAS -->
           <div id="contador-citas" class="info-citas" style="display:none;">
             <i class="fas fa-info-circle"></i>
             <span>Verificando disponibilidad...</span>
@@ -588,6 +601,7 @@
               <i class="fas fa-clock"></i>
               <select id="hora-select" required>
                 <option value="" disabled selected>Selecciona un horario</option>
+                <!-- Los horarios se llenarán dinámicamente -->
               </select>
             </div>
 
@@ -624,6 +638,7 @@
       </main>
     </div>
 
+    <!-- REDES SOCIALES SIMPLIFICADAS -->
     <div class="redes-simplificadas">
       <div class="redes-simple">
         <a href="https://wa.me/584142656119" target="_blank" class="red-social">
@@ -652,49 +667,8 @@
   </div>
 
   <script>
-    // Configuración de Supabase
-    const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
-    const SUPABASE_ANON_KEY = 'tu-anon-key';
-    
-    // Inicializar Supabase
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // Variables para el caché
-    let cachedCitas = null;
-    let lastFetchTime = 0;
-    const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos en milisegundos
-    
+    // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
-      // Configurar fecha mínima como hoy
-      const fechaInput = document.getElementById('fecha');
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      // Formatear fecha para input type="date" (YYYY-MM-DD)
-      const formatDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
-      
-      fechaInput.min = formatDate(tomorrow);
-      
-      // Cargar horarios disponibles
-      cargarHorariosDisponibles();
-      
-      // Event listeners
-      fechaInput.addEventListener('change', function() {
-        cargarHorariosDisponibles();
-      });
-      
-      document.getElementById('citaForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await enviarCita();
-      });
-      
-      // Animación adicional para elementos al hacer scroll
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
       
       const observer = new IntersectionObserver((entries) => {
@@ -712,216 +686,27 @@
         el.style.transition = 'all 0.6s ease-out';
         observer.observe(el);
       });
-    });
-    
-    // Función para obtener citas con caché
-    async function obtenerCitas() {
-      const now = Date.now();
-      
-      // Usar caché si está disponible y no ha expirado
-      if (cachedCitas && (now - lastFetchTime) < CACHE_DURATION) {
-        console.log('Usando datos en caché');
-        return cachedCitas;
-      }
-      
-      try {
-        console.log('Obteniendo datos desde Supabase');
-        // Mostrar estado de carga
-        document.getElementById('contador-citas').style.display = 'flex';
-        document.getElementById('contador-citas').innerHTML = '<i class="fas fa-sync fa-spin"></i><span>Cargando disponibilidad...</span>';
-        
-        // Obtener citas desde Supabase
-        const { data, error } = await supabase
-          .from('citas')
-          .select('fecha, hora, barbero, servicio');
-          
-        if (error) {
-          console.error('Error al obtener citas:', error);
-          // Intentar usar caché aunque esté expirado en caso de error
-          if (cachedCitas) {
-            return cachedCitas;
-          }
-          throw error;
-        }
-        
-        // Actualizar caché
-        cachedCitas = data;
-        lastFetchTime = now;
-        
-        return data;
-      } catch (error) {
-        console.error('Error en obtenerCitas:', error);
-        mostrarMensaje('Error al conectar con el servidor. Intente nuevamente.', 'error');
-        return [];
-      } finally {
-        // Ocultar estado de carga después de un breve tiempo
-        setTimeout(() => {
-          document.getElementById('contador-citas').style.display = 'none';
-        }, 1000);
-      }
-    }
-    
-    // Función para cargar horarios disponibles
-    async function cargarHorariosDisponibles() {
-      const fechaSeleccionada = document.getElementById('fecha').value;
+
+      // Generar horarios disponibles (ejemplo)
       const horaSelect = document.getElementById('hora-select');
+      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
       
-      if (!fechaSeleccionada) {
-        // Limpiar select si no hay fecha seleccionada
-        horaSelect.innerHTML = '<option value="" disabled selected>Selecciona un horario</option>';
-        return;
-      }
-      
-      try {
-        // Mostrar estado de carga
-        horaSelect.classList.add('cargando');
-        horaSelect.innerHTML = '<option value="" disabled selected>Cargando horarios...</option>';
-        
-        // Obtener citas existentes
-        const citas = await obtenerCitas();
-        
-        // Generar horarios disponibles
-        const horariosDisponibles = generarHorariosDisponibles();
-        
-        // Filtrar horarios ocupados
-        const horariosOcupados = citas.filter(cita => cita.fecha === fechaSeleccionada)
-                                      .map(cita => cita.hora);
-        
-        // Actualizar select de horarios
-        horaSelect.innerHTML = '<option value="" disabled selected>Selecciona un horario</option>';
-        
-        horariosDisponibles.forEach(hora => {
-          const ocupado = horariosOcupados.includes(hora);
-          const option = document.createElement('option');
-          option.value = hora;
-          option.textContent = hora;
-          option.disabled = ocupado;
-          option.setAttribute('data-disponible', !ocupado);
-          horaSelect.appendChild(option);
-        });
-        
-        // Actualizar contador de citas
-        actualizarContadorCitas(fechaSeleccionada, horariosOcupados.length, horariosDisponibles.length);
-        
-      } catch (error) {
-        console.error('Error al cargar horarios:', error);
-        horaSelect.innerHTML = '<option value="" disabled selected>Error al cargar horarios</option>';
-      } finally {
-        horaSelect.classList.remove('cargando');
-      }
-    }
-    
-    // Función para generar horarios disponibles según las reglas de negocio
-    function generarHorariosDisponibles() {
-      // Estos son los horarios predefinidos que ofrece la barbería
-      return ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-    }
-    
-    // Función para actualizar el contador de citas
-    function actualizarContadorCitas(fecha, ocupadas, total) {
-      const contador = document.getElementById('contador-citas');
-      const disponibles = total - ocupadas;
-      
-      if (disponibles === 0) {
-        contador.innerHTML = `<i class="fas fa-calendar-times"></i><span>No hay horarios disponibles para el ${fecha}. Por favor, seleccione otra fecha.</span>`;
-        contador.style.display = 'flex';
-      } else {
-        contador.innerHTML = `<i class="fas fa-calendar-check"></i><span>${disponibles} de ${total} horarios disponibles para el ${fecha}</span>`;
-        contador.style.display = 'flex';
-      }
-    }
-    
-    // Función para enviar la cita
-    async function enviarCita() {
-      const nombre = document.getElementById('nombre').value;
-      const telefono = document.getElementById('telefono').value;
-      const fecha = document.getElementById('fecha').value;
-      const hora = document.getElementById('hora-select').value;
-      const servicio = document.getElementById('servicio').value;
-      const barbero = document.getElementById('barbero').value;
-      
-      // Validaciones básicas
-      if (!nombre || !telefono || !fecha || !hora || !servicio) {
-        mostrarMensaje('Por favor, complete todos los campos.', 'error');
-        return;
-      }
-      
-      try {
-        // Mostrar estado de envío
-        const submitBtn = document.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-        submitBtn.disabled = true;
-        
-        // Verificar disponibilidad otra vez antes de enviar
-        const citas = await obtenerCitas();
-        const citasMismoHorario = citas.filter(cita => 
-          cita.fecha === fecha && cita.hora === hora
-        );
-        
-        if (citasMismoHorario.length > 0) {
-          mostrarMensaje('Lo sentimos, este horario ya no está disponible. Por favor, seleccione otro.', 'error');
-          cargarHorariosDisponibles(); // Actualizar horarios
-          submitBtn.innerHTML = originalText;
-          submitBtn.disabled = false;
-          return;
-        }
-        
-        // Insertar cita en Supabase
-        const { data, error } = await supabase
-          .from('citas')
-          .insert([
-            { 
-              nombre, 
-              telefono, 
-              fecha, 
-              hora, 
-              servicio, 
-              barbero,
-              creado: new Date().toISOString()
-            }
-          ])
-          .select();
-        
-        if (error) {
-          throw error;
-        }
-        
-        // Éxito
-        mostrarMensaje('¡Cita agendada con éxito! Pronto nos comunicaremos contigo para confirmar.', 'exito');
-        document.getElementById('citaForm').reset();
-        
-        // Invalidar caché para refrescar disponibilidad
-        cachedCitas = null;
-        
-        // Enviar notificación por WhatsApp (opcional)
-        const mensajeWhatsApp = `Hola, soy ${nombre}. He agendado una cita para el ${fecha} a las ${hora} para el servicio de ${servicio} con ${barbero}. Mi teléfono es ${telefono}.`;
-        const whatsappLink = `https://wa.me/584142656119?text=${encodeURIComponent(mensajeWhatsApp)}`;
-        console.log('Enlace WhatsApp:', whatsappLink); // Para depuración
-        
-      } catch (error) {
-        console.error('Error al agendar cita:', error);
-        mostrarMensaje('Error al agendar la cita. Por favor, intente nuevamente.', 'error');
-      } finally {
-        // Restaurar botón
-        const submitBtn = document.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar Cita';
-        submitBtn.disabled = false;
-      }
-    }
-    
-    // Función para mostrar mensajes
-    function mostrarMensaje(mensaje, tipo) {
-      const mensajeDiv = document.getElementById('mensaje');
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.className = tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error';
-      mensajeDiv.style.display = 'block';
-      
-      // Ocultar mensaje después de 5 segundos
-      setTimeout(() => {
-        mensajeDiv.style.display = 'none';
-      }, 5000);
-    }
+      horasDisponibles.forEach(hora => {
+        const option = document.createElement('option');
+        option.value = hora;
+        option.textContent = hora;
+        option.setAttribute('data-disponible', 'true');
+        horaSelect.appendChild(option);
+      });
+
+      // Agregar algunos horarios no disponibles como ejemplo
+      const optionNoDisponible = document.createElement('option');
+      optionNoDisponible.value = "10:00";
+      optionNoDisponible.textContent = "10:00";
+      optionNoDisponible.setAttribute('data-disponible', 'false');
+      optionNoDisponible.disabled = true;
+      horaSelect.appendChild(optionNoDisponible);
+    });
   </script>
 </body>
 </html>
