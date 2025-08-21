@@ -409,6 +409,7 @@
               <i class="fas fa-clock"></i>
               <select id="hora-select" required>
                 <option value="" disabled selected>Selecciona un horario</option>
+                <!-- Los horarios se generarán dinámicamente -->
               </select>
             </div>
 
@@ -440,7 +441,7 @@
         
         <div class="info-horario">
           <i class="fas fa-info-circle"></i>
-          <p>Horario de atención: Lunes a Sábado de 8:00 AM to 9:00 PM</p>
+          <p>Horario de atención: Lunes a Sábado de 8:00 AM a 9:00 PM - Citas cada 40 minutos</p>
         </div>
       </main>
     </div>
@@ -495,15 +496,34 @@
       const fechaHoy = hoy.toISOString().split('T')[0];
       fechaInput.min = fechaHoy;
 
-      // Generar horarios disponibles
-      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-      
-      horasDisponibles.forEach(hora => {
-        const option = document.createElement('option');
-        option.value = hora;
-        option.textContent = hora;
-        horaSelect.appendChild(option);
-      });
+      // Generar horarios disponibles cada 40 minutos desde las 8:00 AM hasta las 9:00 PM
+      function generarHorarios() {
+        // Limpiar select de horarios
+        horaSelect.innerHTML = '<option value="" disabled selected>Selecciona un horario</option>';
+        
+        const horas = [];
+        for (let hora = 8; hora <= 20; hora++) {
+          for (let minuto = 0; minuto < 60; minuto += 40) {
+            // No generar horarios después de las 9:00 PM (21:00)
+            if (hora === 20 && minuto > 0) break;
+            
+            const horaFormateada = hora.toString().padStart(2, '0');
+            const minutoFormateado = minuto.toString().padStart(2, '0');
+            horas.push(`${horaFormateada}:${minutoFormateado}`);
+          }
+        }
+        
+        // Añadir horarios al select
+        horas.forEach(hora => {
+          const option = document.createElement('option');
+          option.value = hora;
+          option.textContent = hora;
+          horaSelect.appendChild(option);
+        });
+      }
+
+      // Llamar a la función para generar horarios al cargar la página
+      generarHorarios();
 
       // Validación en tiempo real del nombre
       nombreInput.addEventListener('input', function() {
@@ -558,6 +578,8 @@
           } else {
             mostrarMensaje('✅ ¡Cita agendada con éxito! Te esperamos en la fecha y hora seleccionada.', 'exito');
             formulario.reset();
+            // Regenerar horarios después de agendar una cita
+            generarHorarios();
           }
         } catch (error) {
           mostrarMensaje('❌ Error inesperado: ' + error.message, 'error');
