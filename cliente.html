@@ -517,6 +517,45 @@
       font-size: 0.9rem;
     }
 
+    /* ESTILOS PARA VALIDACIÓN (agregados al final de la sección style) */
+    .input-group.valid i {
+      color: #2ecc71 !important;
+    }
+
+    .input-group.invalid i {
+      color: #e74c3c !important;
+    }
+
+    .input-group.invalid input,
+    .input-group.invalid select {
+      border-color: #e74c3c !important;
+      box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3) !important;
+    }
+
+    .mensaje-error {
+      background: rgba(231, 76, 60, 0.2) !important;
+      color: #e74c3c !important;
+      border: 1px solid rgba(231, 76, 60, 0.3) !important;
+      display: block !important;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .mensaje-exito {
+      background: rgba(39, 174, 96, 0.2) !important;
+      color: #27ae60 !important;
+      border: 1px solid rgba(39, 174, 96, 0.3) !important;
+    }
+
+    .validacion-exitosa {
+      color: #2ecc71;
+      font-size: 0.8rem;
+      margin-top: 5px;
+      display: none;
+    }
+
     @media (max-width: 768px) {
       .form-row {
         grid-template-columns: 1fr;
@@ -667,6 +706,151 @@
   </div>
 
   <script>
+    // Función mejorada para validar nombre
+    function validarNombre(nombre) {
+      // 1. Eliminar espacios al inicio y final
+      const nombreLimpio = nombre.trim();
+      
+      // 2. Verificar longitud (entre 3 y 50 caracteres)
+      if (nombreLimpio.length < 3 || nombreLimpio.length > 50) {
+        return {
+          valido: false,
+          error: 'El nombre debe tener entre 3 y 50 caracteres'
+        };
+      }
+      
+      // 3. Verificar que solo contenga letras, espacios y tildes
+      const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+      if (!regexNombre.test(nombreLimpio)) {
+        return {
+          valido: false,
+          error: 'Solo se permiten letras, espacios y tildes en el nombre'
+        };
+      }
+      
+      // 4. Verificar que no sean solo espacios
+      if (!nombreLimpio.replace(/\s/g, '').length) {
+        return {
+          valido: false,
+          error: 'El nombre no puede contener solo espacios'
+        };
+      }
+      
+      // 5. Detectar patrones repetitivos como "aaa"
+      const patronRepetitivo = /^(.)\1{2,}$/;
+      if (patronRepetitivo.test(nombreLimpio.replace(/\s/g, ''))) {
+        return {
+          valido: false,
+          error: 'El nombre no puede contener caracteres repetidos'
+        };
+      }
+      
+      // 6. Validar que tenga al menos dos palabras (nombre y apellido)
+      const partesNombre = nombreLimpio.split(/\s+/).filter(part => part.length > 0);
+      if (partesNombre.length < 2) {
+        return {
+          valido: false,
+          error: 'Por favor ingresa al menos un nombre y un apellido'
+        };
+      }
+      
+      return { valido: true, nombre: nombreLimpio };
+    }
+
+    // Función para mostrar mensajes
+    function mostrarMensaje(mensaje, tipo) {
+      const mensajeDiv = document.getElementById('mensaje');
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.className = '';
+      mensajeDiv.classList.add(tipo === 'exito' ? 'mensaje-exito' : 'mensaje-error');
+      mensajeDiv.style.display = 'block';
+      
+      // Ocultar mensaje después de 5 segundos
+      setTimeout(() => {
+        mensajeDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    // Función para validar formulario completo
+    function validarFormulario(formData) {
+      // Validar nombre
+      const validacionNombre = validarNombre(formData.nombre);
+      if (!validacionNombre.valido) {
+        return { valido: false, error: validacionNombre.error };
+      }
+      
+      // Validar teléfono (solo números, mínimo 10 caracteres)
+      const telefonoLimpio = formData.telefono.replace(/\D/g, '');
+      if (telefonoLimpio.length < 10) {
+        return { valido: false, error: 'El teléfono debe tener al menos 10 dígitos' };
+      }
+      
+      // Validar fecha
+      if (!formData.fecha) {
+        return { valido: false, error: 'Por favor selecciona una fecha' };
+      }
+      
+      // Validar que la fecha no sea anterior al día actual
+      const fechaSeleccionada = new Date(formData.fecha);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
+      if (fechaSeleccionada < hoy) {
+        return { valido: false, error: 'No puedes seleccionar una fecha pasada' };
+      }
+      
+      // Validar horario
+      if (!formData.hora) {
+        return { valido: false, error: 'Por favor selecciona un horario' };
+      }
+      
+      // Validar servicio
+      if (!formData.servicio) {
+        return { valido: false, error: 'Por favor selecciona un servicio' };
+      }
+      
+      return { 
+        valido: true, 
+        telefono: telefonoLimpio 
+      };
+    }
+
+    // Función para guardar cita (simulada)
+    function guardarCita(formData) {
+      return new Promise((resolve) => {
+        // Simular una llamada a la base de datos
+        setTimeout(() => {
+          resolve({
+            id: Date.now(),
+            ...formData,
+            fechaCreacion: new Date().toISOString()
+          });
+        }, 1500);
+      });
+    }
+
+    // Inicializar selectores
+    function inicializarSelectores() {
+      // Establecer fecha mínima como hoy
+      const fechaInput = document.getElementById('fecha');
+      const hoy = new Date().toISOString().split('T')[0];
+      fechaInput.setAttribute('min', hoy);
+      
+      // Generar horarios disponibles
+      const horaSelect = document.getElementById('hora-select');
+      horaSelect.innerHTML = '<option value="" disabled selected>Selecciona un horario</option>';
+      
+      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
+      
+      horasDisponibles.forEach(hora => {
+        const option = document.createElement('option');
+        option.value = hora;
+        option.textContent = hora;
+        option.setAttribute('data-disponible', 'true');
+        horaSelect.appendChild(option);
+      });
+    }
+
     // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
@@ -687,26 +871,99 @@
         observer.observe(el);
       });
 
-      // Generar horarios disponibles (ejemplo)
-      const horaSelect = document.getElementById('hora-select');
-      const horasDisponibles = ['08:00', '09:30', '11:00', '12:30', '14:00', '15:30', '17:00', '18:30', '20:00'];
-      
-      horasDisponibles.forEach(hora => {
-        const option = document.createElement('option');
-        option.value = hora;
-        option.textContent = hora;
-        option.setAttribute('data-disponible', 'true');
-        horaSelect.appendChild(option);
-      });
+      // Inicializar selectores
+      inicializarSelectores();
 
-      // Agregar algunos horarios no disponibles como ejemplo
-      const optionNoDisponible = document.createElement('option');
-      optionNoDisponible.value = "10:00";
-      optionNoDisponible.textContent = "10:00";
-      optionNoDisponible.setAttribute('data-disponible', 'false');
-      optionNoDisponible.disabled = true;
-      horaSelect.appendChild(optionNoDisponible);
+      // Validación en tiempo real para el nombre
+      const nombreInput = document.getElementById('nombre');
+      nombreInput.addEventListener('blur', function() {
+        const validacion = validarNombre(this.value);
+        const grupoInput = this.parentElement;
+        
+        // Ocultar mensajes anteriores
+        const mensajeDiv = document.getElementById('mensaje');
+        mensajeDiv.style.display = 'none';
+        
+        if (!validacion.valido && this.value.trim() !== '') {
+          grupoInput.classList.remove('valid');
+          grupoInput.classList.add('invalid');
+          mostrarMensaje(validacion.error, 'error');
+        } else if (this.value.trim() !== '') {
+          grupoInput.classList.remove('invalid');
+          grupoInput.classList.add('valid');
+        }
+      });
     });
+
+    // Manejar envío del formulario
+    const citaForm = document.getElementById('citaForm');
+    if (citaForm) {
+      citaForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Mostrar estado de carga
+        const submitBtn = citaForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Agendando...';
+        
+        try {
+          // Función auxiliar para obtener elementos de forma segura
+          const getElement = (id) => {
+            const el = document.getElementById(id);
+            if (!el) throw new Error(`Elemento ${id} no encontrado`);
+            return el;
+          };
+
+          // Obtener valores del formulario de manera segura
+          const formData = {
+            nombre: getElement('nombre').value.trim(),
+            telefono: getElement('telefono').value.trim(),
+            fecha: getElement('fecha').value,
+            hora: getElement('hora-select').value,
+            servicio: getElement('servicio').value,
+            barbero: getElement('barbero').value
+          };
+
+          // Validar que se haya seleccionado un horario
+          if (!formData.hora) {
+            throw new Error('Por favor seleccione un horario disponible');
+          }
+
+          // Validar nombre antes de procesar
+          const validacionNombre = validarNombre(formData.nombre);
+          if (!validacionNombre.valido) {
+            throw new Error(validacionNombre.error);
+          }
+
+          // Resto de la validación...
+          const validacion = validarFormulario(formData);
+          if (!validacion.valido) {
+            throw new Error(validacion.error);
+          }
+
+          // Usar el teléfono limpio (sin caracteres especiales)
+          if (validacion.telefono) {
+            formData.telefono = validacion.telefono;
+          }
+
+          // Guardar cita
+          const citaGuardada = await guardarCita(formData);
+          console.log('Cita guardada:', citaGuardada);
+          
+          mostrarMensaje('✅ Cita agendada correctamente. Te esperamos!', 'exito');
+          citaForm.reset();
+          inicializarSelectores();
+          
+        } catch (error) {
+          console.error('Error al procesar cita:', error);
+          mostrarMensaje(`❌ ${error.message}`, 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
+      });
+    }
   </script>
 </body>
 </html>
