@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #B8860B;        /* Dorado más oscuro */
@@ -706,6 +705,25 @@
   </div>
 
   <script>
+    // 1. Configuración Segura de Supabase
+    const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+
+    // Inicializar Supabase
+    const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+
+    if (!supabase) {
+      console.error('Error: No se pudo inicializar Supabase');
+      // Cargar el script dinámicamente si es necesario
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+      script.onload = () => {
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase cargado dinámicamente');
+      };
+      document.head.appendChild(script);
+    }
+
     // Función mejorada para validar nombre
     function validarNombre(nombre) {
       // 1. Eliminar espacios al inicio y final
@@ -736,12 +754,12 @@
         };
       }
       
-      // 5. Detectar patrones repetitivos como "aaa"
-      const patronRepetitivo = /^(.)\1{2,}$/;
+      // 5. Detectar patrones repetitivos como "aaa" - MEJORADA
+      const patronRepetitivo = /(.)\1\1/;  // Cambiado para detectar en cualquier posición
       if (patronRepetitivo.test(nombreLimpio.replace(/\s/g, ''))) {
         return {
           valido: false,
-          error: 'El nombre no puede contener caracteres repetidos'
+          error: 'El nombre no puede contener caracteres repetidos como "aaa" o "bbb"'
         };
       }
       
@@ -815,18 +833,31 @@
       };
     }
 
-    // Función para guardar cita (simulada)
-    function guardarCita(formData) {
-      return new Promise((resolve) => {
-        // Simular una llamada a la base de datos
-        setTimeout(() => {
-          resolve({
-            id: Date.now(),
-            ...formData,
-            fechaCreacion: new Date().toISOString()
-          });
-        }, 1500);
-      });
+    // Función para guardar cita
+    async function guardarCita(citaData) {
+      if (!supabase) {
+        throw new Error('Error de conexión con el servidor');
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('citas')
+          .insert([{
+            ...citaData,
+            estado: 'pendiente',
+            creado_en: new Date().toISOString()
+          }])
+          .select();
+
+        if (error) {
+          throw error;
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Error al guardar cita:', error);
+        throw error;
+      }
     }
 
     // Inicializar selectores
@@ -835,6 +866,7 @@
       const fechaInput = document.getElementById('fecha');
       const hoy = new Date().toISOString().split('T')[0];
       fechaInput.setAttribute('min', hoy);
+      fechaInput.value = hoy;
       
       // Generar horarios disponibles
       const horaSelect = document.getElementById('hora-select');
@@ -957,7 +989,13 @@
           
         } catch (error) {
           console.error('Error al procesar cita:', error);
-          mostrarMensaje(`❌ ${error.message}`, 'error');
+          
+          // Mejora los mensajes de error de Supabase
+          if (error.message.includes('row-level security policy') || error.message.includes('violates check constraint')) {
+            mostrarMensaje('❌ El nombre ingresado no es válido. Por favor ingresa tu nombre completo real (sin caracteres repetidos como "aaa" o "bbb")', 'error');
+          } else {
+            mostrarMensaje(`❌ ${error.message}`, 'error');
+          }
         } finally {
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalText;
