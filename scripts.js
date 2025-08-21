@@ -195,12 +195,12 @@ async function verificarLimiteCitas(telefono, fecha) {
   if (error) throw error;
   
   // Guardar en caché solo si no ha alcanzado el límite
-  if (citas.length < 2) {
+  if (citas.length < 1) {
     BarberCache.set(cacheKey, { count: citas.length }, 60 * 60 * 1000); // 1 hora
   }
   
-  if (citas.length >= 2) {
-    throw new Error('❌ Límite alcanzado: Máximo 2 citas por día por teléfono');
+  if (citas.length >= 1) {
+    throw new Error('❌ Límite alcanzado: Máximo 1 citas por día por teléfono');
   }
 }
 
