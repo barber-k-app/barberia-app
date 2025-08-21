@@ -666,7 +666,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
       } catch (error) {
         console.error('Error al procesar cita:', error);
-        mostrarMensaje(`❌ ${error.message}`, 'error');
+        
+        // CAPTURAR ERROR DE POLÍTICA DE SEGURIDAD (RLS) - NUEVO CÓDIGO
+        if (error.message && error.message.includes('row-level security policy')) {
+          mostrarMensaje('❌ El nombre no cumple con los requisitos. Debe tener al menos 2 palabras, entre 3 y 50 caracteres, sin caracteres repetidos en exceso.', 'error');
+        } else {
+          mostrarMensaje(`❌ ${error.message}`, 'error');
+        }
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
