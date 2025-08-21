@@ -1302,31 +1302,15 @@
       if (!confirm('¿Estás seguro de que deseas eliminar esta cita?')) return;
       
       try {
-		// 1. PRIMERO obtener los datos de la cita antes de borrar
-        const { data: cita, error: errorCita } = await supabase
-          .from('citas')
-          .select('fecha, hora')
-          .eq('id', id)
-          .single();
-        
-        if (error) throw error;
-
-		  
-        // 2. LUEGO borrar la cita
         const { error } = await supabase
           .from('citas')
           .delete()
           .eq('id', id);
-
-	   if (error) throw error;
-
-	   // 3. ¡LIMPIAR EL CACHÉ! (LO QUE FALTABA)
-       BarberCache.clear(`citas_${cita.fecha}`);
-       BarberCache.clear(`disp_${cita.fecha}`);
-       BarberCache.clear(`disp_${cita.fecha}_${cita.hora}`);
-
-	   mostrarNotificacion('Cita eliminada correctamente', 'success');
-       await cargarCitas();
+        
+        if (error) throw error;
+        
+        mostrarNotificacion('Cita eliminada correctamente', 'success');
+        await cargarCitas();
         
       } catch (error) {
         console.error('Error al eliminar cita:', error);
