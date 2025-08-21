@@ -51,7 +51,7 @@ const BarberCache = {
   },
   
   // Guardar datos en caché
-  set: (key, data, ttl = 30 * 60 * 1000) => { // 30 minutos por defecto
+  set: (key, data, ttl = 2 * 60 * 1000) => { // 2 minutos por defecto (reducido de 30)
     try {
       const cacheData = {
         data,
@@ -78,6 +78,13 @@ const BarberCache = {
       .forEach(key => localStorage.removeItem(key));
   }
 };
+
+// Limpiar caché de citas al recargar la página
+window.addEventListener('load', function() {
+  BarberCache.clear('citas_');
+  BarberCache.clear('disp_');
+  console.log('🔄 Caché de citas limpiado');
+});
 
 // Configuración de horarios para Venezuela
 const CONFIG_VENEZUELA = {
@@ -210,7 +217,7 @@ async function verificarCitaExistente(telefono, nombre, fecha) {
       ? { existe: true, cita: citas[0] } 
       : { existe: false };
     
-    BarberCache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutos de caché
+    BarberCache.set(cacheKey, result, 2 * 60 * 1000); // 2 minutos de caché (reducido de 5)
     return result;
   } catch (error) {
     console.error('Error verificando cita existente:', error);
@@ -307,7 +314,7 @@ async function obtenerCitasParaFecha(fecha) {
   
   if (error) throw error;
   
-  BarberCache.set(cacheKey, citas, 10 * 60 * 1000); // Cachear por 10 minutos
+  BarberCache.set(cacheKey, citas, 2 * 60 * 1000); // Cachear por 2 minutos (reducido de 10)
   return citas;
 }
 
@@ -336,13 +343,13 @@ async function verificarDisponibilidad(fecha, hora) {
           disponible: false,
           mensaje: `El horario ${hora} no está disponible. Por favor elige otro.`
         };
-        BarberCache.set(cacheKey, result, 5 * 60 * 1000); // Cachear por 5 minutos
+        BarberCache.set(cacheKey, result, 2 * 60 * 1000); // Cachear por 2 minutos (reducido de 5)
         return result;
       }
     }
     
     const result = { disponible: true };
-    BarberCache.set(cacheKey, result, 5 * 60 * 1000); // Cachear por 5 minutos
+    BarberCache.set(cacheKey, result, 2 * 60 * 1000); // Cachear por 2 minutos (reducido de 5)
     return result;
   } catch (error) {
     console.error('Error verificando disponibilidad:', error);
@@ -726,3 +733,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Actualizar disponibilidad cada 2 minutos
+setInterval(function() {
+  const fechaInput = document.getElementById('fecha');
+  if (fechaInput && fechaInput.value) {
+    BarberCache.clear('citas_');
+    BarberCache.clear('disp_');
+    actualizarDisponibilidadHorarios(fechaInput.value);
+    console.log('🔄 Actualización automática de horarios');
+  }
+}, 2 * 60 * 1000); // 2 minutos
