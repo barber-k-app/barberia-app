@@ -18,28 +18,12 @@ if (!supabase) {
 }
 
 /******************************************
- * SISTEMA DE CACHÉ MEJORADO PARA BARBER-K
- * Reduce drásticamente las consultas a Supabase
+ * SISTEMA DE CACHÉ PARA BARBER-K (Producción)
+ * Mantiene los datos estáticos y reduce consultas a Supabase
  ******************************************/
 const BarberCache = {
-  // Caché en memoria para datos de corta duración
-  memoryCache: new Map(),
-  memoryCacheTimers: new Map(),
-  
-  // Obtener datos del caché (localStorage + memoria)
-  get: (key, useMemory = true) => {
-    // Primero verificar caché en memoria (más rápido)
-    if (useMemory && BarberCache.memoryCache.has(key)) {
-      const cached = BarberCache.memoryCache.get(key);
-      if (cached.ttl && Date.now() - cached.timestamp > cached.ttl) {
-        BarberCache.memoryCache.delete(key);
-        BarberCache.memoryCacheTimers.delete(key);
-      } else {
-        return cached.data;
-      }
-    }
-    
-    // Si no está en memoria, verificar localStorage
+  // Obtener datos del caché
+  get: (key) => {
     try {
       const cached = localStorage.getItem(`bk_${key}`);
       if (!cached) return null;
@@ -59,38 +43,15 @@ const BarberCache = {
     }
   },
   
-  // Guardar datos en caché (ambos almacenamientos)
-  set: (key, data, ttl = 30 * 60 * 1000, useMemory = true) => {
+  // Guardar datos en caché
+  set: (key, data, ttl = 30 * 60 * 1000) => { // 30 minutos por defecto
     try {
       const cacheData = {
         data,
         timestamp: Date.now(),
         ttl
       };
-      
-      // Guardar en localStorage para persistencia
       localStorage.setItem(`bk_${key}`, JSON.stringify(cacheData));
-      
-      // Guardar en memoria para acceso rápido
-      if (useMemory) {
-        BarberCache.memoryCache.set(key, cacheData);
-        
-        // Programar limpieza automática de memoria
-        if (ttl) {
-          // Limpiar timer existente si hay uno
-          if (BarberCache.memoryCacheTimers.has(key)) {
-            clearTimeout(BarberCache.memoryCacheTimers.get(key));
-          }
-          
-          // Establecer nuevo timer
-          const timer = setTimeout(() => {
-            BarberCache.memoryCache.delete(key);
-            BarberCache.memoryCacheTimers.delete(key);
-          }, ttl);
-          
-          BarberCache.memoryCacheTimers.set(key, timer);
-        }
-      }
     } catch (e) {
       console.error('Error guardando en caché:', e);
     }
@@ -98,18 +59,6 @@ const BarberCache = {
   
   // Limpiar entradas específicas del caché
   clear: (keyPattern) => {
-    // Limpiar de memoria
-    for (const key of BarberCache.memoryCache.keys()) {
-      if (key.startsWith(keyPattern)) {
-        BarberCache.memoryCache.delete(key);
-        if (BarberCache.memoryCacheTimers.has(key)) {
-          clearTimeout(BarberCache.memoryCacheTimers.get(key));
-          BarberCache.memoryCacheTimers.delete(key);
-        }
-      }
-    }
-    
-    // Limpiar de localStorage
     Object.keys(localStorage)
       .filter(key => key.startsWith(`bk_${keyPattern}`))
       .forEach(key => localStorage.removeItem(key));
@@ -117,51 +66,11 @@ const BarberCache = {
   
   // Limpiar todo el caché de la aplicación
   clearAll: () => {
-    // Limpiar memoria
-    BarberCache.memoryCache.clear();
-    for (const timer of BarberCache.memoryCacheTimers.values()) {
-      clearTimeout(timer);
-    }
-    BarberCache.memoryCacheTimers.clear();
-    
-    // Limpiar localStorage
     Object.keys(localStorage)
       .filter(key => key.startsWith('bk_'))
       .forEach(key => localStorage.removeItem(key));
   }
 };
-
-// Sistema de deduplicación de solicitudes
-const pendingRequests = new Map();
-
-async function deduplicatedSupabaseQuery(key, queryFn, ttl = 5 * 60 * 1000) {
-  // Primero verificar caché
-  const cached = BarberCache.get(key);
-  if (cached) return cached;
-  
-  // Verificar si ya hay una solicitud en curso para esta clave
-  if (pendingRequests.has(key)) {
-    // Esperar a que la solicitud existente se complete
-    return pendingRequests.get(key);
-  }
-  
-  try {
-    // Crear nueva promesa para esta solicitud
-    const requestPromise = queryFn();
-    pendingRequests.set(key, requestPromise);
-    
-    // Ejecutar la consulta
-    const result = await requestPromise;
-    
-    // Guardar en caché
-    BarberCache.set(key, result, ttl);
-    
-    return result;
-  } finally {
-    // Limpiar la solicitud pendiente
-    pendingRequests.delete(key);
-  }
-}
 
 // Configuración de horarios para Venezuela
 const CONFIG_VENEZUELA = {
@@ -246,43 +155,53 @@ function validarTelefonoVenezolano(telefono) {
 // Función para verificar si ya existe una cita con el mismo teléfono y nombre
 async function verificarCitaExistente(telefono, nombre, fecha) {
   const cacheKey = `cita_existente_${telefono}_${nombre}_${fecha}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached) return cached;
   
-  return deduplicatedSupabaseQuery(cacheKey, async () => {
-    try {
-      const { data: citas, error } = await supabase
-        .from('citas')
-        .select('*')
-        .eq('telefono', telefono)
-        .eq('nombre', nombre)
-        .eq('fecha', fecha);
+  try {
+    const { data: citas, error } = await supabase
+      .from('citas')
+      .select('*')
+      .eq('telefono', telefono)
+      .eq('nombre', nombre)
+      .eq('fecha', fecha);
 
-      if (error) throw error;
-      
-      return citas && citas.length > 0 
-        ? { existe: true, cita: citas[0] } 
-        : { existe: false };
-    } catch (error) {
-      console.error('Error verificando cita existente:', error);
-      throw error;
-    }
-  }, 5 * 60 * 1000); // 5 minutos de caché
+    if (error) throw error;
+    
+    const result = citas && citas.length > 0 
+      ? { existe: true, cita: citas[0] } 
+      : { existe: false };
+    
+    BarberCache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutos de caché
+    return result;
+  } catch (error) {
+    console.error('Error verificando cita existente:', error);
+    throw error;
+  }
 }
 
 // Función para verificar límite de citas
 async function verificarLimiteCitas(telefono, fecha) {
   const cacheKey = `limite_citas_${telefono}_${fecha}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached && cached.count < 2) return; // Si hay caché y no ha alcanzado límite
   
-  return deduplicatedSupabaseQuery(cacheKey, async () => {
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('id', { count: 'exact' })
-      .eq('telefono', telefono)
-      .eq('fecha', fecha);
+  const { data: citas, error } = await supabase
+    .from('citas')
+    .select('id', { count: 'exact' })
+    .eq('telefono', telefono)
+    .eq('fecha', fecha);
 
-    if (error) throw error;
-    
-    return { count: citas.length };
-  }, 60 * 60 * 1000); // 1 hora de caché
+  if (error) throw error;
+  
+  // Guardar en caché solo si no ha alcanzado el límite
+  if (citas.length < 2) {
+    BarberCache.set(cacheKey, { count: citas.length }, 60 * 60 * 1000); // 1 hora
+  }
+  
+  if (citas.length >= 2) {
+    throw new Error('❌ Límite alcanzado: Máximo 2 citas por día por teléfono');
+  }
 }
 
 // Función auxiliar para formatear fechas
@@ -340,23 +259,24 @@ function mostrarMensaje(texto, tipo = 'info') {
 // Nueva función auxiliar con caché para obtener citas
 async function obtenerCitasParaFecha(fecha) {
   const cacheKey = `citas_${fecha}`;
+  const cached = BarberCache.get(cacheKey);
+  if (cached) return cached;
   
-  return deduplicatedSupabaseQuery(cacheKey, async () => {
-    const { data: citas, error } = await supabase
-      .from('citas')
-      .select('hora')
-      .eq('fecha', fecha);
-    
-    if (error) throw error;
-    
-    return citas;
-  }, 10 * 60 * 1000); // Cachear por 10 minutos
+  const { data: citas, error } = await supabase
+    .from('citas')
+    .select('hora')
+    .eq('fecha', fecha);
+  
+  if (error) throw error;
+  
+  BarberCache.set(cacheKey, citas, 10 * 60 * 1000); // Cachear por 10 minutos
+  return citas;
 }
 
 // 4. Función para verificar disponibilidad de horario (actualizada con caché)
 async function verificarDisponibilidad(fecha, hora) {
   const cacheKey = `disp_${fecha}_${hora}`;
-  const cached = BarberCache.get(cacheKey, true); // Usar caché en memoria
+  const cached = BarberCache.get(cacheKey);
   if (cached) return cached;
   
   try {
@@ -378,13 +298,13 @@ async function verificarDisponibilidad(fecha, hora) {
           disponible: false,
           mensaje: `El horario ${hora} no está disponible. Por favor elige otro.`
         };
-        BarberCache.set(cacheKey, result, 5 * 60 * 1000, true); // Cachear en memoria por 5 minutos
+        BarberCache.set(cacheKey, result, 5 * 60 * 1000); // Cachear por 5 minutos
         return result;
       }
     }
     
     const result = { disponible: true };
-    BarberCache.set(cacheKey, result, 5 * 60 * 1000, true); // Cachear en memoria por 5 minutos
+    BarberCache.set(cacheKey, result, 5 * 60 * 1000); // Cachear por 5 minutos
     return result;
   } catch (error) {
     console.error('Error verificando disponibilidad:', error);
@@ -638,7 +558,7 @@ async function guardarCita(citaData) {
     
     // LIMPIAR CACHÉ RELACIONADO CON ESTA FECHA
     BarberCache.clear(`citas_${citaData.fecha}`);
-    BarberCache.clear(`disp_${citaData.fecha}`);
+    BarberCache.clear(`disp_${citaData.fecha}_`);
     BarberCache.clear(`limite_citas_${citaData.telefono}_${citaData.fecha}`);
     BarberCache.clear(`cita_existente_${citaData.telefono}_${citaData.nombre}_${citaData.fecha}`);
     
@@ -671,17 +591,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!telefono || !fecha || !contador) return;
 
     try {
-      const cacheKey = `contador_${telefono}_${fecha}`;
-      const cached = BarberCache.get(cacheKey);
-      
-      if (cached) {
-        const restantes = 2 - (cached.count || 0);
-        contador.innerHTML = `<i class="fas fa-info-circle"></i>
-          <span>Citas hoy: ${cached.count || 0}/2 (${restantes} restantes)</span>`;
-        contador.style.color = cached.count >= 2 ? '#e74c3c' : '#2ecc71';
-        return;
-      }
-      
       const { count } = await supabase
         .from('citas')
         .select('*', { count: 'exact' })
@@ -692,9 +601,6 @@ document.addEventListener('DOMContentLoaded', function() {
       contador.innerHTML = `<i class="fas fa-info-circle"></i>
         <span>Citas hoy: ${count || 0}/2 (${restantes} restantes)</span>`;
       contador.style.color = count >= 2 ? '#e74c3c' : '#2ecc71';
-      
-      // Guardar en caché
-      BarberCache.set(cacheKey, { count }, 2 * 60 * 1000); // 2 minutos
     } catch (error) {
       console.error('Error al contar citas:', error);
     }
