@@ -1243,41 +1243,22 @@
       const ids = Array.from(checkboxes).map(checkbox => checkbox.dataset.id);
       
       try {
-        // Primero obtener las fechas de las citas a eliminar
-        const { data: citasAEliminar, error: fetchError } = await supabase
-          .from('citas')
-          .delete()
-          .in('id', ids);
-        
-        if (fetchError) throw fetchError;
-
-	    // Luego eliminar las citas
         const { error } = await supabase
           .from('citas')
           .delete()
           .in('id', ids);
-
-		if (error) throw error;
-
-		// LIMPIAR CACHÉ de todas las fechas afectadas
-        if (citasAEliminar && citasAEliminar.length > 0) {
-          const fechasUnicas = [...new Set(citasAEliminar.map(c => c.fecha))];
-      
-          fechasUnicas.forEach(fecha => {
-            BarberCache.clear(`citas_${fecha}`);
-            BarberCache.clear(`disp_${fecha}_`);
-          });
-        }
-
-		mostrarNotificacion(`${ids.length} citas eliminadas correctamente`, 'success');
+        
+        if (error) throw error;
+        
+        mostrarNotificacion(`${ids.length} citas eliminadas correctamente`, 'success');
         await cargarCitas();
-    
+        
       } catch (error) {
         console.error('Error al eliminar citas:', error);
         mostrarNotificacion('Error al eliminar las citas seleccionadas', 'error');
       }
-    } 
-        
+    }
+
     // Agregar eventos a los botones de acción
     function agregarEventosBotones() {
       document.querySelectorAll('.btn-completar').forEach(btn => {
@@ -1321,44 +1302,22 @@
       if (!confirm('¿Estás seguro de que deseas eliminar esta cita?')) return;
       
       try {
-		// Primero obtener la cita para saber la fecha
-        const { data: cita, error: fetchError } = await supabase
-          .from('citas')
-          .select('fecha')
-          .eq('id', id)
-          .single();
-    
-	    if (fetchError) throw fetchError;
-
-	    // Luego eliminar la cita
         const { error } = await supabase
           .from('citas')
           .delete()
           .eq('id', id);
-
-		  
+        
         if (error) throw error;
-
-		// LIMPIAR CACHÉ ESPECÍFICO de la fecha afectada
-        if (cita && cita.fecha) {
-          // Limpiar caché de disponibilidad para esta fecha
-          BarberCache.clear(`citas_${cita.fecha}`);
-          BarberCache.clear(`disp_${cita.fecha}_`);
-
-		  // También limpiar caché de límites de citas (opcional)
-          const telefono = ''; // Necesitarías obtener el teléfono si quieres limpiar esto
-          // BarberCache.clear(`limite_citas_${telefono}_${cita.fecha}`);
-        }
-
-		mostrarNotificacion('Cita eliminada correctamente', 'success');
+        
+        mostrarNotificacion('Cita eliminada correctamente', 'success');
         await cargarCitas();
-
+        
       } catch (error) {
         console.error('Error al eliminar cita:', error);
         mostrarNotificacion('Error al eliminar la cita', 'error');
       }
     }
-      
+
     // Mostrar detalles de cita en modal
     async function mostrarDetallesCita(id) {
       if (modalAbierto) return;
@@ -1509,17 +1468,7 @@
           },
           (payload) => {
             console.log('Cambio recibido:', payload);
-			
-			// Limpiar caché relacionado con la fecha afectada
-            if (payload.new || payload.old) {
-              const fecha = payload.new?.fecha || payload.old?.fecha;
-              if (fecha) {
-                BarberCache.clear(`citas_${fecha}`);
-                BarberCache.clear(`disp_${fecha}_`);
-              }
-            }
-
-		    cargarCitas();
+            cargarCitas();
           }
         )
         .subscribe((status, err) => {
@@ -1530,18 +1479,6 @@
             console.error('Error en suscripción:', err);
           }
         });
-    }
-
-	// Función para forzar actualización de disponibilidad
-    function actualizarDisponibilidadForzada(fecha) {  
-	  // Limpiar caché específico
-      BarberCache.clear(`citas_${fecha}`);
-      BarberCache.clear(`disp_${fecha}_`);
-  
-      // Volver a cargar disponibilidad
-      actualizarDisponibilidadHorarios(fecha);
-  
-      mostrarNotificacion('Disponibilidad actualizada', 'info');
     }
 
     // Inicialización del panel
