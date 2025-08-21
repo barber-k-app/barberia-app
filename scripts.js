@@ -253,7 +253,7 @@ function mostrarMensaje(texto, tipo = 'info') {
   // Ocultar automáticamente después de 5 segundos
   setTimeout(() => {
     mensajeDiv.style.display = 'none';
-  }, 5000);
+  }, 10000);
 }
 
 // Nueva función auxiliar con caché para obtener citas
