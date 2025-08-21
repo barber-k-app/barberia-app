@@ -4,8 +4,8 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 // LISTA BLANCA - IPs con acceso ilimitado
 const IPs_WHITELIST = [
-  '190.200.100.50',    // ← REEMPLAZA con tu IP pública REAL
-  '192.168.1.1',       // ← Opcional: tu IP local actual
+  '38.51.123.210',    // ← REEMPLAZA con tu IP pública REAL
+  '192.168.7.233',       // ← Opcional: tu IP local actual
   '127.0.0.1'          // Localhost para desarrollo
 ];
 
