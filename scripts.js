@@ -2,6 +2,13 @@
 const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
+// LISTA BLANCA - IPs con acceso ilimitado
+const IPs_WHITELIST = [
+  '190.200.100.50',    // ← REEMPLAZA con tu IP pública REAL
+  '192.168.1.1',       // ← Opcional: tu IP local actual
+  '127.0.0.1'          // Localhost para desarrollo
+];
+
 // Inicializar Supabase
 const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
@@ -80,6 +87,37 @@ const CONFIG_VENEZUELA = {
   zonaHoraria: 'America/Caracas',
   diasTrabajo: [1, 2, 3, 4, 5, 6] // Lunes(1) a Sábado(6)
 };
+
+// FUNCIÓN PARA VERIFICAR LÍMITES POR IP
+async function verificarLimiteIP() {
+  try {
+    const response = await fetch('https://api64.ipify.org?format=json');
+    const data = await response.json();
+    const userIP = data.ip;
+    
+    // Si está en lista blanca: SIN LÍMITES
+    if (IPs_WHITELIST.includes(userIP)) {
+      console.log('✅ IP en lista blanca - Sin límites');
+      return;
+    }
+    
+    const hoy = new Date().toISOString().split('T')[0];
+    const cacheKey = `limite_ip_${userIP}_${hoy}`;
+    
+    // Verificar límite de 3 citas por día
+    const citasHoy = BarberCache.get(cacheKey) || 0;
+    if (citasHoy >= 3) {
+      throw new Error('❌ Límite diario alcanzado (3 citas máx. por dispositivo). Intenta mañana.');
+    }
+    
+    // Incrementar contador
+    BarberCache.set(cacheKey, citasHoy + 1, 24 * 60 * 60 * 1000);
+    
+  } catch (error) {
+    console.warn('Error verificando IP:', error);
+    throw error;
+  }
+}
 
 // Función para validar nombre
 function validarNombre(nombre) {
@@ -615,6 +653,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if (citaForm) {
     citaForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+      
+      // ✅ NUEVA VERIFICACIÓN (agrega esta línea)
+      try {
+        await verificarLimiteIP();
+      } catch (error) {
+        mostrarMensaje(error.message, 'error');
+        return;
+      }
       
       // Mostrar estado de carga
       const submitBtn = citaForm.querySelector('button[type="submit"]');
