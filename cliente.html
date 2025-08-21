@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="scripts.js"></script>
   <style>
     :root {
       --gold: #B8860B;        /* Dorado más oscuro */
@@ -498,7 +497,7 @@
     .red-social {
       display: flex;
       align-items: center;
-      text-decoration: nil;
+      text-decoration: none;
       color: white;
       transition: all 0.3s;
     }
@@ -667,6 +666,11 @@
   </div>
 
   <script>
+    // Inicializar Supabase (reemplaza con tus credenciales)
+    const supabaseUrl = 'https://tu-proyecto.supabase.co';
+    const supabaseKey = 'tu-clave-anonima';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
     // Animación adicional para elementos al hacer scroll
     document.addEventListener('DOMContentLoaded', function() {
       const animatedElements = document.querySelectorAll('.input-group, .contacto-item');
@@ -706,7 +710,124 @@
       optionNoDisponible.setAttribute('data-disponible', 'false');
       optionNoDisponible.disabled = true;
       horaSelect.appendChild(optionNoDisponible);
+
+      // Manejar el envío del formulario
+      document.getElementById('citaForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Obtener valores del formulario
+        const nombre = document.getElementById('nombre').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const fecha = document.getElementById('fecha').value;
+        const hora = document.getElementById('hora-select').value;
+        const servicio = document.getElementById('servicio').value;
+        const barbero = document.getElementById('barbero').value;
+        
+        // Validar nombre antes de enviar
+        const errorNombre = validarNombre(nombre);
+        if (errorNombre) {
+          mostrarMensaje(errorNombre, 'error');
+          return;
+        }
+        
+        // Mostrar mensaje de carga
+        mostrarMensaje('Procesando tu cita...', 'cargando');
+        
+        try {
+          // Insertar la cita en Supabase
+          const { data, error } = await supabase
+            .from('citas')
+            .insert([
+              {
+                nombre: nombre,
+                telefono: telefono,
+                fecha: fecha,
+                hora: hora,
+                servicio: servicio,
+                barbero: barbero
+              }
+            ]);
+          
+          if (error) {
+            // Manejar errores específicos de Supabase
+            if (error.message.includes('row-level security policy')) {
+              // Este error podría ser por la política de nombre
+              mostrarMensaje('El nombre ingresado no es válido. Por favor, ingresa un nombre y apellido reales.', 'error');
+            } else {
+              mostrarMensaje('Error al agendar la cita: ' + error.message, 'error');
+            }
+          } else {
+            // Éxito
+            mostrarMensaje('¡Cita agendada con éxito! Te esperamos en la barbería.', 'exito');
+            document.getElementById('citaForm').reset();
+          }
+        } catch (error) {
+          mostrarMensaje('Error inesperado: ' + error.message, 'error');
+        }
+      });
     });
+    
+    // Función para validar el nombre
+    function validarNombre(nombre) {
+      // Verificar que tenga al menos 3 caracteres
+      if (nombre.length < 3) {
+        return "El nombre debe tener al menos 3 caracteres";
+      }
+      
+      // Verificar que no tenga más de 50 caracteres
+      if (nombre.length > 50) {
+        return "El nombre no puede tener más de 50 caracteres";
+      }
+      
+      // Verificar que solo contenga letras, espacios y caracteres especiales permitidos
+      const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/;
+      if (!regex.test(nombre)) {
+        return "El nombre solo puede contener letras y espacios";
+      }
+      
+      // Verificar que no tenga tres letras iguales consecutivas
+      const tresLetrasIguales = /([a-zA-Z])\1\1/;
+      if (tresLetrasIguales.test(nombre)) {
+        return "El nombre no puede tener tres letras iguales consecutivas";
+      }
+      
+      // Verificar que tenga al menos dos palabras (nombre y apellido)
+      const palabras = nombre.trim().split(/\s+/);
+      if (palabras.length < 2) {
+        return "Debe ingresar al menos un nombre y un apellido";
+      }
+      
+      // Verificar que cada palabra tenga al menos 2 caracteres
+      for (let palabra of palabras) {
+        if (palabra.length < 2) {
+          return "Cada nombre/apellido debe tener al menos 2 caracteres";
+        }
+      }
+      
+      return null; // Nombre válido
+    }
+    
+    // Función para mostrar mensajes de estado
+    function mostrarMensaje(mensaje, tipo) {
+      const mensajeElement = document.getElementById('mensaje');
+      mensajeElement.textContent = mensaje;
+      mensajeElement.className = '';
+      mensajeElement.style.display = 'block';
+      
+      if (tipo === 'exito') {
+        mensajeElement.classList.add('mensaje-exito');
+      } else if (tipo === 'error') {
+        mensajeElement.classList.add('mensaje-error');
+      } else if (tipo === 'cargando') {
+        // Estilo para mensaje de carga
+        mensajeElement.style.background = 'rgba(184, 134, 11, 0.2)';
+        mensajeElement.style.color = 'var(--gold)';
+        mensajeElement.style.border = '1px solid rgba(184, 134, 11, 0.3)';
+      }
+      
+      // Desplazarse al mensaje para asegurar que el usuario lo vea
+      mensajeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   </script>
 </body>
 </html>
