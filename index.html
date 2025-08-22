@@ -534,6 +534,150 @@
       background-color: rgba(180, 150, 50, 0.3);
     }
     
+    /* Estilos para la galería */
+    .gallery-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.95);
+      z-index: 1003;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .gallery-container {
+      background-color: var(--dark);
+      border: 2px solid var(--dark-gold);
+      border-radius: 10px;
+      width: 90%;
+      max-width: 1000px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background-color: rgba(30, 30, 30, 0.9);
+      border-bottom: 1px solid var(--dark-gold);
+    }
+    
+    .gallery-header h3 {
+      color: var(--light-gold);
+      margin: 0;
+    }
+    
+    .gallery-close {
+      background: none;
+      border: none;
+      color: var(--light);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 5px;
+    }
+    
+    .gallery-content {
+      padding: 1rem;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .gallery-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 1;
+    }
+    
+    .gallery-item img,
+    .gallery-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .gallery-item:hover img,
+    .gallery-item:hover video {
+      transform: scale(1.05);
+    }
+    
+    .loading-gallery {
+      text-align: center;
+      color: var(--light-gold);
+      padding: 2rem;
+    }
+    
+    /* Estilos para admin galería */
+    .gallery-admin-controls {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(180, 150, 50, 0.3);
+    }
+    
+    .upload-section {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: rgba(30, 30, 30, 0.5);
+      border-radius: 5px;
+    }
+    
+    .gallery-admin-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 1rem 0;
+      padding: 1rem;
+      background: rgba(30, 30, 30, 0.5);
+      border-radius: 5px;
+    }
+    
+    .admin-file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      background: rgba(50, 50, 50, 0.5);
+      border-radius: 4px;
+    }
+    
+    .admin-file-item:hover {
+      background: rgba(60, 60, 60, 0.7);
+    }
+    
+    .file-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--light);
+    }
+    
+    .file-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .delete-file {
+      background: var(--red);
+      color: white;
+      border: none;
+      padding: 0.3rem 0.5rem;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
     @media (max-width: 768px) {
       .logo-image {
         height: 50px;
@@ -584,6 +728,16 @@
       .admin-gear i {
         font-size: 20px;
       }
+      
+      .gallery-content {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.5rem;
+      }
+      
+      .admin-camera {
+        right: 60px !important;
+        bottom: 15px !important;
+      }
     }
   </style>
 </head>
@@ -598,6 +752,11 @@
   <!-- Icono de engranaje para acceso admin -->
   <div class="admin-gear" id="adminGear">
     <i class="fas fa-cog"></i>
+  </div>
+  
+  <!-- Icono de cámara para acceso admin galería -->
+  <div class="admin-gear admin-camera" id="adminCamera" style="right: 80px; background-color: #27ae60;">
+    <i class="fas fa-camera"></i>
   </div>
   
   <!-- Modal de contraseña -->
@@ -645,6 +804,54 @@
     </div>
   </div>
   
+  <!-- Modal Galería para Clientes -->
+  <div class="gallery-modal" id="galleryModal">
+    <div class="gallery-container">
+      <div class="gallery-header">
+        <h3>Galería Barber-K</h3>
+        <button class="gallery-close" id="closeGallery">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="gallery-content" id="galleryContent">
+        <p class="loading-gallery">Cargando galería...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Admin Galería -->
+  <div class="password-modal" id="galleryAdminModal">
+    <div class="password-container">
+      <h3>Admin Galería</h3>
+      <input type="password" class="password-input" id="galleryPassword" placeholder="Contraseña de administración">
+      <button class="password-btn" id="submitGalleryPassword">Acceder</button>
+      <button class="password-btn" id="cancelGalleryPassword">Cancelar</button>
+      <p class="password-error" id="galleryPasswordError">Contraseña incorrecta</p>
+      
+      <div class="gallery-admin-controls" id="galleryAdminControls" style="display: none;">
+        <h4>Gestión de Galería</h4>
+        
+        <!-- Subida de archivos -->
+        <div class="upload-section">
+          <input type="file" id="galleryUpload" multiple accept="image/*,video/*" style="display: none;">
+          <button class="password-btn" onclick="document.getElementById('galleryUpload').click()">
+            <i class="fas fa-upload"></i> Subir Archivos
+          </button>
+          <div id="uploadProgress"></div>
+        </div>
+        
+        <!-- Lista de archivos -->
+        <div class="gallery-admin-list" id="galleryAdminList">
+          <p>Cargando archivos...</p>
+        </div>
+        
+        <button class="password-btn" id="closeGalleryAdmin">
+          <i class="fas fa-times"></i> Cerrar Admin
+        </button>
+      </div>
+    </div>
+  </div>
+  
   <div class="container">
     <header>
       <div class="logo-container">
@@ -664,6 +871,10 @@
         <a href="barbero.html" class="btn btn-barber" id="barberLink">
           <i class="fas fa-cut"></i> Soy Barbero
         </a>
+        <!-- Botón Galería para clientes -->
+        <button class="btn btn-barber" id="galeriaBtn">
+          <i class="fas fa-images"></i> Galería Barber-K
+        </button>
       </div>
       
       <!-- Ubicación de la barbería -->
@@ -717,6 +928,22 @@
       MAINTENANCE: 'maintenance_cache',
       MAINTENANCE_TIMESTAMP: 'maintenance_timestamp'
     };
+
+    // ===== CONFIGURACIÓN BACKBLAZE B2 =====
+    const B2_CONFIG = {
+      bucketId: '152e8f0a281dc7f6908b041a', // 👈 REEMPLAZA con tu Bucket ID
+      endpoint: 'https://s3.us-east-005.backblazeb2.com', // 👈 REEMPLAZA con tu Endpoint
+      credentials: {
+        keyId: '0055efa8d760b4a0000000002', // 👈 REEMPLAZA con tu nueva Key ID
+        applicationKey: 'K005i2BsiNdPD3+fIfVsqhGbTWmsm0Y' // 👈 REEMPLAZA con tu nueva Application Key
+      }
+    };
+
+    // Contraseña para admin galería (cámbiala por seguridad)
+    const GALLERY_ADMIN_PASSWORD = "GaleriaBarberK2025";
+
+    // Variables globales
+    let galleryFiles = [];
 
     // 5. Inicialización de Supabase
     async function initializeSupabase() {
@@ -924,6 +1151,277 @@
       }
     }
 
+    // ===== FUNCIONES BACKBLAZE B2 =====
+    async function listGalleryFiles() {
+      try {
+        const response = await fetch(`${B2_CONFIG.endpoint}/${B2_CONFIG.bucketId}?prefix=gallery/`, {
+          headers: {
+            'Authorization': 'Basic ' + btoa(B2_CONFIG.credentials.keyId + ':' + B2_CONFIG.credentials.applicationKey)
+          }
+        });
+        
+        if (!response.ok) throw new Error('Error al listar archivos');
+        
+        const data = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(data, "text/xml");
+        const contents = xmlDoc.getElementsByTagName("Contents");
+        
+        galleryFiles = [];
+        for (let i = 0; i < contents.length; i++) {
+          const key = contents[i].getElementsByTagName("Key")[0].textContent;
+          if (key !== 'gallery/') {
+            galleryFiles.push({
+              name: key.split('/').pop(),
+              key: key,
+              url: `${B2_CONFIG.endpoint}/${B2_CONFIG.bucketId}/${key}`,
+              lastModified: contents[i].getElementsByTagName("LastModified")[0].textContent
+            });
+          }
+        }
+        
+        return galleryFiles;
+      } catch (error) {
+        console.error('Error listing files:', error);
+        throw error;
+      }
+    }
+
+    async function uploadToBackblaze(file) {
+      const fileName = `gallery/${Date.now()}_${file.name}`;
+      
+      try {
+        // Obtener URL de upload autorizada
+        const authResponse = await fetch(`${B2_CONFIG.endpoint}/b2api/v2/b2_get_upload_url?bucketId=${B2_CONFIG.bucketId}`, {
+          headers: {
+            'Authorization': 'Basic ' + btoa(B2_CONFIG.credentials.keyId + ':' + B2_CONFIG.credentials.applicationKey)
+          }
+        });
+        
+        if (!authResponse.ok) throw new Error('Error getting upload URL');
+        
+        const authData = await authResponse.json();
+        
+        // Subir el archivo
+        const uploadResponse = await fetch(authData.uploadUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': authData.authorizationToken,
+            'X-Bz-File-Name': fileName,
+            'Content-Type': file.type,
+            'X-Bz-Content-Sha1': 'do_not_verify'
+          },
+          body: file
+        });
+        
+        if (!uploadResponse.ok) throw new Error('Error uploading file');
+        
+        return await uploadResponse.json();
+      } catch (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+    }
+
+    async function deleteFromBackblaze(fileName) {
+      try {
+        const files = await listGalleryFiles();
+        const fileToDelete = files.find(f => f.name === fileName);
+        
+        if (!fileToDelete) throw new Error('File not found');
+        
+        const response = await fetch(`${B2_CONFIG.endpoint}/b2api/v2/b2_delete_file_version`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Basic ' + btoa(B2_CONFIG.credentials.keyId + ':' + B2_CONFIG.credentials.applicationKey),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fileName: fileToDelete.key,
+            fileId: fileToDelete.fileId
+          })
+        });
+        
+        if (!response.ok) throw new Error('Error deleting file');
+        
+        return true;
+      } catch (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+    }
+
+    // ===== FUNCIONES DE LA GALERÍA =====
+    async function loadGallery() {
+      const galleryContent = document.getElementById('galleryContent');
+      galleryContent.innerHTML = '<p class="loading-gallery">Cargando galería...</p>';
+      
+      try {
+        const files = await listGalleryFiles();
+        
+        if (files.length === 0) {
+          galleryContent.innerHTML = '<p class="no-citas">No hay archivos en la galería</p>';
+          return;
+        }
+        
+        galleryContent.innerHTML = '';
+        files.forEach(file => {
+          const isImage = file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+          const isVideo = file.name.match(/\.(mp4|webm|ogg)$/i);
+          
+          const item = document.createElement('div');
+          item.className = 'gallery-item';
+          
+          if (isImage) {
+            item.innerHTML = `<img src="${file.url}" alt="${file.name}" loading="lazy">`;
+          } else if (isVideo) {
+            item.innerHTML = `
+              <video controls>
+                <source src="${file.url}" type="video/mp4">
+                Tu navegador no soporta el elemento video.
+              </video>
+            `;
+          }
+          
+          galleryContent.appendChild(item);
+        });
+      } catch (error) {
+        galleryContent.innerHTML = '<p class="error-citas">Error al cargar la galería</p>';
+      }
+    }
+
+    async function loadAdminGallery() {
+      const adminList = document.getElementById('galleryAdminList');
+      adminList.innerHTML = '<p>Cargando archivos...</p>';
+      
+      try {
+        const files = await listGalleryFiles();
+        
+        if (files.length === 0) {
+          adminList.innerHTML = '<p>No hay archivos en la galería</p>';
+          return;
+        }
+        
+        adminList.innerHTML = '';
+        files.forEach(file => {
+          const item = document.createElement('div');
+          item.className = 'admin-file-item';
+          item.innerHTML = `
+            <span class="file-name">${file.name}</span>
+            <div class="file-actions">
+              <button class="delete-file" data-filename="${file.name}">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          `;
+          adminList.appendChild(item);
+        });
+        
+        // Event listeners para borrar
+        document.querySelectorAll('.delete-file').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const fileName = e.currentTarget.getAttribute('data-filename');
+            deleteFile(fileName);
+          });
+        });
+      } catch (error) {
+        adminList.innerHTML = '<p>Error al cargar archivos</p>';
+      }
+    }
+
+    async function deleteFile(fileName) {
+      if (!confirm(`¿Eliminar "${fileName}"?`)) return;
+      
+      try {
+        await deleteFromBackblaze(fileName);
+        await loadAdminGallery();
+      } catch (error) {
+        alert('Error al eliminar archivo');
+      }
+    }
+
+    async function handleFileUpload(e) {
+      const files = e.target.files;
+      const progressDiv = document.getElementById('uploadProgress');
+      
+      if (!files.length) return;
+      
+      progressDiv.innerHTML = '<p>Subiendo archivos...</p>';
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        try {
+          progressDiv.innerHTML = `<p>Subiendo: ${file.name}...</p>`;
+          await uploadToBackblaze(file);
+        } catch (error) {
+          progressDiv.innerHTML += `<p style="color: var(--red);">Error subiendo ${file.name}</p>`;
+        }
+      }
+      
+      progressDiv.innerHTML += '<p>¡Subida completada!</p>';
+      await loadAdminGallery();
+      setTimeout(() => { progressDiv.innerHTML = ''; }, 3000);
+    }
+
+    // ===== EVENT LISTENERS PARA GALERÍA =====
+    function setupGalleryListeners() {
+      // Botón galería clientes
+      document.getElementById('galeriaBtn')?.addEventListener('click', () => {
+        document.getElementById('galleryModal').style.display = 'flex';
+        loadGallery();
+      });
+      
+      // Cerrar galería
+      document.getElementById('closeGallery')?.addEventListener('click', () => {
+        document.getElementById('galleryModal').style.display = 'none';
+      });
+      
+      // Icono admin galería
+      document.getElementById('adminCamera')?.addEventListener('click', () => {
+        document.getElementById('galleryAdminModal').style.display = 'flex';
+        document.getElementById('galleryPassword').focus();
+      });
+      
+      // Contraseña admin galería
+      document.getElementById('submitGalleryPassword')?.addEventListener('click', () => {
+        const password = document.getElementById('galleryPassword').value;
+        const errorElement = document.getElementById('galleryPasswordError');
+        
+        if (password === GALLERY_ADMIN_PASSWORD) {
+          errorElement.style.display = 'none';
+          document.getElementById('galleryAdminControls').style.display = 'block';
+          document.getElementById('galleryPassword').style.display = 'none';
+          document.getElementById('submitGalleryPassword').style.display = 'none';
+          document.getElementById('cancelGalleryPassword').textContent = 'Cerrar';
+          loadAdminGallery();
+        } else {
+          errorElement.style.display = 'block';
+          document.getElementById('galleryPassword').value = '';
+        }
+      });
+      
+      // Cancelar admin galería
+      document.getElementById('cancelGalleryPassword')?.addEventListener('click', () => {
+        document.getElementById('galleryAdminModal').style.display = 'none';
+        // Resetear modal
+        document.getElementById('galleryAdminControls').style.display = 'none';
+        document.getElementById('galleryPassword').style.display = 'block';
+        document.getElementById('submitGalleryPassword').style.display = 'inline-block';
+        document.getElementById('cancelGalleryPassword').textContent = 'Cancelar';
+        document.getElementById('galleryPassword').value = '';
+        document.getElementById('galleryPasswordError').style.display = 'none';
+      });
+      
+      // Cerrar admin galería desde dentro
+      document.getElementById('closeGalleryAdmin')?.addEventListener('click', () => {
+        document.getElementById('galleryAdminModal').style.display = 'none';
+      });
+      
+      // Subida de archivos
+      document.getElementById('galleryUpload')?.addEventListener('change', handleFileUpload);
+    }
+
     // 13. Configuración de event listeners
     function setupEventListeners() {
       // Botón de refrescar citas
@@ -1059,6 +1557,7 @@
       checkMaintenanceRedirect();
       setupEventListeners();
       setupRatingSystem();
+      setupGalleryListeners();
       
       // 2. Inicializar Supabase
       const supabaseReady = await initializeSupabase();
