@@ -249,8 +249,10 @@
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <h2><i class="fas fa-lock"></i> Acceso Admin</h2>
-            <input type="password" id="passwordInput" placeholder="Contraseña">
-            <button onclick="checkPassword()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+            <form onsubmit="event.preventDefault(); checkPassword();">
+                <input type="password" id="passwordInput" placeholder="Contraseña" required>
+                <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+            </form>
         </div>
     </div>
 
@@ -293,11 +295,17 @@
 
         // Eventos
         adminLogo.addEventListener('click', () => {
-            if (isAuthenticated) disableAdminMode();
-            else loginModal.style.display = 'block';
+            if (isAuthenticated) {
+                disableAdminMode();
+            } else {
+                loginModal.style.display = 'block';
+            }
         });
 
-        uploadBtn.addEventListener('click', () => fileInput.click());
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
         fileInput.addEventListener('change', handleFileUpload);
 
         // Función de login
@@ -365,7 +373,8 @@
             if (!files.length) return;
 
             loading.style.display = 'flex';
-            for (const file of files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 try {
                     await uploadFile(file);
                 } catch (error) {
@@ -386,7 +395,9 @@
             }
 
             // Generar URL pre-signed
-            const { url, key } = await generatePresignedUrl(processedFile.name, processedFile.type);
+            const presignedResponse = await generatePresignedUrl(processedFile.name, processedFile.type);
+            const url = presignedResponse.url;
+            const key = presignedResponse.key;
 
             // Subir a Backblaze
             await fetch(url, {
@@ -460,9 +471,6 @@
             if (!confirm('¿Eliminar este archivo?')) return;
 
             try {
-                // Eliminar de Backblaze (requiere otra Edge Function)
-                // await deleteFromBackblaze(key);
-
                 // Eliminar de Supabase
                 const { error } = await supabase
                     .from('media')
@@ -482,7 +490,7 @@
         // Funciones auxiliares
         function showToast(message, isError = false) {
             toast.textContent = message;
-            toast.style.background = isError ? '#dc3545' : var(--primary);
+            toast.style.background = isError ? '#dc3545' : '#007bff'; // Usando valor directo en lugar de var()
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
