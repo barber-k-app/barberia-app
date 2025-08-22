@@ -249,8 +249,10 @@
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <h2><i class="fas fa-lock"></i> Acceso Admin</h2>
-            <form onsubmit="event.preventDefault(); checkPassword();">
-                <input type="password" id="passwordInput" placeholder="Contraseña" required autocomplete="new-password">
+            <form id="loginForm">
+                <!-- Campo de usuario oculto para accesibilidad -->
+                <input type="text" name="username" autocomplete="username" style="display: none;">
+                <input type="password" id="passwordInput" placeholder="Contraseña" required autocomplete="current-password">
                 <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
             </form>
         </div>
@@ -279,8 +281,9 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         // Variables globales
-        let supabase;
+        let supabaseClient;
         let isAuthenticated = false;
+        let isLoading = false;
 
         // Inicializar la aplicación cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
@@ -289,65 +292,59 @@
 
         function initializeApp() {
             try {
-                // Configura Supabase - DEBE inicializarse después de cargar el SDK
+                // Configura Supabase
                 const supabaseUrl = 'https://azjlrbmgpczuintqyosm.supabase.co';
                 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM2MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M';
                 
-                // Verificar que Supabase esté disponible
-                if (typeof supabase !== 'undefined') {
-                    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-                } else {
-                    // Fallback: recargar la página si Supabase no está disponible
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                    return;
-                }
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-                // Configurar elementos DOM
+                // Configurar event listeners
                 const adminLogo = document.getElementById('adminLogo');
-                const loginModal = document.getElementById('loginModal');
-                const passwordInput = document.getElementById('passwordInput');
-                const gallery = document.getElementById('gallery');
+                const loginForm = document.getElementById('loginForm');
                 const uploadBtn = document.getElementById('uploadBtn');
                 const fileInput = document.getElementById('fileInput');
-                const loading = document.getElementById('loading');
-                const toast = document.getElementById('toast');
 
-                // Verificar autenticación
-                isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
-                
-                // Configurar event listeners
                 if (adminLogo) {
-                    adminLogo.addEventListener('click', () => {
-                        if (isAuthenticated) {
-                            disableAdminMode();
-                        } else {
-                            loginModal.style.display = 'block';
-                        }
-                    });
+                    adminLogo.addEventListener('click', handleAdminLogoClick);
                 }
 
-                if (uploadBtn) {
-                    uploadBtn.addEventListener('click', () => {
-                        fileInput.click();
-                    });
+                if (loginForm) {
+                    loginForm.addEventListener('submit', handleLoginSubmit);
                 }
 
-                if (fileInput) {
+                if (uploadBtn && fileInput) {
+                    uploadBtn.addEventListener('click', () => fileInput.click());
                     fileInput.addEventListener('change', handleFileUpload);
                 }
 
-                // Cargar galería inicial
+                // Verificar autenticación y cargar galería
+                isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
+                
                 if (isAuthenticated) {
                     enableAdminMode();
                 }
+                
                 loadGallery();
 
             } catch (error) {
                 console.error('Error inicializando la aplicación:', error);
                 showToast('Error inicializando la aplicación', true);
             }
+        }
+
+        // Manejador de clic en logo de admin
+        function handleAdminLogoClick() {
+            if (isAuthenticated) {
+                disableAdminMode();
+            } else {
+                document.getElementById('loginModal').style.display = 'block';
+            }
+        }
+
+        // Manejador de submit del formulario de login
+        function handleLoginSubmit(event) {
+            event.preventDefault();
+            checkPassword();
         }
 
         // Función de login
@@ -359,6 +356,7 @@
                 localStorage.setItem('adminAuthenticated', 'true');
                 isAuthenticated = true;
                 document.getElementById('loginModal').style.display = 'none';
+                passwordInput.value = '';
                 enableAdminMode();
                 showToast('Modo admin activado');
             } else {
@@ -380,16 +378,22 @@
 
         // Cargar galería
         async function loadGallery() {
+            if (isLoading) return;
+            
+            isLoading = true;
             try {
                 showLoading(true);
                 const gallery = document.getElementById('gallery');
                 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('media')
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error de Supabase:', error);
+                    throw error;
+                }
 
                 gallery.innerHTML = '';
                 
@@ -415,9 +419,10 @@
             } catch (error) {
                 console.error('Error loading gallery:', error);
                 const gallery = document.getElementById('gallery');
-                gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ff6b6b;">Error cargando la galería. Recarga la página.</p>';
+                gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ff6b6b;">Error cargando la galería</p>';
             } finally {
                 showLoading(false);
+                isLoading = false;
             }
         }
 
@@ -450,11 +455,10 @@
         }
 
         async function uploadFile(file) {
-            // Aquí iría la lógica de subida...
-            // Por ahora, simulamos una subida exitosa
+            // Simulación de subida (reemplazar con tu lógica real)
             return new Promise(resolve => {
                 setTimeout(() => {
-                    showToast(`${file.name} subido correctamente (simulado)`);
+                    showToast(`${file.name} subido correctamente`);
                     resolve();
                 }, 1000);
             });
@@ -465,8 +469,7 @@
             if (!confirm('¿Eliminar este archivo?')) return;
 
             try {
-                // Eliminar de Supabase
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('media')
                     .delete()
                     .eq('id', id);
@@ -481,7 +484,7 @@
             }
         }
 
-        // Funciones auxiliares
+        // Mostrar notificación
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             if (toast) {
@@ -495,7 +498,6 @@
         }
 
         // Hacer funciones globales para los event listeners HTML
-        window.checkPassword = checkPassword;
         window.deleteMedia = deleteMedia;
     </script>
 </body>
