@@ -250,7 +250,7 @@
         <div class="modal-content">
             <h2><i class="fas fa-lock"></i> Acceso Admin</h2>
             <form onsubmit="event.preventDefault(); checkPassword();">
-                <input type="password" id="passwordInput" placeholder="Contraseña" required>
+                <input type="password" id="passwordInput" placeholder="Contraseña" required autocomplete="new-password">
                 <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
             </form>
         </div>
@@ -274,7 +274,7 @@
     <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Configura Supabase
+        // Configura Supabase - INICIALIZACIÓN AL PRINCIPIO
         const supabaseUrl = 'https://azjlrbmgpczuintqyosm.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM2MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -290,8 +290,15 @@
         const toast = document.getElementById('toast');
 
         // Verificar autenticación
-        const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
-        if (isAuthenticated) enableAdminMode();
+        let isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
+        
+        // Inicializar después de que el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isAuthenticated) {
+                enableAdminMode();
+            }
+            loadGallery();
+        });
 
         // Eventos
         adminLogo.addEventListener('click', () => {
@@ -314,6 +321,7 @@
             // Cambia esta contraseña por una segura
             if (password === 'barbero123') {
                 localStorage.setItem('adminAuthenticated', 'true');
+                isAuthenticated = true;
                 loginModal.style.display = 'none';
                 enableAdminMode();
                 showToast('Modo admin activado');
@@ -330,6 +338,7 @@
 
         function disableAdminMode() {
             localStorage.removeItem('adminAuthenticated');
+            isAuthenticated = false;
             document.body.classList.remove('admin-mode');
             loadGallery();
             showToast('Modo admin desactivado');
@@ -338,6 +347,7 @@
         // Cargar galería
         async function loadGallery() {
             try {
+                showLoading(true);
                 const { data, error } = await supabase
                     .from('media')
                     .select('*')
@@ -346,25 +356,41 @@
                 if (error) throw error;
 
                 gallery.innerHTML = '';
-                data.forEach(item => {
-                    const mediaElement = item.type.startsWith('image/') ? 
-                        `<img src="${item.url}" alt="${item.title}" loading="lazy">` :
-                        `<video controls><source src="${item.url}" type="${item.type}"></video>`;
+                
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        // Asegurarse de que los IDs no tengan comillas problemáticas
+                        const safeId = item.id.replace(/'/g, "\\'");
+                        const safeUrl = item.url.replace(/'/g, "\\'");
+                        
+                        const mediaElement = item.type.startsWith('image/') ? 
+                            `<img src="${safeUrl}" alt="${item.title}" loading="lazy">` :
+                            `<video controls><source src="${safeUrl}" type="${item.type}"></video>`;
 
-                    const deleteBtn = isAuthenticated ? 
-                        `<button class="delete-btn" onclick="deleteMedia('${item.id}', '${item.url.split('/').pop()}')"><i class="fas fa-trash"></i></button>` : '';
+                        const deleteBtn = isAuthenticated ? 
+                            `<button class="delete-btn" onclick="deleteMedia('${safeId}')"><i class="fas fa-trash"></i></button>` : '';
 
-                    gallery.innerHTML += `
-                        <div class="media-item">
-                            ${mediaElement}
-                            ${deleteBtn}
-                        </div>
-                    `;
-                });
+                        gallery.innerHTML += `
+                            <div class="media-item">
+                                ${mediaElement}
+                                ${deleteBtn}
+                            </div>
+                        `;
+                    });
+                } else {
+                    gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px;">No hay medios en la galería</p>';
+                }
             } catch (error) {
                 console.error('Error loading gallery:', error);
                 showToast('Error cargando galería', true);
+            } finally {
+                showLoading(false);
             }
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            loading.style.display = show ? 'flex' : 'none';
         }
 
         // Subir archivo
@@ -372,7 +398,7 @@
             const files = e.target.files;
             if (!files.length) return;
 
-            loading.style.display = 'flex';
+            showLoading(true);
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 try {
@@ -382,7 +408,7 @@
                     showToast(`Error subiendo ${file.name}`, true);
                 }
             }
-            loading.style.display = 'none';
+            showLoading(false);
             fileInput.value = '';
             loadGallery();
         }
@@ -396,22 +422,28 @@
 
             // Generar URL pre-signed
             const presignedResponse = await generatePresignedUrl(processedFile.name, processedFile.type);
-            const url = presignedResponse.url;
-            const key = presignedResponse.key;
+            
+            if (!presignedResponse.url || !presignedResponse.key) {
+                throw new Error('No se pudo generar la URL pre-signed');
+            }
 
             // Subir a Backblaze
-            await fetch(url, {
+            const uploadResponse = await fetch(presignedResponse.url, {
                 method: 'PUT',
                 body: processedFile,
                 headers: { 'Content-Type': processedFile.type },
             });
+
+            if (!uploadResponse.ok) {
+                throw new Error('Error subiendo a Backblaze');
+            }
 
             // Guardar en Supabase
             const { error } = await supabase
                 .from('media')
                 .insert([{
                     title: processedFile.name,
-                    url: `https://barber-k-galeria.s3.us-east-005.backblazeb2.com/${key}`,
+                    url: `https://barber-k-galeria.s3.us-east-005.backblazeb2.com/${presignedResponse.key}`,
                     type: processedFile.type,
                 }]);
 
@@ -455,19 +487,30 @@
 
         // Generar URL pre-signed
         async function generatePresignedUrl(filename, contentType) {
-            const response = await fetch(
-                `${supabaseUrl}/functions/v1/generate-presigned-url`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename, contentType }),
+            try {
+                const response = await fetch(
+                    `${supabaseUrl}/functions/v1/generate-presigned-url`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename, contentType }),
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
                 }
-            );
-            return await response.json();
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error generating presigned URL:', error);
+                showToast('Error conectando con el servidor', true);
+                throw error;
+            }
         }
 
         // Eliminar archivo
-        async function deleteMedia(id, key) {
+        async function deleteMedia(id) {
             if (!confirm('¿Eliminar este archivo?')) return;
 
             try {
@@ -490,13 +533,10 @@
         // Funciones auxiliares
         function showToast(message, isError = false) {
             toast.textContent = message;
-            toast.style.background = isError ? '#dc3545' : '#007bff'; // Usando valor directo en lugar de var()
+            toast.style.background = isError ? '#dc3545' : '#007bff';
             toast.style.display = 'block';
             setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
-
-        // Cargar galería al inicio
-        loadGallery();
     </script>
 </body>
 </html>
