@@ -17,7 +17,6 @@
       --light: #f8f8f8;
       --red: #e74c3c;
       --green: #2ecc71;
-      --darker: #0a0a0a; /* Color más oscuro para fondo de galería */
     }
     
     * {
@@ -221,143 +220,6 @@
       opacity: 0.8;
     }
     
-    /* Estilos para la galería */
-    .gallery-section {
-      padding: 3rem 2rem;
-      background: var(--darker);
-      margin: 2rem 0;
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(180, 150, 50, 0.1);
-    }
-    
-    .gallery-title {
-      text-align: center;
-      color: var(--light-gold);
-      margin-bottom: 2rem;
-      font-size: 2rem;
-      position: relative;
-      display: inline-block;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    
-    .gallery-title::after {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, 
-        transparent, 
-        var(--dark-gold), 
-        transparent);
-      bottom: -10px;
-      left: 0;
-    }
-    
-    .gallery-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-    
-    .gallery-item {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      aspect-ratio: 3/4;
-      cursor: pointer;
-    }
-    
-    .gallery-item:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(180, 150, 50, 0.2);
-    }
-    
-    .gallery-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-    
-    .gallery-item:hover .gallery-img {
-      transform: scale(1.05);
-    }
-    
-    .gallery-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-      padding: 1rem;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .gallery-item:hover .gallery-overlay {
-      opacity: 1;
-    }
-    
-    .gallery-caption {
-      color: var(--light);
-      font-size: 0.9rem;
-      text-align: center;
-    }
-    
-    /* Modal para imagen ampliada */
-    .gallery-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.9);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .modal-content {
-      max-width: 90%;
-      max-height: 90%;
-      margin: auto;
-      display: block;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(180, 150, 50, 0.5);
-    }
-    
-    .modal-close {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: var(--light);
-      font-size: 40px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: color 0.3s;
-    }
-    
-    .modal-close:hover {
-      color: var(--light-gold);
-    }
-    
-    .modal-caption {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      color: var(--light);
-      padding: 10px;
-      background-color: rgba(0, 0, 0, 0.7);
-    }
-    
     footer {
       margin-top: auto;
       padding: 1.5rem;
@@ -549,6 +411,10 @@
       transition: all 0.3s ease;
     }
     
+    .admin-gear:hover {
+      transform: rotate(30deg) scale(1.1);
+    }
+    
     .admin-gear.maintenance-active {
       background-color: var(--red);
       animation: pulse 2s infinite;
@@ -588,10 +454,9 @@
       text-align: center;
     }
     
-    .password-form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .password-container h3 {
+      color: var(--light-gold);
+      margin-bottom: 1rem;
     }
     
     .password-input {
@@ -652,9 +517,6 @@
     
     .protected-links {
       margin-top: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
     
     .protected-link {
@@ -670,96 +532,6 @@
     
     .protected-link:hover {
       background-color: rgba(180, 150, 50, 0.3);
-    }
-    
-    /* Estilos para la interfaz de subida */
-    .upload-section {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    .upload-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      margin-bottom: 1rem;
-    }
-    
-    .preview-container {
-      display: none;
-      margin-top: 2rem;
-      text-align: center;
-    }
-    
-    .preview-title {
-      color: var(--light-gold);
-      margin-bottom: 1rem;
-    }
-    
-    .preview-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-    
-    .preview-item {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    }
-    
-    .preview-img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-    }
-    
-    .preview-video {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-    }
-    
-    .remove-preview {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: var(--red);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 25px;
-      height: 25px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    
-    .upload-progress {
-      width: 100%;
-      height: 10px;
-      background: rgba(180, 150, 50, 0.2);
-      border-radius: 5px;
-      overflow: hidden;
-      margin: 1rem 0;
-    }
-    
-    .progress-bar {
-      height: 100%;
-      background: var(--dark-gold);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-    
-    .upload-status {
-      color: var(--light);
-      margin-top: 1rem;
-      font-size: 0.9rem;
     }
     
     @media (max-width: 768px) {
@@ -795,19 +567,6 @@
         max-height: none;
       }
       
-      .gallery-section {
-        padding: 2rem 1rem;
-      }
-      
-      .gallery-title {
-        font-size: 1.5rem;
-      }
-      
-      .gallery-container {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-      }
-      
       .maintenance-badge {
         top: 10px;
         right: 10px;
@@ -824,25 +583,6 @@
       
       .admin-gear i {
         font-size: 20px;
-      }
-      
-      .modal-close {
-        top: 10px;
-        right: 15px;
-        font-size: 30px;
-      }
-      
-      .preview-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 0.8rem;
-      }
-      
-      .preview-img, .preview-video {
-        height: 120px;
-      }
-      
-      .protected-links {
-        flex-direction: column;
       }
     }
   </style>
@@ -864,13 +604,9 @@
   <div class="password-modal" id="passwordModal">
     <div class="password-container">
       <h3 id="modalTitle">Acceso Administrativo</h3>
-      <form class="password-form" id="passwordForm">
-        <input type="password" class="password-input" id="adminPassword" placeholder="Ingrese la contraseña" required>
-        <div>
-          <button type="submit" class="password-btn" id="submitPassword">Acceder</button>
-          <button type="button" class="password-btn" id="cancelPassword">Cancelar</button>
-        </div>
-      </form>
+      <input type="password" class="password-input" id="adminPassword" placeholder="Ingrese la contraseña">
+      <button class="password-btn" id="submitPassword">Acceder</button>
+      <button class="password-btn" id="cancelPassword">Cancelar</button>
       <p class="password-error" id="passwordError">Contraseña incorrecta</p>
       <p class="access-granted" id="accessGranted">Acceso concedido ✓</p>
       
@@ -949,50 +685,10 @@
       </div>
     </main>
     
-    <!-- SECCIÓN GALERÍA CON INTERFAZ DE SUBIDA -->
-    <section class="gallery-section">
-      <h2 class="gallery-title">✂️ Nuestros Trabajos</h2>
-      
-      <!-- INTERFAZ DE SUBIDA -->
-      <div class="upload-section">
-        <label for="subir-archivos" class="btn btn-client upload-btn">
-          <i class="fas fa-cloud-upload-alt"></i> Subir Fotos/Videos
-        </label>
-        <input type="file" id="subir-archivos" accept="image/*,video/*" multiple style="display: none;">
-      </div>
-      
-      <div class="gallery-container" id="galleryContainer">
-        <!-- Las imágenes se cargarán dinámicamente con JavaScript -->
-      </div>
-      
-      <!-- CONTENEDOR DE PREVISUALIZACIÓN -->
-      <div class="preview-container" id="previewContainer">
-        <h3 class="preview-title">Vista Previa</h3>
-        <div class="preview-grid" id="previewGrid"></div>
-        
-        <div class="upload-progress">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-        
-        <p class="upload-status" id="uploadStatus">Listo para subir</p>
-        
-        <button id="confirmar-subida" class="btn btn-client">
-          <i class="fas fa-check"></i> Confirmar Subida
-        </button>
-      </div>
-    </section>
-
     <footer>
       <p class="copyright">© 2025 Barber-K</p>
       <p class="author">Sistema desarrollado por Antonio Avila telf:.(424)1345912</p>
     </footer>
-  </div>
-
-  <!-- Modal para imagen ampliada -->
-  <div class="gallery-modal" id="galleryModal">
-    <span class="modal-close" id="modalClose">&times;</span>
-    <img class="modal-content" id="modalImage">
-    <div class="modal-caption" id="modalCaption"></div>
   </div>
 
   <script>
@@ -1012,7 +708,7 @@
 
     // 3. Configuración de Supabase
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
     // 4. Claves para el sistema de caché mejorado
     const CACHE_KEYS = {
@@ -1022,38 +718,7 @@
       MAINTENANCE_TIMESTAMP: 'maintenance_timestamp'
     };
 
-    // 5. Datos de la galería (puedes reemplazar con tus propias imágenes)
-    const galleryImages = [
-      {
-        src: "https://barber-k-app.github.io/barberia-app/barber-k3.JPG",
-        caption: "Corte clásico con estilo moderno"
-      },
-      {
-        src: "https://barber-k-app.github.io/barberia-app/barber-k3.JPG",
-        caption: "Barba perfectamente arreglada"
-      },
-      {
-        src: "https://barber-k-app.github.io/barberia-app/barber-k3.JPG",
-        caption: "Estilo urbano contemporáneo"
-      },
-      {
-        src: "https://barber-k-app.github.io/barberia-app/barber-k3.JPG",
-        caption: "Degradado preciso y definido"
-      },
-      {
-        src: "https://barber-k-app.github.io/barberia-app/barber-k3.JPG",
-        caption: "Técnicas profesionales de barbería"
-      },
-      {
-        src: "https://barber-k-app.github.io/barberia-app/barber-k3.JPG",
-        caption: "Atención personalizada a cada cliente"
-      }
-    ];
-
-    // 6. Variables para la subida de archivos
-    let filesToUpload = [];
-
-    // 7. Inicialización de Supabase
+    // 5. Inicialización de Supabase
     async function initializeSupabase() {
       if (supabaseInitialized || typeof supabase === 'undefined') return false;
       
@@ -1068,13 +733,13 @@
       }
     }
 
-    // 8. Función para obtener fecha actual en formato YYYY-MM-DD
+    // 6. Función para obtener fecha actual en formato YYYY-MM-DD
     function obtenerFechaActual() {
       const hoy = new Date();
       return hoy.toISOString().split('T')[0];
     }
 
-    // 9. Sistema de caché mejorado para citas
+    // 7. Sistema de caché mejorado para citas
     async function cargarCitasDelDia(forceRefresh = false) {
       const now = Date.now();
       const fechaHoy = obtenerFechaActual();
@@ -1093,27 +758,13 @@
       citasContainer.innerHTML = '<p class="loading-citas">Cargando citas...</p>';
       
       try {
-        // Verificar si Supabase está inicializado
-        if (!supabaseInitialized) {
-          const initialized = await initializeSupabase();
-          if (!initialized) throw new Error('No se pudo inicializar Supabase');
-        }
-        
         const { data: citas, error } = await window.supabase
           .from('citas')
           .select('nombre, hora, servicio, barbero') // Solo campos necesarios
           .eq('fecha', fechaHoy)
           .order('hora', { ascending: true });
         
-        if (error) {
-          console.error('Error de Supabase:', error);
-          // Mostrar datos de ejemplo si hay error de autenticación
-          if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-            mostrarCitasEjemplo();
-            return;
-          }
-          throw error;
-        }
+        if (error) throw error;
         
         // Actualizar caché
         localStorage.setItem(CACHE_KEYS.CITAS, JSON.stringify(citas));
@@ -1129,25 +780,12 @@
           mostrarCitas(JSON.parse(cacheData));
           mostrarErrorCitas('Mostrando datos cacheados. Error al actualizar: ' + error.message);
         } else {
-          // Mostrar datos de ejemplo si no hay caché
-          mostrarCitasEjemplo();
-          mostrarErrorCitas('Error al cargar citas. Mostrando datos de ejemplo.');
+          mostrarErrorCitas('Error al cargar citas. Intente recargar.');
         }
       }
     }
 
-    // Función para mostrar citas de ejemplo (cuando hay error de autenticación)
-    function mostrarCitasEjemplo() {
-      const citasEjemplo = [
-        { nombre: "Juan Pérez", hora: "09:00", servicio: "Corte Clásico", barbero: "Carlos" },
-        { nombre: "María García", hora: "10:30", servicio: "Arreglo de Barba", barbero: "Antonio" },
-        { nombre: "Luis Rodríguez", hora: "11:45", servicio: "Corte Premium", barbero: "Miguel" },
-        { nombre: "Ana López", hora: "14:00", servicio: "Tinte y Corte", barbero: "Jorge" }
-      ];
-      mostrarCitas(citasEjemplo);
-    }
-
-    // 10. Mostrar citas en el panel
+    // 8. Mostrar citas en el panel
     function mostrarCitas(citas) {
       const citasContainer = document.getElementById('citasContainer');
       if (!citasContainer) return;
@@ -1177,7 +815,7 @@
       citasContainer.appendChild(lista);
     }
 
-    // 11. Manejo de errores
+    // 9. Manejo de errores
     function mostrarErrorCitas(mensaje) {
       const citasContainer = document.getElementById('citasContainer');
       if (citasContainer) {
@@ -1188,7 +826,7 @@
       }
     }
 
-    // 12. Sistema de mantenimiento con caché
+    // 10. Sistema de mantenimiento con caché
     async function checkMaintenanceFromSupabase() {
       const now = Date.now();
       
@@ -1203,28 +841,13 @@
       }
       
       try {
-        // Verificar si Supabase está inicializado
-        if (!supabaseInitialized) {
-          const initialized = await initializeSupabase();
-          if (!initialized) throw new Error('No se pudo inicializar Supabase');
-        }
-        
         const { data, error } = await supabase
           .from('app_settings')
           .select('maintenance_mode')
           .eq('id', 1)
           .single();
 
-        if (error) {
-          console.error('Error de Supabase:', error);
-          // Usar valor por defecto si hay error de autenticación
-          if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-            localStorage.setItem(MAINTENANCE_KEY, 'false');
-            checkMaintenanceStatus();
-            return;
-          }
-          throw error;
-        }
+        if (error) throw error;
 
         const maintenanceMode = data?.maintenance_mode ? 'true' : 'false';
         localStorage.setItem(MAINTENANCE_KEY, maintenanceMode);
@@ -1265,7 +888,7 @@
       return { isMaintenance, hasAccess };
     }
 
-    // 13. Sistema de rating optimizado
+    // 11. Sistema de rating optimizado
     function setupRatingSystem() {
       const starsContainer = document.querySelector('.stars');
       if (!starsContainer) return;
@@ -1289,7 +912,7 @@
       });
     }
 
-    // 14. Protección de rutas durante mantenimiento
+    // 12. Protección de rutas durante mantenimiento
     function checkMaintenanceRedirect() {
       const protectedPaths = ['/cliente.html', '/barbero.html'];
       const currentPath = window.location.pathname;
@@ -1301,197 +924,7 @@
       }
     }
 
-    // 15. Configuración de la galería de imágenes
-    function setupGallery() {
-      const galleryContainer = document.getElementById('galleryContainer');
-      if (!galleryContainer) return;
-      
-      galleryImages.forEach((image, index) => {
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
-        galleryItem.innerHTML = `
-          <img src="${image.src}" alt="Trabajo de barbería ${index + 1}" class="gallery-img">
-          <div class="gallery-overlay">
-            <p class="gallery-caption">${image.caption}</p>
-          </div>
-        `;
-        
-        galleryItem.addEventListener('click', () => {
-          openModal(image.src, image.caption);
-        });
-        
-        galleryContainer.appendChild(galleryItem);
-      });
-    }
-
-    // 16. Funciones para el modal de la galería
-    function openModal(src, caption) {
-      const modal = document.getElementById('galleryModal');
-      const modalImg = document.getElementById('modalImage');
-      const captionText = document.getElementById('modalCaption');
-      
-      modal.style.display = 'flex';
-      modalImg.src = src;
-      captionText.innerHTML = caption;
-      
-      // Cerrar modal al hacer clic fuera de la imagen
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal();
-        }
-      });
-    }
-
-    function closeModal() {
-      document.getElementById('galleryModal').style.display = 'none';
-    }
-
-    // 17. Funciones para la subida de archivos
-    function setupFileUpload() {
-      const fileInput = document.getElementById('subir-archivos');
-      const previewContainer = document.getElementById('previewContainer');
-      const previewGrid = document.getElementById('previewGrid');
-      const confirmButton = document.getElementById('confirmar-subida');
-      const progressBar = document.getElementById('progressBar');
-      const uploadStatus = document.getElementById('uploadStatus');
-      
-      if (!fileInput) return;
-      
-      // Evento para seleccionar archivos
-      fileInput.addEventListener('change', function(e) {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-        
-        // Limpiar archivos anteriores
-        filesToUpload = [];
-        previewGrid.innerHTML = '';
-        
-        // Procesar cada archivo
-        Array.from(files).forEach(file => {
-          filesToUpload.push(file);
-          
-          const previewItem = document.createElement('div');
-          previewItem.className = 'preview-item';
-          
-          if (file.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.className = 'preview-img';
-            img.src = URL.createObjectURL(file);
-            previewItem.appendChild(img);
-          } else if (file.type.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.className = 'preview-video';
-            video.src = URL.createObjectURL(file);
-            video.controls = true;
-            previewItem.appendChild(video);
-          }
-          
-          // Botón para eliminar previsualización
-          const removeBtn = document.createElement('button');
-          removeBtn.className = 'remove-preview';
-          removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-          removeBtn.addEventListener('click', () => {
-            const index = filesToUpload.indexOf(file);
-            if (index > -1) {
-              filesToUpload.splice(index, 1);
-            }
-            previewItem.remove();
-            
-            if (filesToUpload.length === 0) {
-              previewContainer.style.display = 'none';
-            }
-          });
-          
-          previewItem.appendChild(removeBtn);
-          previewGrid.appendChild(previewItem);
-        });
-        
-        // Mostrar contenedor de previsualización
-        previewContainer.style.display = 'block';
-        progressBar.style.width = '0%';
-        uploadStatus.textContent = 'Listo para subir';
-      });
-      
-      // Evento para confirmar la subida
-      confirmButton.addEventListener('click', async function() {
-        if (filesToUpload.length === 0) {
-          alert('No hay archivos para subir');
-          return;
-        }
-        
-        // Verificar acceso administrativo
-        const { hasAccess } = checkMaintenanceStatus();
-        if (!hasAccess) {
-          alert('Se requiere acceso administrativo para subir archivos');
-          document.getElementById('adminGear').click();
-          return;
-        }
-        
-        // Subir archivos
-        uploadStatus.textContent = 'Subiendo archivos...';
-        confirmButton.disabled = true;
-        
-        let uploadedCount = 0;
-        const totalFiles = filesToUpload.length;
-        
-        for (const file of filesToUpload) {
-          try {
-            // Crear nombre único para el archivo
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-            const filePath = `gallery/${fileName}`;
-            
-            // Subir a Supabase Storage
-            const { error: uploadError } = await supabase.storage
-              .from('barberia')
-              .upload(filePath, file);
-            
-            if (uploadError) throw uploadError;
-            
-            // Obtener URL pública
-            const { data: urlData } = supabase.storage
-              .from('barberia')
-              .getPublicUrl(filePath);
-            
-            // Guardar en base de datos
-            const { error: dbError } = await supabase
-              .from('galeria')
-              .insert([
-                {
-                  url: urlData.publicUrl,
-                  tipo: file.type.startsWith('image/') ? 'imagen' : 'video',
-                  descripcion: `Trabajo de barbería - ${new Date().toLocaleDateString()}`
-                }
-              ]);
-            
-            if (dbError) throw dbError;
-            
-            uploadedCount++;
-            const progress = (uploadedCount / totalFiles) * 100;
-            progressBar.style.width = `${progress}%`;
-            uploadStatus.textContent = `Subiendo ${uploadedCount} de ${totalFiles} archivos`;
-            
-          } catch (error) {
-            console.error('Error al subir archivo:', error);
-            uploadStatus.textContent = `Error al subir: ${file.name}`;
-          }
-        }
-        
-        // Finalizar proceso
-        uploadStatus.textContent = `Subida completada: ${uploadedCount}/${totalFiles} archivos`;
-        confirmButton.disabled = false;
-        
-        // Limpiar después de 3 segundos
-        setTimeout(() => {
-          filesToUpload = [];
-          previewContainer.style.display = 'none';
-          fileInput.value = '';
-          progressBar.style.width = '0%';
-        }, 3000);
-      });
-    }
-
-    // 18. Configuración de event listeners
+    // 13. Configuración de event listeners
     function setupEventListeners() {
       // Botón de refrescar citas
       document.getElementById('refreshCitas')?.addEventListener('click', () => {
@@ -1502,12 +935,9 @@
       document.getElementById('adminGear')?.addEventListener('click', handleAdminGearClick);
       
       // Modal de contraseña
-      document.getElementById('passwordForm')?.addEventListener('submit', handlePasswordSubmit);
+      document.getElementById('submitPassword')?.addEventListener('click', handlePasswordSubmit);
       document.getElementById('cancelPassword')?.addEventListener('click', closePasswordModal);
       document.getElementById('toggleMaintenance')?.addEventListener('click', toggleMaintenanceMode);
-      
-      // Modal de galería
-      document.getElementById('modalClose')?.addEventListener('click', closeModal);
       
       // Protección de enlaces
       const protectedLinks = [
@@ -1531,7 +961,7 @@
       });
     }
 
-    // 19. Funciones de administración
+    // 14. Funciones de administración
     function handleAdminGearClick() {
       const { hasAccess } = checkMaintenanceStatus();
       const modalTitle = document.getElementById('modalTitle');
@@ -1564,8 +994,7 @@
       passwordInput.focus();
     }
 
-    function handlePasswordSubmit(e) {
-      e.preventDefault();
+    function handlePasswordSubmit() {
       const passwordInput = document.getElementById('adminPassword');
       const passwordError = document.getElementById('passwordError');
       
@@ -1590,30 +1019,13 @@
       const newMode = !isMaintenance;
       
       try {
-        // Verificar si Supabase está inicializado
-        if (!supabaseInitialized) {
-          const initialized = await initializeSupabase();
-          if (!initialized) throw new Error('No se pudo inicializar Supabase');
-        }
-        
         // Actualizar en Supabase
         const { error } = await supabase
           .from('app_settings')
           .update({ maintenance_mode: newMode })
           .eq('id', 1);
           
-        if (error) {
-          console.error('Error al actualizar modo mantenimiento:', error);
-          // Si hay error de autenticación, solo actualizar localmente
-          if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-            localStorage.setItem(MAINTENANCE_KEY, newMode.toString());
-            localStorage.setItem(CACHE_KEYS.MAINTENANCE, newMode.toString());
-            localStorage.setItem(CACHE_KEYS.MAINTENANCE_TIMESTAMP, Date.now().toString());
-            checkMaintenanceStatus();
-            return;
-          }
-          throw error;
-        }
+        if (error) throw error;
         
         // Actualizar en localStorage
         localStorage.setItem(MAINTENANCE_KEY, newMode.toString());
@@ -1627,7 +1039,7 @@
       }
     }
 
-    // 20. Función con reintentos para consultas a Supabase
+    // 15. Función con reintentos para consultas a Supabase
     async function queryWithRetry(queryFn, maxRetries = 3) {
       for (let i = 0; i < maxRetries; i++) {
         try {
@@ -1641,17 +1053,16 @@
       }
     }
 
-    // 21. Inicialización de la aplicación
+    // 16. Inicialización de la aplicación
     document.addEventListener('DOMContentLoaded', async function() {
       // 1. Configuración inicial
       checkMaintenanceRedirect();
       setupEventListeners();
       setupRatingSystem();
-      setupGallery();
-      setupFileUpload();
       
       // 2. Inicializar Supabase
       const supabaseReady = await initializeSupabase();
+      if (!supabaseReady) return;
       
       // 3. Cargar datos iniciales
       await cargarCitasDelDia();
@@ -1664,7 +1075,7 @@
       }, 300000); // 5 minutos
     });
 
-    // 22. Verificación periódica de mantenimiento (adicional al intervalo)
+    // 17. Verificación periódica de mantenimiento (adicional al intervalo)
     setInterval(checkMaintenanceRedirect, 1000);
   </script>
 </body>
