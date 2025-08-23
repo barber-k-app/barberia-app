@@ -6,6 +6,7 @@
     <title>Galería | Barbería Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Tus estilos existentes aquí */
         :root {
             --primary: #007bff;
             --dark: #121212;
@@ -232,6 +233,26 @@
             display: none;
         }
 
+        .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .success-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+
         @media (max-width: 768px) {
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -250,7 +271,6 @@
         <div class="modal-content">
             <h2><i class="fas fa-lock"></i> Acceso Admin</h2>
             <form id="loginForm">
-                <!-- Campo de usuario oculto para accesibilidad -->
                 <input type="text" name="username" autocomplete="username" style="display: none;">
                 <input type="password" id="passwordInput" placeholder="Contraseña" required autocomplete="current-password">
                 <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
@@ -260,8 +280,8 @@
 
     <!-- Galería -->
     <div class="gallery" id="gallery">
-        <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-            <p>Cargando galería...</p>
+        <div class="success-message">
+            <p><i class="fas fa-spinner fa-spin"></i> Cargando galería...</p>
         </div>
     </div>
 
@@ -292,30 +312,22 @@
 
         function initializeApp() {
             try {
-                // Configura Supabase
-                const supabaseUrl = 'https://azjlrbmgpczuintqyosm.supabase.co';
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM2MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M';
+                console.log('Inicializando aplicación...');
                 
+                // VERIFICA ESTOS VALORES EN TU PROYECTO SUPABASE
+                const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+                
+                // Verificar que la URL sea válida
+                if (!supabaseUrl || !supabaseUrl.includes('supabase.co')) {
+                    throw new Error('URL de Supabase inválida. Verifica tu proyecto.');
+                }
+
                 supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                console.log('Supabase inicializado correctamente');
 
                 // Configurar event listeners
-                const adminLogo = document.getElementById('adminLogo');
-                const loginForm = document.getElementById('loginForm');
-                const uploadBtn = document.getElementById('uploadBtn');
-                const fileInput = document.getElementById('fileInput');
-
-                if (adminLogo) {
-                    adminLogo.addEventListener('click', handleAdminLogoClick);
-                }
-
-                if (loginForm) {
-                    loginForm.addEventListener('submit', handleLoginSubmit);
-                }
-
-                if (uploadBtn && fileInput) {
-                    uploadBtn.addEventListener('click', () => fileInput.click());
-                    fileInput.addEventListener('change', handleFileUpload);
-                }
+                setupEventListeners();
 
                 // Verificar autenticación y cargar galería
                 isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
@@ -324,15 +336,37 @@
                     enableAdminMode();
                 }
                 
-                loadGallery();
+                // Cargar galería después de un breve delay
+                setTimeout(() => {
+                    loadGallery();
+                }, 1000);
 
             } catch (error) {
                 console.error('Error inicializando la aplicación:', error);
-                showToast('Error inicializando la aplicación', true);
+                showError('Error de conexión: ' + error.message);
             }
         }
 
-        // Manejador de clic en logo de admin
+        function setupEventListeners() {
+            const adminLogo = document.getElementById('adminLogo');
+            const loginForm = document.getElementById('loginForm');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('fileInput');
+
+            if (adminLogo) {
+                adminLogo.addEventListener('click', handleAdminLogoClick);
+            }
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLoginSubmit);
+            }
+
+            if (uploadBtn && fileInput) {
+                uploadBtn.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+        }
+
         function handleAdminLogoClick() {
             if (isAuthenticated) {
                 disableAdminMode();
@@ -341,13 +375,11 @@
             }
         }
 
-        // Manejador de submit del formulario de login
         function handleLoginSubmit(event) {
             event.preventDefault();
             checkPassword();
         }
 
-        // Función de login
         function checkPassword() {
             const passwordInput = document.getElementById('passwordInput');
             const password = passwordInput.value;
@@ -359,12 +391,12 @@
                 passwordInput.value = '';
                 enableAdminMode();
                 showToast('Modo admin activado');
+                loadGallery();
             } else {
                 showToast('Contraseña incorrecta', true);
             }
         }
 
-        // Modo admin
         function enableAdminMode() {
             document.body.classList.add('admin-mode');
         }
@@ -374,9 +406,9 @@
             isAuthenticated = false;
             document.body.classList.remove('admin-mode');
             showToast('Modo admin desactivado');
+            loadGallery();
         }
 
-        // Cargar galería
         async function loadGallery() {
             if (isLoading) return;
             
@@ -385,6 +417,8 @@
                 showLoading(true);
                 const gallery = document.getElementById('gallery');
                 
+                console.log('Cargando galería desde Supabase...');
+                
                 const { data, error } = await supabaseClient
                     .from('media')
                     .select('*')
@@ -392,7 +426,7 @@
 
                 if (error) {
                     console.error('Error de Supabase:', error);
-                    throw error;
+                    throw new Error('No se pudo conectar con la base de datos');
                 }
 
                 gallery.innerHTML = '';
@@ -414,19 +448,17 @@
                         `;
                     });
                 } else {
-                    gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ccc;">No hay medios en la galería. Inicia sesión como admin para subir contenido.</p>';
+                    gallery.innerHTML = '<div class="success-message"><p>No hay medios en la galería. Inicia sesión como admin para subir contenido.</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading gallery:', error);
-                const gallery = document.getElementById('gallery');
-                gallery.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ff6b6b;">Error cargando la galería</p>';
+                showError('Error cargando la galería: ' + error.message);
             } finally {
                 showLoading(false);
                 isLoading = false;
             }
         }
 
-        // Mostrar/ocultar loading
         function showLoading(show) {
             const loading = document.getElementById('loading');
             if (loading) {
@@ -434,7 +466,14 @@
             }
         }
 
-        // Subir archivo
+        function showError(message) {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = `<div class="error-message">
+                <p><i class="fas fa-exclamation-triangle"></i> ${message}</p>
+                <p><small>Verifica tu conexión y la configuración de Supabase</small></p>
+            </div>`;
+        }
+
         async function handleFileUpload(e) {
             const files = e.target.files;
             if (!files || !files.length) return;
@@ -455,16 +494,15 @@
         }
 
         async function uploadFile(file) {
-            // Simulación de subida (reemplazar con tu lógica real)
+            // Simulación de subida para pruebas
             return new Promise(resolve => {
                 setTimeout(() => {
-                    showToast(`${file.name} subido correctamente`);
+                    showToast(`${file.name} subido correctamente (modo simulación)`);
                     resolve();
                 }, 1000);
             });
         }
 
-        // Eliminar archivo
         async function deleteMedia(id) {
             if (!confirm('¿Eliminar este archivo?')) return;
 
@@ -484,7 +522,6 @@
             }
         }
 
-        // Mostrar notificación
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             if (toast) {
@@ -497,7 +534,6 @@
             }
         }
 
-        // Hacer funciones globales para los event listeners HTML
         window.deleteMedia = deleteMedia;
     </script>
 </body>
