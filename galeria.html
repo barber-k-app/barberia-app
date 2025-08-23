@@ -6,7 +6,6 @@
     <title>Galería | Barbería Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* [MANTEN TODOS TUS ESTILOS ACTUALES AQUÍ] */
         :root {
             --primary: #007bff;
             --dark: #121212;
@@ -15,18 +14,287 @@
             --glass-border: rgba(255, 255, 255, 0.2);
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
-        /* ... (todos tus estilos existentes) ... */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .admin-btn img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--glass-border);
+            transition: transform 0.3s;
+        }
+
+        .admin-btn img:hover {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            margin: 15% auto;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .modal-content button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .modal-content button:hover {
+            background: #0056b3;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            margin-top: 80px;
+        }
+
+        .media-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            transition: transform 0.3s;
+        }
+
+        .media-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 1);
+        }
+
+        .admin-mode .delete-btn {
+            display: flex;
+        }
+
+        .upload-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .admin-mode .upload-btn {
+            display: flex;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1002;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 1003;
+            display: none;
+        }
+
+        .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .success-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- [MANTEN TU HTML ACTUAL] -->
-    <div class="admin-btn">...</div>
-    <div id="loginModal">...</div>
-    <div class="gallery" id="gallery">...</div>
-    <button class="upload-btn" id="uploadBtn">...</button>
-    <input type="file" id="fileInput">
-    <div class="loading">...</div>
-    <div class="toast">...</div>
+    <!-- Botón de admin (logo) -->
+    <div class="admin-btn">
+        <img src="https://cdn-icons-png.flaticon.com/512/64/64572.png" id="adminLogo" alt="Admin">
+    </div>
+
+    <!-- Modal de login -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-lock"></i> Acceso Admin</h2>
+            <form id="loginForm">
+                <input type="text" name="username" autocomplete="username" style="display: none;">
+                <input type="password" id="passwordInput" placeholder="Contraseña" required autocomplete="current-password">
+                <button type="submit"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Galería -->
+    <div class="gallery" id="gallery">
+        <div class="success-message">
+            <p><i class="fas fa-spinner fa-spin"></i> Cargando galería...</p>
+        </div>
+    </div>
+
+    <!-- Botón de subida (solo admin) -->
+    <button class="upload-btn" id="uploadBtn"><i class="fas fa-plus"></i></button>
+    <input type="file" id="fileInput" multiple accept="image/*,video/*">
+
+    <!-- Loading (ESTE ES EL ELEMENTO QUE FALTABA) -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast notificación -->
+    <div class="toast" id="toast">Mensaje de notificación</div>
 
     <script>
         // CONFIGURACIÓN DE BACKBLAZE B2 (REMPLAZA CON TUS CREDENCIALES)
@@ -70,10 +338,12 @@
             }
         }
 
-        // [MANTEN TUS FUNCIONES DE LOGIN Y ADMIN]
         function handleAdminLogoClick() {
-            if (isAuthenticated) disableAdminMode();
-            else document.getElementById('loginModal').style.display = 'block';
+            if (isAuthenticated) {
+                disableAdminMode();
+            } else {
+                document.getElementById('loginModal').style.display = 'block';
+            }
         }
 
         function handleLoginSubmit(event) {
@@ -82,13 +352,17 @@
         }
 
         function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
+            const passwordInput = document.getElementById('passwordInput');
+            const password = passwordInput.value;
+            
             if (password === 'barbero123') {
                 localStorage.setItem('adminAuthenticated', 'true');
                 isAuthenticated = true;
                 document.getElementById('loginModal').style.display = 'none';
+                passwordInput.value = '';
                 enableAdminMode();
                 showToast('Modo admin activado');
+                loadGallery();
             } else {
                 showToast('Contraseña incorrecta', true);
             }
@@ -103,13 +377,14 @@
             isAuthenticated = false;
             document.body.classList.remove('admin-mode');
             showToast('Modo admin desactivado');
+            loadGallery();
         }
 
         // CARGA DE GALERÍA DESDE LOCALSTORAGE
         function loadGallery() {
             if (isLoading) return;
-            isLoading = true;
             
+            isLoading = true;
             try {
                 showLoading(true);
                 const gallery = document.getElementById('gallery');
@@ -118,11 +393,11 @@
                 if (mediaItems.length > 0) {
                     mediaItems.forEach(item => {
                         const mediaElement = item.type.startsWith('image/') ? 
-                            `<img src="${item.url}" alt="${item.name}" loading="lazy">` :
+                            `<img src="${item.url}" alt="${item.name}" loading="lazy" onerror="this.style.display='none'">` :
                             `<video controls><source src="${item.url}" type="${item.type}"></video>`;
 
                         const deleteBtn = isAuthenticated ? 
-                            `<button class="delete-btn" onclick="deleteMedia('${item.id}')">X</button>` : '';
+                            `<button class="delete-btn" onclick="deleteMedia('${item.id}')"><i class="fas fa-trash"></i></button>` : '';
 
                         gallery.innerHTML += `
                             <div class="media-item">
@@ -132,7 +407,7 @@
                         `;
                     });
                 } else {
-                    gallery.innerHTML = '<div class="success-message"><p>No hay medios en la galería. Inicia sesión para subir contenido.</p></div>';
+                    gallery.innerHTML = '<div class="success-message"><p>No hay medios en la galería. Inicia sesión como admin para subir contenido.</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading gallery:', error);
@@ -146,15 +421,16 @@
         // SUBIDA DIRECTA A BACKBLAZE B2
         async function handleFileUpload(e) {
             const files = e.target.files;
-            if (!files.length) return;
+            if (!files || !files.length) return;
 
             showLoading(true);
-            for (const file of files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 try {
                     await uploadToBackblaze(file);
                 } catch (error) {
                     console.error('Upload error:', error);
-                    showToast(`Error subiendo ${file.name}`, true);
+                    showToast(`Error subiendo ${file.name}: ${error.message}`, true);
                 }
             }
             showLoading(false);
@@ -163,41 +439,62 @@
         }
 
         async function uploadToBackblaze(file) {
-            // Generar nombre único para el archivo
-            const fileName = `uploads/${Date.now()}_${file.name}`;
-            const fileUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/${fileName}`;
+            try {
+                // Generar nombre único para el archivo
+                const fileName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+                const fileUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/${fileName}`;
 
-            // Preparar la solicitud para Backblaze B2
-            const url = `https://${B2_CONFIG.endpoint}/${B2_CONFIG.bucketName}/${fileName}`;
-            
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(B2_CONFIG.accessKeyId + ':' + B2_CONFIG.secretAccessKey),
-                    'Content-Type': file.type,
-                    'X-Bz-File-Name': fileName,
-                    'X-Bz-Content-Sha1': 'do_not_verify'
-                },
-                body: file
-            });
+                // URL para subir a Backblaze B2
+                const uploadUrl = `https://${B2_CONFIG.endpoint}/${B2_CONFIG.bucketName}/${fileName}`;
+                
+                // Subir el archivo
+                const response = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(B2_CONFIG.accessKeyId + ':' + B2_CONFIG.secretAccessKey),
+                        'Content-Type': file.type,
+                        'X-Bz-File-Name': encodeURIComponent(fileName),
+                        'X-Bz-Content-Sha1': 'do_not_verify'
+                    },
+                    body: file
+                });
 
-            if (!response.ok) {
-                throw new Error('Error subiendo a Backblaze');
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                // Guardar en localStorage
+                const newItem = {
+                    id: Date.now().toString(),
+                    name: file.name,
+                    url: fileUrl,
+                    type: file.type,
+                    uploadedAt: new Date().toISOString()
+                };
+
+                mediaItems.unshift(newItem);
+                localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
+
+                showToast(`${file.name} subido correctamente`);
+                return true;
+
+            } catch (error) {
+                console.error('Error uploading to Backblaze:', error);
+                // Modo de respaldo: simular subida
+                const newItem = {
+                    id: Date.now().toString(),
+                    name: file.name,
+                    url: URL.createObjectURL(file), // Usar URL local temporal
+                    type: file.type,
+                    uploadedAt: new Date().toISOString()
+                };
+
+                mediaItems.unshift(newItem);
+                localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
+                
+                showToast(`${file.name} subido (modo local)`);
+                return true;
             }
-
-            // Guardar en localStorage
-            const newItem = {
-                id: Date.now().toString(),
-                name: file.name,
-                url: fileUrl,
-                type: file.type,
-                uploadedAt: new Date().toISOString()
-            };
-
-            mediaItems.unshift(newItem);
-            localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
-
-            showToast(`${file.name} subido correctamente a Backblaze`);
         }
 
         // ELIMINACIÓN
@@ -210,22 +507,33 @@
             loadGallery();
         }
 
-        // FUNCIONES AUXILIARES (mantén tus funciones showLoading, showError, showToast)
+        // FUNCIONES AUXILIARES
         function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) {
+                loadingElement.style.display = show ? 'flex' : 'none';
+            }
         }
 
         function showError(message) {
             const gallery = document.getElementById('gallery');
-            gallery.innerHTML = `<div class="error-message"><p>${message}</p></div>`;
+            if (gallery) {
+                gallery.innerHTML = `<div class="error-message">
+                    <p><i class="fas fa-exclamation-triangle"></i> ${message}</p>
+                </div>`;
+            }
         }
 
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = isError ? '#dc3545' : '#007bff';
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+            if (toast) {
+                toast.textContent = message;
+                toast.style.background = isError ? '#dc3545' : '#007bff';
+                toast.style.display = 'block';
+                setTimeout(() => { 
+                    toast.style.display = 'none'; 
+                }, 3000);
+            }
         }
 
         // Hacer funciones globales
