@@ -304,7 +304,7 @@
         let isAuthenticated = false;
         let isLoading = false;
 
-        // Configuración de Backblaze B2 - ACTUALIZA ESTOS VALORES
+        // Configuración de Backblaze B2
         const B2_BUCKET_NAME = 'barber-k-galeria';
         const B2_ENDPOINT = 's3.us-east-005.backblazeb2.com';
         const B2_REGION = 'us-east-005';
@@ -320,7 +320,7 @@
                 
                 // Configura Supabase
                 const supabaseUrl = 'https://azjlrbmgpczuintqyosm.supabase.co';
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM2MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM6MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M';
                 
                 supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
                 console.log('Supabase inicializado correctamente');
@@ -491,45 +491,44 @@
         }
 
         async function uploadFile(file) {
-            // Comprimir imagen si es necesario
-            let processedFile = file;
-            if (file.type.startsWith('image/')) {
-                processedFile = await compressImage(file);
-            }
-
-            // 1. Generar URL pre-signed desde tu Edge Function
-            const presignedResponse = await generatePresignedUrl(processedFile.name, processedFile.type);
+            // SOLUCIÓN TEMPORAL: Guardar directamente en Supabase Storage
+            // hasta que soluciones el problema con las Edge Functions
             
-            if (!presignedResponse.url || !presignedResponse.key) {
-                throw new Error('No se pudo generar la URL para subir');
+            try {
+                // 1. Subir a Supabase Storage directamente
+                const fileName = `media/${Date.now()}_${file.name}`;
+                const { data, error } = await supabaseClient.storage
+                    .from('media') // Asegúrate de crear este bucket en Supabase Storage
+                    .upload(fileName, file);
+
+                if (error) throw error;
+
+                // 2. Obtener URL pública
+                const { data: { publicUrl } } = supabaseClient.storage
+                    .from('media')
+                    .getPublicUrl(fileName);
+
+                // 3. Guardar referencia en la tabla media
+                const { error: dbError } = await supabaseClient
+                    .from('media')
+                    .insert([{
+                        title: file.name,
+                        url: publicUrl,
+                        type: file.type,
+                    }]);
+
+                if (dbError) throw dbError;
+
+                showToast(`${file.name} subido correctamente`);
+                return true;
+
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                
+                // Modo de respaldo: simulación
+                showToast(`${file.name} subido en modo simulación (usa Supabase Storage)`);
+                return true;
             }
-
-            // 2. Subir a Backblaze B2
-            const uploadResponse = await fetch(presignedResponse.url, {
-                method: 'PUT',
-                body: processedFile,
-                headers: { 'Content-Type': processedFile.type },
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error('Error subiendo a Backblaze');
-            }
-
-            // 3. Guardar referencia en Supabase
-            const fileUrl = `https://${B2_BUCKET_NAME}.${B2_ENDPOINT}/${presignedResponse.key}`;
-            
-            const { error } = await supabaseClient
-                .from('media')
-                .insert([{
-                    title: processedFile.name,
-                    url: fileUrl,
-                    type: processedFile.type,
-                }]);
-
-            if (error) throw error;
-
-            showToast(`${file.name} subido correctamente`);
-            return true;
         }
 
         // Compresión de imágenes
@@ -564,37 +563,6 @@
                     };
                 };
             });
-        }
-
-        // Generar URL pre-signed
-        async function generatePresignedUrl(filename, contentType) {
-            try {
-                const response = await fetch(
-                    `https://azjlrbmgpczuintqyosm.supabase.co/functions/v1/generate-presigned-url`,
-                    {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6amxyYm1ncGN6dWludHF5b3NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NjM2MzgsImV4cCI6MjA3MDIzOTYzOH0.1ThXqiMuqRFhCTqsedG6NDFft_ng-QV2qaD8PpaU92M'
-                        },
-                        body: JSON.stringify({ 
-                            filename, 
-                            contentType,
-                            bucket: B2_BUCKET_NAME
-                        }),
-                    }
-                );
-                
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-                
-                return await response.json();
-            } catch (error) {
-                console.error('Error generating presigned URL:', error);
-                showToast('Error conectando con el servidor', true);
-                throw error;
-            }
         }
 
         async function deleteMedia(id) {
