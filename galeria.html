@@ -288,7 +288,7 @@
     <button class="upload-btn" id="uploadBtn"><i class="fas fa-plus"></i></button>
     <input type="file" id="fileInput" multiple accept="image/*,video/*">
 
-    <!-- Loading (ESTE ES EL ELEMENTO QUE FALTABA) -->
+    <!-- Loading -->
     <div class="loading" id="loading">
         <div class="spinner"></div>
     </div>
@@ -302,8 +302,8 @@
             bucketName: 'barber-k-galeria',
             endpoint: 's3.us-east-005.backblazeb2.com',
             region: 'us-east-005',
-            accessKeyId: '0055efa8d760b4a0000000003', // ← REEMPLAZA
-            secretAccessKey: 'K005xiOs88YxP4P44El4yczGTmNstPA' // ← REEMPLAZA
+            accessKeyId: 'TU_KEY_ID_AQUI', // ← REEMPLAZA
+            secretAccessKey: 'TU_APPLICATION_KEY_AQUI' // ← REEMPLAZA
         };
 
         // Variables globales
@@ -418,7 +418,7 @@
             }
         }
 
-        // SUBIDA DIRECTA A BACKBLAZE B2
+        // SUBIDA DIRECTA A BACKBLAZE B2 CON SOLUCIÓN CORS
         async function handleFileUpload(e) {
             const files = e.target.files;
             if (!files || !files.length) return;
@@ -442,10 +442,14 @@
             try {
                 // Generar nombre único para el archivo
                 const fileName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-                const fileUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/${fileName}`;
+                
+                // URL PÚBLICA de Backblaze (SOLUCIÓN CORS)
+                const fileUrl = `https://f005.backblazeb2.com/file/${B2_CONFIG.bucketName}/${fileName}`;
 
-                // URL para subir a Backblaze B2
+                // URL para subir (usando el endpoint normal)
                 const uploadUrl = `https://${B2_CONFIG.endpoint}/${B2_CONFIG.bucketName}/${fileName}`;
+                
+                console.log('Subiendo a:', uploadUrl);
                 
                 // Subir el archivo
                 const response = await fetch(uploadUrl, {
@@ -463,37 +467,46 @@
                     throw new Error(`Error ${response.status}: ${response.statusText}`);
                 }
 
-                // Guardar en localStorage
+                // Guardar en localStorage con URL PÚBLICA
                 const newItem = {
                     id: Date.now().toString(),
                     name: file.name,
-                    url: fileUrl,
+                    url: fileUrl, // URL pública que no da problemas de CORS
                     type: file.type,
-                    uploadedAt: new Date().toISOString()
+                    uploadedAt: new Date().toISOString(),
+                    isBackblaze: true
                 };
 
                 mediaItems.unshift(newItem);
                 localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
 
-                showToast(`${file.name} subido correctamente`);
+                showToast(`${file.name} subido correctamente a Backblaze`);
                 return true;
 
             } catch (error) {
                 console.error('Error uploading to Backblaze:', error);
-                // Modo de respaldo: simular subida
-                const newItem = {
-                    id: Date.now().toString(),
-                    name: file.name,
-                    url: URL.createObjectURL(file), // Usar URL local temporal
-                    type: file.type,
-                    uploadedAt: new Date().toISOString()
-                };
-
-                mediaItems.unshift(newItem);
-                localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
                 
-                showToast(`${file.name} subido (modo local)`);
-                return true;
+                // Modo de respaldo: usar Data URL temporal
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const newItem = {
+                            id: Date.now().toString(),
+                            name: file.name,
+                            url: e.target.result, // Data URL
+                            type: file.type,
+                            uploadedAt: new Date().toISOString(),
+                            isLocal: true // Marcar como local
+                        };
+
+                        mediaItems.unshift(newItem);
+                        localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
+                        
+                        showToast(`${file.name} subido (modo local - CORS no configurado)`);
+                        resolve(true);
+                    };
+                    reader.readAsDataURL(file);
+                });
             }
         }
 
@@ -520,6 +533,7 @@
             if (gallery) {
                 gallery.innerHTML = `<div class="error-message">
                     <p><i class="fas fa-exclamation-triangle"></i> ${message}</p>
+                    <p><small>Verifica la configuración de CORS en Backblaze</small></p>
                 </div>`;
             }
         }
