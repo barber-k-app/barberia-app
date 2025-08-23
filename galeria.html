@@ -252,6 +252,17 @@
             border: 1px solid rgba(81, 207, 102, 0.3);
         }
 
+        .cors-warning {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            margin: 20px 0;
+        }
+
         @media (max-width: 768px) {
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -297,31 +308,43 @@
     <div class="toast" id="toast">Mensaje de notificación</div>
 
     <script>
-        // CONFIGURACIÓN DE BACKBLAZE B2 (REMPLAZA CON TUS CREDENCIALES)
+        // CONFIGURACIÓN - REEMPLAZA CON TUS CREDENCIALES REALES
         const B2_CONFIG = {
             bucketName: 'barber-k-galeria',
-            endpoint: 's3.us-east-005.backblazeb2.com',
-            region: 'us-east-005',
-            accessKeyId: 'TU_KEY_ID_AQUI', // ← REEMPLAZA
-            secretAccessKey: 'TU_APPLICATION_KEY_AQUI' // ← REEMPLAZA
+            endpoint: 's3.us-east-005.backblazeb2.com', 
+            accessKeyId: '003c100000000000000000777', // TU KEY ID REAL
+            secretAccessKey: 'K003ABCDEFGHIJKLMNOPQRSTUVWXYZ' // TU APPLICATION KEY REAL
         };
 
-        // Variables globales
         let isAuthenticated = false;
         let isLoading = false;
-        let mediaItems = JSON.parse(localStorage.getItem('mediaItems')) || [];
+        let mediaItems = [];
 
-        // Inicializar la aplicación
+        // INICIALIZACIÓN
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
         });
 
         function initializeApp() {
-            console.log('Inicializando aplicación con Backblaze B2 directo...');
+            console.log('Inicializando galería...');
+            loadMediaItems();
             setupEventListeners();
             isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
             if (isAuthenticated) enableAdminMode();
             loadGallery();
+        }
+
+        function loadMediaItems() {
+            try {
+                const saved = localStorage.getItem('mediaItems');
+                if (saved) {
+                    mediaItems = JSON.parse(saved);
+                    console.log('Media items cargados:', mediaItems.length);
+                }
+            } catch (error) {
+                console.error('Error cargando items:', error);
+                mediaItems = [];
+            }
         }
 
         function setupEventListeners() {
@@ -338,6 +361,7 @@
             }
         }
 
+        // FUNCIONES PRINCIPALES
         function handleAdminLogoClick() {
             if (isAuthenticated) {
                 disableAdminMode();
@@ -362,7 +386,6 @@
                 passwordInput.value = '';
                 enableAdminMode();
                 showToast('Modo admin activado');
-                loadGallery();
             } else {
                 showToast('Contraseña incorrecta', true);
             }
@@ -377,10 +400,8 @@
             isAuthenticated = false;
             document.body.classList.remove('admin-mode');
             showToast('Modo admin desactivado');
-            loadGallery();
         }
 
-        // CARGA DE GALERÍA DESDE LOCALSTORAGE
         function loadGallery() {
             if (isLoading) return;
             
@@ -388,26 +409,45 @@
             try {
                 showLoading(true);
                 const gallery = document.getElementById('gallery');
-                gallery.innerHTML = '';
                 
                 if (mediaItems.length > 0) {
+                    gallery.innerHTML = '';
+                    
+                    // Mensaje de advertencia CORS
+                    gallery.innerHTML += `
+                        <div class="cors-warning">
+                            <p><i class="fas fa-exclamation-triangle"></i> Configura CORS en Backblaze para ver las imágenes</p>
+                            <small>Ve a Bucket Settings > CORS Rules > "Compartir con todos los orígenes"</small>
+                        </div>
+                    `;
+
                     mediaItems.forEach(item => {
                         const mediaElement = item.type.startsWith('image/') ? 
-                            `<img src="${item.url}" alt="${item.name}" loading="lazy" onerror="this.style.display='none'">` :
-                            `<video controls><source src="${item.url}" type="${item.type}"></video>`;
+                            `<img src="${item.url}" alt="${item.name}" loading="lazy" 
+                                 onerror="handleImageError(this, '${item.id}')"
+                                 onload="handleImageLoad(this)">` :
+                            `<video controls>
+                                <source src="${item.url}" type="${item.type}">
+                                Tu navegador no soporta videos.
+                             </video>`;
 
                         const deleteBtn = isAuthenticated ? 
-                            `<button class="delete-btn" onclick="deleteMedia('${item.id}')"><i class="fas fa-trash"></i></button>` : '';
+                            `<button class="delete-btn" onclick="deleteMedia('${item.id}')">
+                                <i class="fas fa-trash"></i>
+                             </button>` : '';
 
                         gallery.innerHTML += `
                             <div class="media-item">
                                 ${mediaElement}
                                 ${deleteBtn}
+                                <div style="padding: 10px; font-size: 12px; color: #ccc;">
+                                    ${item.name}
+                                </div>
                             </div>
                         `;
                     });
                 } else {
-                    gallery.innerHTML = '<div class="success-message"><p>No hay medios en la galería. Inicia sesión como admin para subir contenido.</p></div>';
+                    gallery.innerHTML = '<div class="success-message"><p>No hay medios en la galería. Inicia sesión para subir contenido.</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading gallery:', error);
@@ -418,101 +458,70 @@
             }
         }
 
-        // SUBIDA DIRECTA A BACKBLAZE B2 CON SOLUCIÓN CORS
+        function handleImageError(imgElement, itemId) {
+            console.log('Error cargando imagen, puede ser CORS');
+            imgElement.style.opacity = '0.3';
+            imgElement.title = 'Error de CORS - Configura en Backblaze';
+        }
+
+        function handleImageLoad(imgElement) {
+            imgElement.style.opacity = '1';
+        }
+
         async function handleFileUpload(e) {
             const files = e.target.files;
             if (!files || !files.length) return;
 
             showLoading(true);
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
+            
+            // Convertir files a array para poder iterar
+            const filesArray = Array.from(files);
+            
+            for (const file of filesArray) {
                 try {
-                    await uploadToBackblaze(file);
+                    // SOLUCIÓN: Guardar en localStorage como Data URL
+                    await uploadAsDataURL(file);
                 } catch (error) {
                     console.error('Upload error:', error);
-                    showToast(`Error subiendo ${file.name}: ${error.message}`, true);
+                    showToast(`Error subiendo ${file.name}`, true);
                 }
             }
+            
             showLoading(false);
             e.target.value = '';
             loadGallery();
         }
 
-        async function uploadToBackblaze(file) {
-            try {
-                // Generar nombre único para el archivo
-                const fileName = `uploads/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-                
-                // URL PÚBLICA de Backblaze (SOLUCIÓN CORS)
-                const fileUrl = `https://f005.backblazeb2.com/file/${B2_CONFIG.bucketName}/${fileName}`;
-
-                // URL para subir (usando el endpoint normal)
-                const uploadUrl = `https://${B2_CONFIG.endpoint}/${B2_CONFIG.bucketName}/${fileName}`;
-                
-                console.log('Subiendo a:', uploadUrl);
-                
-                // Subir el archivo
-                const response = await fetch(uploadUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(B2_CONFIG.accessKeyId + ':' + B2_CONFIG.secretAccessKey),
-                        'Content-Type': file.type,
-                        'X-Bz-File-Name': encodeURIComponent(fileName),
-                        'X-Bz-Content-Sha1': 'do_not_verify'
-                    },
-                    body: file
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-
-                // Guardar en localStorage con URL PÚBLICA
-                const newItem = {
-                    id: Date.now().toString(),
-                    name: file.name,
-                    url: fileUrl, // URL pública que no da problemas de CORS
-                    type: file.type,
-                    uploadedAt: new Date().toISOString(),
-                    isBackblaze: true
-                };
-
-                mediaItems.unshift(newItem);
-                localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
-
-                showToast(`${file.name} subido correctamente a Backblaze`);
-                return true;
-
-            } catch (error) {
-                console.error('Error uploading to Backblaze:', error);
-                
-                // Modo de respaldo: usar Data URL temporal
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const newItem = {
-                            id: Date.now().toString(),
-                            name: file.name,
-                            url: e.target.result, // Data URL
-                            type: file.type,
-                            uploadedAt: new Date().toISOString(),
-                            isLocal: true // Marcar como local
-                        };
-
-                        mediaItems.unshift(newItem);
-                        localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
-                        
-                        showToast(`${file.name} subido (modo local - CORS no configurado)`);
-                        resolve(true);
+        function uploadAsDataURL(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newItem = {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                        name: file.name,
+                        url: e.target.result, // Data URL
+                        type: file.type,
+                        uploadedAt: new Date().toISOString(),
+                        size: file.size,
+                        isDataURL: true
                     };
-                    reader.readAsDataURL(file);
-                });
-            }
+
+                    mediaItems.unshift(newItem);
+                    localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
+                    
+                    showToast(`${file.name} subido correctamente (modo local)`);
+                    resolve(true);
+                };
+                reader.onerror = function() {
+                    showToast(`Error leyendo ${file.name}`, true);
+                    resolve(false);
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
-        // ELIMINACIÓN
         function deleteMedia(id) {
-            if (!confirm('¿Eliminar este archivo?')) return;
+            if (!confirm('¿Eliminar este archivo permanentemente?')) return;
             
             mediaItems = mediaItems.filter(item => item.id !== id);
             localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
@@ -533,7 +542,6 @@
             if (gallery) {
                 gallery.innerHTML = `<div class="error-message">
                     <p><i class="fas fa-exclamation-triangle"></i> ${message}</p>
-                    <p><small>Verifica la configuración de CORS en Backblaze</small></p>
                 </div>`;
             }
         }
@@ -553,6 +561,8 @@
         // Hacer funciones globales
         window.deleteMedia = deleteMedia;
         window.checkPassword = checkPassword;
+        window.handleImageError = handleImageError;
+        window.handleImageLoad = handleImageLoad;
     </script>
 </body>
 </html>
