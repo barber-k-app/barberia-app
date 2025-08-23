@@ -95,6 +95,10 @@
             color: var(--dark);
         }
 
+        .login-form {
+            width: 100%;
+        }
+
         .login-input {
             width: 100%;
             padding: 15px;
@@ -157,16 +161,42 @@
             font-size: 1.2em;
         }
 
+        .view-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .view-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .view-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
-            display: none; /* OCULTAR ESTADÍSTICAS PARA CLIENTES */
+            display: none;
         }
 
         .admin-mode .stats-container {
-            display: grid; /* MOSTRAR SOLO EN MODO ADMIN */
+            display: grid;
         }
 
         .stat-card {
@@ -201,7 +231,7 @@
         }
 
         .admin-mode .upload-section {
-            display: block; /* MOSTRAR SOLO EN MODO ADMIN */
+            display: block;
         }
 
         .upload-section:hover {
@@ -250,6 +280,15 @@
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 25px;
             margin-top: 40px;
+        }
+
+        .gallery.grid-view {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .gallery.list-view {
+            grid-template-columns: 1fr;
+            gap: 15px;
         }
 
         .gallery-item {
@@ -459,7 +498,7 @@
                 gap: 15px;
             }
             
-            .admin-btn {
+            .admin-btn, .view-btn {
                 padding: 10px 15px;
                 font-size: 14px;
             }
@@ -607,32 +646,6 @@
             background: rgba(0,0,0,0.8);
             transform: scale(1.1);
         }
-
-        /* Mejoras para videos */
-        .video-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .video-player {
-            width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        }
-
-        .video-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            padding: 15px;
-            border-radius: 50px;
-            display: flex;
-            gap: 15px;
-            backdrop-filter: blur(10px);
-        }
     </style>
 </head>
 <body>
@@ -650,8 +663,10 @@
     <div class="login-modal" id="loginModal">
         <div class="login-content">
             <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
-            <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" onkeypress="if(event.key=='Enter')login()">
-            <button class="login-btn" onclick="login()">Acceder</button>
+            <form class="login-form" onsubmit="login(); return false;">
+                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador">
+                <button type="submit" class="login-btn">Acceder</button>
+            </form>
         </div>
     </div>
 
@@ -669,6 +684,16 @@
         <div class="header">
             <h1>✨ Galería Premium</h1>
             <p>Showroom de trabajos de barbería - Ultra HD</p>
+        </div>
+
+        <!-- Opciones de vista para clientes -->
+        <div class="view-options">
+            <button class="view-btn" onclick="changeView('grid')">
+                <i class="fas fa-th"></i> Vista Cuadrícula
+            </button>
+            <button class="view-btn" onclick="changeView('list')">
+                <i class="fas fa-list"></i> Vista Lista
+            </button>
         </div>
 
         <!-- Estadísticas (SOLO ADMIN) -->
@@ -715,7 +740,7 @@
         <div id="message"></div>
 
         <!-- Galería -->
-        <div class="gallery" id="gallery">
+        <div class="gallery grid-view" id="gallery">
             <div style="text-align: center; padding: 40px; color: #718096;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
                 <p>Cargando galería...</p>
@@ -766,9 +791,10 @@
 
         // Configuración de la aplicación
         const APP_CONFIG = {
-            adminPassword: 'barber2024', // Cambia esta contraseña
-            maxSize: 10, // 10GB gratis
-            compressionQuality: 0.8 // Calidad por defecto
+            adminPassword: 'barber2024',
+            maxSize: 10,
+            compressionQuality: 0.8,
+            currentView: 'grid'
         };
 
         // Elementos DOM
@@ -802,14 +828,14 @@
             authData: null,
             currentFiles: [],
             currentModalIndex: -1,
-            modalZoom: 1
+            modalZoom: 1,
+            totalBytes: 0
         };
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             loadGallery();
-            checkStorage();
         });
 
         // Función proxy para evitar CORS
@@ -829,6 +855,12 @@
                 particle.style.animationDelay = Math.random() * 5 + 's';
                 elements.particles.appendChild(particle);
             }
+        }
+
+        // Cambiar vista
+        function changeView(viewType) {
+            APP_CONFIG.currentView = viewType;
+            elements.gallery.className = 'gallery ' + viewType + '-view';
         }
 
         // Actualizar calidad de compresión
@@ -865,9 +897,11 @@
                 elements.viewMode.style.display = 'block';
                 closeLogin();
                 showMessage('Modo administrador activado', 'success');
+                checkStorage();
             } else {
                 showMessage('Contraseña incorrecta', 'error');
             }
+            return false;
         }
 
         // Logout de administrador
@@ -897,6 +931,7 @@
             } else if (fileType.startsWith('video/')) {
                 elements.modalVideo.src = signedUrl;
                 elements.modalVideo.style.display = 'block';
+                elements.modalVideo.play();
             }
 
             elements.imageModal.style.display = 'flex';
@@ -933,10 +968,10 @@
         }
 
         // Descargar archivo actual
-        function downloadCurrent() {
+        async function downloadCurrent() {
             if (appState.currentModalIndex >= 0) {
                 const file = appState.currentFiles[appState.currentModalIndex];
-                const signedUrl = getSignedUrl(file.fileName);
+                const signedUrl = await getSignedUrl(file.fileName);
                 downloadFile(file.fileName, signedUrl);
             }
         }
@@ -1050,7 +1085,7 @@
             elements.fileInput.value = '';
             showMessage(`¡${uploadedCount} archivos subidos exitosamente!`, 'success');
             loadGallery();
-            checkStorage();
+            if (appState.isAdmin) checkStorage();
         }
 
         // Cargar galería desde Backblaze
@@ -1079,11 +1114,14 @@
 
                 elements.gallery.innerHTML = '';
                 appState.currentFiles = filesData.files || [];
+                appState.totalBytes = 0;
 
                 if (appState.currentFiles.length > 0) {
                     for (const file of appState.currentFiles) {
+                        appState.totalBytes += file.size;
                         await addToGallery(file);
                     }
+                    updateStats();
                 } else {
                     elements.gallery.innerHTML = `
                         <div style="text-align: center; padding: 60px; color: #718096;">
@@ -1106,11 +1144,22 @@
             }
         }
 
+        // Actualizar estadísticas
+        function updateStats() {
+            const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
+            const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
+            
+            elements.totalFiles.textContent = appState.currentFiles.length;
+            elements.totalSize.textContent = usedGB + 'GB';
+            elements.freeSpace.textContent = freeGB + 'GB';
+        }
+
         // Agregar elemento a la galería
-        async function addToGallery(file, index) {
+        async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
             const fileSize = formatFileSize(file.size);
+            const index = appState.currentFiles.indexOf(file);
 
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
@@ -1118,8 +1167,8 @@
 
             galleryItem.innerHTML = `
                 ${fileType.startsWith('image/') ? 
-                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal(${appState.currentFiles.indexOf(file)})">` : 
-                    `<video onclick="openModal(${appState.currentFiles.indexOf(file)})"><source src="${signedUrl}" type="${fileType}"></video>`
+                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal(${index})">` : 
+                    `<video onclick="openModal(${index})"><source src="${signedUrl}" type="${fileType}"></video>`
                 }
                 <div class="item-overlay">
                     <div class="item-info">
@@ -1225,7 +1274,7 @@
                 if (deleteResponse.ok) {
                     showMessage('Archivo eliminado exitosamente', 'success');
                     loadGallery();
-                    checkStorage();
+                    if (appState.isAdmin) checkStorage();
                 }
 
             } catch (error) {
@@ -1236,39 +1285,50 @@
         // Verificar espacio de almacenamiento
         async function checkStorage() {
             try {
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                if (!appState.authData) {
+                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    appState.authData = await authResponse.json();
+                }
+
+                const bucketResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_buckets?accountId=${appState.authData.accountId}`), {
                     headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        'Authorization': appState.authData.authorizationToken
                     }
                 });
-                const authData = await authResponse.json();
 
-                const bucketResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_buckets?accountId=${authData.accountId}`), {
-                    headers: {
-                        'Authorization': authData.authorizationToken
-                    }
-                });
-                const buckets = await bucketResponse.json();
+                if (!bucketResponse.ok) {
+                    throw new Error('Error al obtener buckets');
+                }
 
-                const myBucket = buckets.buckets.find(b => b.bucketName === 'barber-k-galeria');
-                if (myBucket) {
-                    const usedBytes = myBucket.bucketInfo.totalSize || 0;
-                    const usedGB = (usedBytes / 1024 / 1024 / 1024).toFixed(2);
-                    const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
+                const bucketsData = await bucketResponse.json();
+                
+                if (bucketsData && bucketsData.buckets) {
+                    const myBucket = bucketsData.buckets.find(b => b.bucketName === 'barber-k-galeria');
+                    if (myBucket && myBucket.bucketInfo) {
+                        const usedBytes = myBucket.bucketInfo.totalSize || appState.totalBytes;
+                        const usedGB = (usedBytes / 1024 / 1024 / 1024).toFixed(2);
+                        const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
 
-                    elements.totalFiles.textContent = appState.currentFiles.length;
-                    elements.totalSize.textContent = usedGB + 'GB';
-                    elements.freeSpace.textContent = freeGB + 'GB';
+                        elements.totalFiles.textContent = appState.currentFiles.length;
+                        elements.totalSize.textContent = usedGB + 'GB';
+                        elements.freeSpace.textContent = freeGB + 'GB';
 
-                    if (usedGB > 8) {
-                        elements.totalSize.style.color = 'var(--danger)';
-                    } else if (usedGB > 5) {
-                        elements.totalSize.style.color = 'var(--warning)';
+                        if (usedGB > 8) {
+                            elements.totalSize.style.color = 'var(--danger)';
+                        } else if (usedGB > 5) {
+                            elements.totalSize.style.color = 'var(--warning)';
+                        }
                     }
                 }
 
             } catch (error) {
                 console.error('Error verificando almacenamiento:', error);
+                // Usar cálculo local si falla la API
+                updateStats();
             }
         }
 
