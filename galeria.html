@@ -145,14 +145,14 @@
     </div>
 
     <script>
-        // Configuración de Backblaze B2 - RELLENA ESTOS DATOS
+        // Configuración de Backblaze B2
         const B2_CONFIG = {
-            bucketName: 'barber-k-galeria',      // Nombre de tu bucket
-            endpoint: 's3.us-east-005.backblazeb2.com', // Tu endpoint
-            region: 'us-east-005',             // Tu región
             accessKeyId: '0055efa8d760b4a0000000006',
-            secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZpPCkTeeC8' // Tu applicationKey
+            secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZpPCkTeeC8'
         };
+
+        // Variables globales para auth data
+        let authData = null;
 
         // Elementos DOM
         const fileInput = document.getElementById('file-input');
@@ -161,15 +161,34 @@
         const progress = document.getElementById('progress');
 
         // Cargar galería al iniciar
-        document.addEventListener('DOMContentLoaded', loadGallery);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await getAuthData();
+            loadGallery();
+        });
 
         // Evento para subir archivos
         fileInput.addEventListener('change', handleFileUpload);
+
+        // Obtener datos de autenticación
+        async function getAuthData() {
+            try {
+                const response = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                authData = await response.json();
+            } catch (error) {
+                console.error('Error autenticando:', error);
+            }
+        }
 
         // Subir archivos a Backblaze
         async function handleFileUpload(event) {
             const files = event.target.files;
             if (!files.length) return;
+
+            if (!authData) await getAuthData();
 
             progressBar.style.display = 'block';
 
@@ -178,23 +197,28 @@
                 const fileName = `galeria/${Date.now()}_${file.name}`;
 
                 try {
-                    // Subir a Backblaze usando AWS S3 SDK (compatible con B2)
-                    const uploadUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/${fileName}`;
-                    
-                    const response = await fetch(uploadUrl, {
-                        method: 'PUT',
+                    // 1. Obtener URL de upload específica
+                    const uploadResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${authData.allowed.bucketId}`, {
                         headers: {
-                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`),
-                            'Content-Type': file.type
+                            'Authorization': authData.authorizationToken
+                        }
+                    });
+                    const uploadData = await uploadResponse.json();
+
+                    // 2. Subir archivo
+                    const response = await fetch(uploadData.uploadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': uploadData.authorizationToken,
+                            'X-Bz-File-Name': encodeURIComponent(fileName),
+                            'Content-Type': file.type,
+                            'X-Bz-Content-Sha1': 'do_not_verify'
                         },
                         body: file
                     });
 
                     if (response.ok) {
-                        // Actualizar progreso
                         progress.style.width = `${((i + 1) / files.length) * 100}%`;
-                        
-                        // Agregar a la galería
                         addToGallery(fileName, file.type);
                     } else {
                         console.error('Error subiendo archivo:', await response.text());
@@ -204,7 +228,6 @@
                 }
             }
 
-            // Resetear input y progreso
             fileInput.value = '';
             progressBar.style.display = 'none';
             progress.style.width = '0%';
@@ -213,25 +236,20 @@
         // Cargar galería desde Backblaze
         async function loadGallery() {
             try {
-                const listUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/?prefix=galeria/`;
-                
-                const response = await fetch(listUrl, {
+                if (!authData) await getAuthData();
+
+                // Listar archivos
+                const listResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=galeria/`, {
                     headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        'Authorization': authData.authorizationToken
                     }
                 });
+                const filesData = await listResponse.json();
 
-                const text = await response.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "text/xml");
-                
-                const contents = xmlDoc.getElementsByTagName("Contents");
-                
-                for (let item of contents) {
-                    const key = item.getElementsByTagName("Key")[0].textContent;
-                    if (!key.endsWith('/')) { // Ignorar carpetas
-                        addToGallery(key, getFileType(key));
-                    }
+                // Mostrar archivos
+                gallery.innerHTML = '';
+                for (const file of filesData.files) {
+                    addToGallery(file.fileName, getFileType(file.fileName));
                 }
             } catch (error) {
                 console.error('Error cargando galería:', error);
@@ -243,7 +261,7 @@
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
             
-            const fileUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/${fileName}`;
+            const fileUrl = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
 
             if (fileType.startsWith('image/')) {
                 galleryItem.innerHTML = `
@@ -267,18 +285,35 @@
             if (!confirm('¿Eliminar este archivo?')) return;
 
             try {
-                const deleteUrl = `https://${B2_CONFIG.bucketName}.${B2_CONFIG.endpoint}/${fileName}`;
-                
-                const response = await fetch(deleteUrl, {
-                    method: 'DELETE',
+                if (!authData) await getAuthData();
+
+                // 1. Obtener info del archivo
+                const listResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`, {
                     headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        'Authorization': authData.authorizationToken
                     }
                 });
+                const filesData = await listResponse.json();
 
-                if (response.ok) {
+                if (filesData.files.length === 0) return;
+
+                const fileInfo = filesData.files[0];
+
+                // 2. Eliminar archivo
+                const deleteResponse = await fetch(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authData.authorizationToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fileId: fileInfo.fileId,
+                        fileName: fileInfo.fileName
+                    })
+                });
+
+                if (deleteResponse.ok) {
                     // Recargar galería
-                    gallery.innerHTML = '';
                     loadGallery();
                 }
             } catch (error) {
