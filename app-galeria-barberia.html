@@ -313,6 +313,11 @@
             border-radius: 10px;
         }
 
+        .gallery.list-view .gallery-item {
+            display: flex;
+            height: 200px;
+        }
+
         .gallery-item:hover {
             transform: translateY(-10px) scale(1.02);
             box-shadow: 0 25px 50px rgba(0,0,0,0.25);
@@ -326,14 +331,16 @@
             transition: transform 0.3s ease;
         }
 
+        .gallery.list-view .gallery-item img,
+        .gallery.list-view .gallery-item video {
+            width: 300px;
+            height: 200px;
+            flex-shrink: 0;
+        }
+
         .gallery.small-view .gallery-item img,
         .gallery.small-view .gallery-item video {
             height: 120px;
-        }
-
-        .gallery.list-view .gallery-item img,
-        .gallery.list-view .gallery-item video {
-            height: 200px;
         }
 
         .gallery-item:hover img, .gallery-item:hover video {
@@ -351,6 +358,15 @@
             transition: opacity 0.3s ease;
             display: flex;
             align-items: flex-end;
+            padding: 20px;
+        }
+
+        .gallery.list-view .item-overlay {
+            position: relative;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.8));
+            opacity: 1;
+            flex: 1;
+            align-items: center;
             padding: 20px;
         }
 
@@ -397,6 +413,12 @@
         .gallery.small-view .admin-controls {
             top: 5px;
             right: 5px;
+        }
+
+        .gallery.list-view .admin-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
         }
 
         .delete-btn, .download-btn {
@@ -548,6 +570,17 @@
             .gallery.small-view {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
+            }
+
+            .gallery.list-view .gallery-item {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .gallery.list-view .gallery-item img,
+            .gallery.list-view .gallery-item video {
+                width: 100%;
+                height: 200px;
             }
             
             .admin-btn, .view-btn {
@@ -882,7 +915,7 @@
 
         // Estado de la aplicación
         let appState = {
-            isAdmin: false,
+            isAdmin: localStorage.getItem('isAdmin') === 'true',
             authData: null,
             currentFiles: [],
             currentModalIndex: -1,
@@ -893,8 +926,19 @@
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
+            checkAdminState();
             loadGallery();
         });
+
+        // Verificar estado de admin al cargar
+        function checkAdminState() {
+            if (appState.isAdmin) {
+                elements.mainContainer.classList.add('admin-mode');
+                elements.logoutBtn.style.display = 'flex';
+                elements.viewMode.style.display = 'block';
+                updateStats();
+            }
+        }
 
         // Función proxy para evitar CORS
         function getProxyUrl(url) {
@@ -959,6 +1003,7 @@
             const password = elements.adminPassword.value;
             if (password === APP_CONFIG.adminPassword) {
                 appState.isAdmin = true;
+                localStorage.setItem('isAdmin', 'true');
                 elements.mainContainer.classList.add('admin-mode');
                 elements.logoutBtn.style.display = 'flex';
                 elements.viewMode.style.display = 'block';
@@ -974,6 +1019,7 @@
         // Logout de administrador
         function logout() {
             appState.isAdmin = false;
+            localStorage.removeItem('isAdmin');
             elements.mainContainer.classList.remove('admin-mode');
             elements.logoutBtn.style.display = 'none';
             elements.viewMode.style.display = 'none';
@@ -1045,7 +1091,7 @@
 
         // Comprimir imagen antes de subir
         function compressImage(file) {
-            return new Promise((resolve) => {
+            return new Promise((resolve) {
                 if (!file.type.startsWith('image/') || file.size < 102400) {
                     resolve(file);
                     return;
@@ -1171,7 +1217,7 @@
                 });
                 appState.authData = await authResponse.json();
 
-                const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
+                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
                     headers: {
                         'Authorization': appState.authData.authorizationToken
                     }
@@ -1184,7 +1230,7 @@
 
                 if (appState.currentFiles.length > 0) {
                     for (const file of appState.currentFiles) {
-                        appState.totalBytes += file.size;
+                        appState.totalBytes += file.size || 0;
                         await addToGallery(file);
                     }
                     updateStats();
@@ -1212,12 +1258,13 @@
 
         // Actualizar estadísticas
         function updateStats() {
-            const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
+            const usedBytes = appState.totalBytes;
+            const usedGB = (usedBytes / 1024 / 1024 / 1024).toFixed(2);
             const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
             
             elements.totalFiles.textContent = appState.currentFiles.length;
-            elements.totalSize.textContent = usedGB + 'GB';
-            elements.freeSpace.textContent = freeGB + 'GB';
+            elements.totalSize.textContent = isNaN(usedGB) ? '0GB' : usedGB + 'GB';
+            elements.freeSpace.textContent = isNaN(freeGB) ? '10GB' : freeGB + 'GB';
 
             if (usedGB > 8) {
                 elements.totalSize.style.color = 'var(--danger)';
@@ -1230,7 +1277,7 @@
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
-            const fileSize = formatFileSize(file.size);
+            const fileSize = formatFileSize(file.size || 0);
             const index = appState.currentFiles.indexOf(file);
 
             const galleryItem = document.createElement('div');
@@ -1245,7 +1292,7 @@
                 <div class="item-overlay">
                     <div class="item-info">
                         <div class="item-name">${file.fileName.split('/').pop()}</div>
-                        <div class="item-size">${fileSize}</div>
+                        <div class="item-size">${isNaN(fileSize) ? '0MB' : fileSize}</div>
                     </div>
                 </div>
                 ${appState.isAdmin ? `
@@ -1366,7 +1413,7 @@
 
         // Formatear tamaño de archivo
         function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
+            if (!bytes || bytes < 1024) return '0 B';
             if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
             if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
             return (bytes / 1073741824).toFixed(1) + ' GB';
