@@ -107,6 +107,7 @@
             font-size: 16px;
             margin-bottom: 20px;
             transition: border-color 0.3s ease;
+            autocomplete: "new-password";
         }
 
         .login-input:focus {
@@ -180,6 +181,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .view-btn.active {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            transform: scale(1.05);
         }
 
         .view-btn:hover {
@@ -277,7 +283,6 @@
 
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 25px;
             margin-top: 40px;
         }
@@ -288,6 +293,10 @@
 
         .gallery.list-view {
             grid-template-columns: 1fr;
+        }
+
+        .gallery.small-view {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px;
         }
 
@@ -298,6 +307,10 @@
             box-shadow: 0 12px 30px rgba(0,0,0,0.15);
             transition: all 0.4s ease;
             cursor: pointer;
+        }
+
+        .gallery.small-view .gallery-item {
+            border-radius: 10px;
         }
 
         .gallery-item:hover {
@@ -311,6 +324,16 @@
             object-fit: cover;
             display: block;
             transition: transform 0.3s ease;
+        }
+
+        .gallery.small-view .gallery-item img,
+        .gallery.small-view .gallery-item video {
+            height: 120px;
+        }
+
+        .gallery.list-view .gallery-item img,
+        .gallery.list-view .gallery-item video {
+            height: 200px;
         }
 
         .gallery-item:hover img, .gallery-item:hover video {
@@ -331,6 +354,10 @@
             padding: 20px;
         }
 
+        .gallery.small-view .item-overlay {
+            padding: 10px;
+        }
+
         .gallery-item:hover .item-overlay {
             opacity: 1;
         }
@@ -346,9 +373,17 @@
             font-size: 1.1em;
         }
 
+        .gallery.small-view .item-name {
+            font-size: 0.9em;
+        }
+
         .item-size {
             font-size: 0.9em;
             opacity: 0.8;
+        }
+
+        .gallery.small-view .item-size {
+            font-size: 0.8em;
         }
 
         .admin-controls {
@@ -357,6 +392,11 @@
             right: 15px;
             display: flex;
             gap: 10px;
+        }
+
+        .gallery.small-view .admin-controls {
+            top: 5px;
+            right: 5px;
         }
 
         .delete-btn, .download-btn {
@@ -371,6 +411,13 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+        }
+
+        .gallery.small-view .delete-btn,
+        .gallery.small-view .download-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
         }
 
         .delete-btn {
@@ -493,9 +540,14 @@
                 font-size: 2.5em;
             }
             
-            .gallery {
+            .gallery.grid-view {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 15px;
+            }
+            
+            .gallery.small-view {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
             }
             
             .admin-btn, .view-btn {
@@ -664,7 +716,7 @@
         <div class="login-content">
             <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
             <form class="login-form" onsubmit="login(); return false;">
-                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador">
+                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="new-password">
                 <button type="submit" class="login-btn">Acceder</button>
             </form>
         </div>
@@ -688,11 +740,14 @@
 
         <!-- Opciones de vista para clientes -->
         <div class="view-options">
-            <button class="view-btn" onclick="changeView('grid')">
-                <i class="fas fa-th"></i> Vista Cuadrícula
+            <button class="view-btn active" id="gridViewBtn" onclick="changeView('grid')">
+                <i class="fas fa-th"></i> Cuadrícula
             </button>
-            <button class="view-btn" onclick="changeView('list')">
-                <i class="fas fa-list"></i> Vista Lista
+            <button class="view-btn" id="listViewBtn" onclick="changeView('list')">
+                <i class="fas fa-list"></i> Lista
+            </button>
+            <button class="view-btn" id="smallViewBtn" onclick="changeView('small')">
+                <i class="fas fa-th-small"></i> Pequeños
             </button>
         </div>
 
@@ -819,7 +874,10 @@
             modalImage: document.getElementById('modalImage'),
             modalVideo: document.getElementById('modalVideo'),
             particles: document.getElementById('particles'),
-            mainContainer: document.getElementById('mainContainer')
+            mainContainer: document.getElementById('mainContainer'),
+            gridViewBtn: document.getElementById('gridViewBtn'),
+            listViewBtn: document.getElementById('listViewBtn'),
+            smallViewBtn: document.getElementById('smallViewBtn')
         };
 
         // Estado de la aplicación
@@ -861,6 +919,15 @@
         function changeView(viewType) {
             APP_CONFIG.currentView = viewType;
             elements.gallery.className = 'gallery ' + viewType + '-view';
+            
+            // Actualizar botones activos
+            elements.gridViewBtn.classList.remove('active');
+            elements.listViewBtn.classList.remove('active');
+            elements.smallViewBtn.classList.remove('active');
+            
+            if (viewType === 'grid') elements.gridViewBtn.classList.add('active');
+            if (viewType === 'list') elements.listViewBtn.classList.add('active');
+            if (viewType === 'small') elements.smallViewBtn.classList.add('active');
         }
 
         // Actualizar calidad de compresión
@@ -897,7 +964,7 @@
                 elements.viewMode.style.display = 'block';
                 closeLogin();
                 showMessage('Modo administrador activado', 'success');
-                checkStorage();
+                updateStats();
             } else {
                 showMessage('Contraseña incorrecta', 'error');
             }
@@ -1085,7 +1152,6 @@
             elements.fileInput.value = '';
             showMessage(`¡${uploadedCount} archivos subidos exitosamente!`, 'success');
             loadGallery();
-            if (appState.isAdmin) checkStorage();
         }
 
         // Cargar galería desde Backblaze
@@ -1152,6 +1218,12 @@
             elements.totalFiles.textContent = appState.currentFiles.length;
             elements.totalSize.textContent = usedGB + 'GB';
             elements.freeSpace.textContent = freeGB + 'GB';
+
+            if (usedGB > 8) {
+                elements.totalSize.style.color = 'var(--danger)';
+            } else if (usedGB > 5) {
+                elements.totalSize.style.color = 'var(--warning)';
+            }
         }
 
         // Agregar elemento a la galería
@@ -1274,61 +1346,10 @@
                 if (deleteResponse.ok) {
                     showMessage('Archivo eliminado exitosamente', 'success');
                     loadGallery();
-                    if (appState.isAdmin) checkStorage();
                 }
 
             } catch (error) {
                 showMessage('Error eliminando archivo', 'error');
-            }
-        }
-
-        // Verificar espacio de almacenamiento
-        async function checkStorage() {
-            try {
-                if (!appState.authData) {
-                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                        headers: {
-                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                        }
-                    });
-                    appState.authData = await authResponse.json();
-                }
-
-                const bucketResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_buckets?accountId=${appState.authData.accountId}`), {
-                    headers: {
-                        'Authorization': appState.authData.authorizationToken
-                    }
-                });
-
-                if (!bucketResponse.ok) {
-                    throw new Error('Error al obtener buckets');
-                }
-
-                const bucketsData = await bucketResponse.json();
-                
-                if (bucketsData && bucketsData.buckets) {
-                    const myBucket = bucketsData.buckets.find(b => b.bucketName === 'barber-k-galeria');
-                    if (myBucket && myBucket.bucketInfo) {
-                        const usedBytes = myBucket.bucketInfo.totalSize || appState.totalBytes;
-                        const usedGB = (usedBytes / 1024 / 1024 / 1024).toFixed(2);
-                        const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
-
-                        elements.totalFiles.textContent = appState.currentFiles.length;
-                        elements.totalSize.textContent = usedGB + 'GB';
-                        elements.freeSpace.textContent = freeGB + 'GB';
-
-                        if (usedGB > 8) {
-                            elements.totalSize.style.color = 'var(--danger)';
-                        } else if (usedGB > 5) {
-                            elements.totalSize.style.color = 'var(--warning)';
-                        }
-                    }
-                }
-
-            } catch (error) {
-                console.error('Error verificando almacenamiento:', error);
-                // Usar cálculo local si falla la API
-                updateStats();
             }
         }
 
