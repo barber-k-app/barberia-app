@@ -162,6 +162,11 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
+            display: none; /* OCULTAR ESTADÍSTICAS PARA CLIENTES */
+        }
+
+        .admin-mode .stats-container {
+            display: grid; /* MOSTRAR SOLO EN MODO ADMIN */
         }
 
         .stat-card {
@@ -192,6 +197,11 @@
             border: 2px dashed #cbd5e0;
             text-align: center;
             transition: all 0.3s ease;
+            display: none;
+        }
+
+        .admin-mode .upload-section {
+            display: block; /* MOSTRAR SOLO EN MODO ADMIN */
         }
 
         .upload-section:hover {
@@ -479,7 +489,7 @@
             100% { transform: translateY(-100vh) rotate(360deg); }
         }
 
-        /* Modal de imagen completa */
+        /* Modal de imagen completa MEJORADO */
         .modal {
             display: none;
             position: fixed;
@@ -487,18 +497,66 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.98);
             z-index: 3000;
             justify-content: center;
             align-items: center;
+            cursor: zoom-out;
         }
 
         .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 15px;
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            cursor: default;
+            transition: transform 0.3s ease;
+        }
+
+        .modal-content.zoomed {
+            transform: scale(1.5);
+            cursor: zoom-in;
+        }
+
+        .modal-content img, .modal-content video {
+            width: 100%;
+            height: auto;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .modal-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 50px;
+            display: flex;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-control-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
         }
 
         .modal-close {
@@ -509,11 +567,71 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
             cursor: pointer;
             z-index: 3001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            transform: translateY(-50%);
+            z-index: 3001;
+        }
+
+        .nav-btn {
+            background: rgba(0,0,0,0.6);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0,0,0,0.8);
+            transform: scale(1.1);
+        }
+
+        /* Mejoras para videos */
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .video-player {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 50px;
+            display: flex;
+            gap: 15px;
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
@@ -547,13 +665,13 @@
         <i class="fas fa-eye"></i> Modo Administrador
     </div>
 
-    <div class="container">
+    <div class="container" id="mainContainer">
         <div class="header">
             <h1>✨ Galería Premium</h1>
             <p>Showroom de trabajos de barbería - Ultra HD</p>
         </div>
 
-        <!-- Estadísticas -->
+        <!-- Estadísticas (SOLO ADMIN) -->
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-number" id="totalFiles">0</div>
@@ -570,7 +688,7 @@
         </div>
 
         <!-- Sección de Upload (solo admin) -->
-        <div class="upload-section" id="uploadSection" style="display: none;">
+        <div class="upload-section">
             <h3><i class="fas fa-cloud-upload-alt"></i> Subir Nuevos Archivos</h3>
             <input type="file" id="file-input" multiple accept="image/*,video/*">
             <button class="upload-btn" onclick="document.getElementById('file-input').click()">
@@ -605,11 +723,37 @@
         </div>
     </div>
 
-    <!-- Modal para imagen completa -->
+    <!-- Modal para imagen completa MEJORADO -->
     <div class="modal" id="imageModal">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-        <div class="modal-content">
-            <img id="modalImage" src="" style="width: 100%; height: auto;">
+        
+        <div class="modal-nav">
+            <button class="nav-btn" onclick="navigateModal(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="nav-btn" onclick="navigateModal(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="modal-content" id="modalContent">
+            <img id="modalImage" src="" style="display: none;">
+            <video id="modalVideo" controls class="video-player" style="display: none;"></video>
+        </div>
+
+        <div class="modal-controls">
+            <button class="modal-control-btn" onclick="zoomModal(0.1)">
+                <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="modal-control-btn" onclick="zoomModal(-0.1)">
+                <i class="fas fa-search-minus"></i>
+            </button>
+            <button class="modal-control-btn" onclick="resetZoom()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="modal-control-btn" onclick="downloadCurrent()">
+                <i class="fas fa-download"></i>
+            </button>
         </div>
     </div>
 
@@ -645,15 +789,20 @@
             qualityValue: document.getElementById('qualityValue'),
             adminPassword: document.getElementById('adminPassword'),
             imageModal: document.getElementById('imageModal'),
+            modalContent: document.getElementById('modalContent'),
             modalImage: document.getElementById('modalImage'),
-            particles: document.getElementById('particles')
+            modalVideo: document.getElementById('modalVideo'),
+            particles: document.getElementById('particles'),
+            mainContainer: document.getElementById('mainContainer')
         };
 
         // Estado de la aplicación
         let appState = {
             isAdmin: false,
             authData: null,
-            currentFiles: []
+            currentFiles: [],
+            currentModalIndex: -1,
+            modalZoom: 1
         };
 
         // Inicializar
@@ -711,7 +860,7 @@
             const password = elements.adminPassword.value;
             if (password === APP_CONFIG.adminPassword) {
                 appState.isAdmin = true;
-                elements.uploadSection.style.display = 'block';
+                elements.mainContainer.classList.add('admin-mode');
                 elements.logoutBtn.style.display = 'flex';
                 elements.viewMode.style.display = 'block';
                 closeLogin();
@@ -724,28 +873,79 @@
         // Logout de administrador
         function logout() {
             appState.isAdmin = false;
-            elements.uploadSection.style.display = 'none';
+            elements.mainContainer.classList.remove('admin-mode');
             elements.logoutBtn.style.display = 'none';
             elements.viewMode.style.display = 'none';
             showMessage('Sesión cerrada', 'info');
         }
 
-        // Abrir modal de imagen
-        function openModal(imageUrl) {
-            elements.modalImage.src = imageUrl;
+        // Abrir modal de imagen/mejorado
+        async function openModal(index) {
+            const file = appState.currentFiles[index];
+            if (!file) return;
+
+            appState.currentModalIndex = index;
+            const signedUrl = await getSignedUrl(file.fileName);
+            const fileType = getFileType(file.fileName);
+
+            elements.modalImage.style.display = 'none';
+            elements.modalVideo.style.display = 'none';
+
+            if (fileType.startsWith('image/')) {
+                elements.modalImage.src = signedUrl;
+                elements.modalImage.style.display = 'block';
+            } else if (fileType.startsWith('video/')) {
+                elements.modalVideo.src = signedUrl;
+                elements.modalVideo.style.display = 'block';
+            }
+
             elements.imageModal.style.display = 'flex';
+            resetZoom();
         }
 
-        // Cerrar modal de imagen
+        // Cerrar modal
         function closeModal() {
             elements.imageModal.style.display = 'none';
+            if (elements.modalVideo.style.display === 'block') {
+                elements.modalVideo.pause();
+            }
+        }
+
+        // Navegación en modal
+        function navigateModal(direction) {
+            const newIndex = appState.currentModalIndex + direction;
+            if (newIndex >= 0 && newIndex < appState.currentFiles.length) {
+                openModal(newIndex);
+            }
+        }
+
+        // Zoom en modal
+        function zoomModal(factor) {
+            appState.modalZoom = Math.max(0.1, Math.min(5, appState.modalZoom + factor));
+            elements.modalContent.style.transform = `scale(${appState.modalZoom})`;
+        }
+
+        // Resetear zoom
+        function resetZoom() {
+            appState.modalZoom = 1;
+            elements.modalContent.style.transform = 'scale(1)';
+            elements.modalContent.classList.remove('zoomed');
+        }
+
+        // Descargar archivo actual
+        function downloadCurrent() {
+            if (appState.currentModalIndex >= 0) {
+                const file = appState.currentFiles[appState.currentModalIndex];
+                const signedUrl = getSignedUrl(file.fileName);
+                downloadFile(file.fileName, signedUrl);
+            }
         }
 
         // Comprimir imagen antes de subir
         function compressImage(file) {
             return new Promise((resolve) => {
                 if (!file.type.startsWith('image/') || file.size < 102400) {
-                    resolve(file); // No comprimir imágenes pequeñas o no imágenes
+                    resolve(file);
                     return;
                 }
 
@@ -756,7 +956,6 @@
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                         
-                        // Redimensionar si es muy grande
                         let width = img.width;
                         let height = img.height;
                         const maxDimension = 1920;
@@ -806,11 +1005,9 @@
 
             for (const file of files) {
                 try {
-                    // Comprimir imagen
                     const processedFile = await compressImage(file);
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
-                    // 1. Autenticar
                     if (!appState.authData) {
                         const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                             headers: {
@@ -820,7 +1017,6 @@
                         appState.authData = await authResponse.json();
                     }
 
-                    // 2. Obtener URL de upload
                     const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
                         headers: {
                             'Authorization': appState.authData.authorizationToken
@@ -828,7 +1024,6 @@
                     });
                     const uploadData = await uploadUrlResponse.json();
 
-                    // 3. Subir archivo
                     const uploadResponse = await fetch(getProxyUrl(uploadData.uploadUrl), {
                         method: 'POST',
                         headers: {
@@ -912,7 +1107,7 @@
         }
 
         // Agregar elemento a la galería
-        async function addToGallery(file) {
+        async function addToGallery(file, index) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
             const fileSize = formatFileSize(file.size);
@@ -923,8 +1118,8 @@
 
             galleryItem.innerHTML = `
                 ${fileType.startsWith('image/') ? 
-                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal('${signedUrl}')">` : 
-                    `<video controls><source src="${signedUrl}" type="${fileType}"></video>`
+                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal(${appState.currentFiles.indexOf(file)})">` : 
+                    `<video onclick="openModal(${appState.currentFiles.indexOf(file)})"><source src="${signedUrl}" type="${fileType}"></video>`
                 }
                 <div class="item-overlay">
                     <div class="item-info">
@@ -1065,7 +1260,6 @@
                     elements.totalSize.textContent = usedGB + 'GB';
                     elements.freeSpace.textContent = freeGB + 'GB';
 
-                    // Cambiar color si está cerca del límite
                     if (usedGB > 8) {
                         elements.totalSize.style.color = 'var(--danger)';
                     } else if (usedGB > 5) {
@@ -1103,6 +1297,22 @@
                 closeModal();
                 closeLogin();
             }
+            if (e.key === 'ArrowLeft' && elements.imageModal.style.display === 'flex') {
+                navigateModal(-1);
+            }
+            if (e.key === 'ArrowRight' && elements.imageModal.style.display === 'flex') {
+                navigateModal(1);
+            }
+        });
+
+        // Event listener para rueda del mouse en modal
+        elements.modalContent.addEventListener('wheel', (e) => {
+            if (e.deltaY < 0) {
+                zoomModal(0.1);
+            } else {
+                zoomModal(-0.1);
+            }
+            e.preventDefault();
         });
 
     </script>
