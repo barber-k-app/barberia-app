@@ -5,7 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galería del Barbero</title>
     <style>
-        /* (Mantener todos los estilos igual) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #4a5568;
+        }
+
+        .upload-section {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .upload-btn {
+            background: #48bb78;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: block;
+            margin: 10px auto;
+        }
+
+        .upload-btn:hover {
+            background: #38a169;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery-item img, .gallery-item video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .delete-btn:hover {
+            background: #c53030;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #edf2f7;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress {
+            height: 100%;
+            background: #4299e1;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .message {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -24,46 +157,87 @@
         </div>
 
         <div class="gallery" id="gallery">
-            <!-- Las imágenes se cargarán aquí -->
+            <div class="loading" id="loading">Cargando galería...</div>
         </div>
     </div>
 
     <script>
-        // Configuración
+        // Configuración de Backblaze B2
         const B2_CONFIG = {
             accessKeyId: '0055efa8d760b4a0000000006',
             secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZpPCkTeeC8'
         };
 
-        const PROXY_URL = 'https://corsproxy.io/?';
-        const elements = {
-            fileInput: document.getElementById('file-input'),
-            gallery: document.getElementById('gallery'),
-            progressBar: document.getElementById('progress-bar'),
-            progress: document.getElementById('progress'),
-            messageDiv: document.getElementById('message')
-        };
+        // Elementos DOM
+        const fileInput = document.getElementById('file-input');
+        const gallery = document.getElementById('gallery');
+        const progressBar = document.getElementById('progress-bar');
+        const progress = document.getElementById('progress');
+        const messageDiv = document.getElementById('message');
+        const loadingDiv = document.getElementById('loading');
 
-        // Eventos
+        // Cargar galería al iniciar
         document.addEventListener('DOMContentLoaded', loadGallery);
-        elements.fileInput.addEventListener('change', handleFileUpload);
 
-        // Función proxy mejorada
+        // Evento para subir archivos
+        fileInput.addEventListener('change', handleFileUpload);
+
+        // Función proxy para evitar CORS
         function getProxyUrl(url) {
-            return `${PROXY_URL}${encodeURIComponent(url)}`;
+            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
         }
 
+        // Mostrar mensajes
         function showMessage(text, type = 'success') {
-            elements.messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
-            setTimeout(() => { elements.messageDiv.innerHTML = ''; }, 5000);
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => { messageDiv.innerHTML = ''; }, 5000);
         }
 
-        // SOLUCIÓN DEFINITIVA: Usar proxy para TODO
+        // Obtener URL firmada temporal
+        async function getSignedUrl(fileName) {
+            try {
+                // 1. Autenticar
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                
+                if (!authResponse.ok) throw new Error('Error de autenticación');
+                const authData = await authResponse.json();
+
+                // 2. Generar URL firmada (válida por 1 hora)
+                const signedUrlResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucketId=${authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=3600`), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authData.authorizationToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bucketId: authData.allowed.bucketId,
+                        fileNamePrefix: fileName,
+                        validDurationInSeconds: 3600
+                    })
+                });
+
+                if (!signedUrlResponse.ok) throw new Error('Error generando URL firmada');
+                const signedUrlData = await signedUrlResponse.json();
+
+                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
+
+            } catch (error) {
+                console.error('Error obteniendo URL firmada:', error);
+                // Fallback: URL normal (puede no funcionar)
+                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
+            }
+        }
+
+        // Subir archivos a Backblaze
         async function handleFileUpload(event) {
             const files = event.target.files;
             if (!files.length) return;
 
-            elements.progressBar.style.display = 'block';
+            progressBar.style.display = 'block';
             showMessage('Subiendo archivos...');
 
             for (let i = 0; i < files.length; i++) {
@@ -91,43 +265,125 @@
                     if (!uploadUrlResponse.ok) throw new Error('Error obteniendo URL de upload');
                     const uploadData = await uploadUrlResponse.json();
 
-                    // 3. **SOLUCIÓN DEFINITIVA**: Subir mediante proxy
-                    const formData = new FormData();
-                    formData.append('file', file);
-
+                    // 3. Subir archivo mediante proxy
                     const uploadResponse = await fetch(getProxyUrl(uploadData.uploadUrl), {
                         method: 'POST',
                         headers: {
                             'Authorization': uploadData.authorizationToken,
                             'X-Bz-File-Name': encodeURIComponent(fileName),
-                            'X-Bz-Content-Sha1': 'do_not_verify'
+                            'X-Bz-Content-Sha1': 'do_not_verify',
+                            'Content-Type': 'application/octet-stream'
                         },
                         body: file
                     });
 
                     if (uploadResponse.ok) {
-                        elements.progress.style.width = `${((i + 1) / files.length) * 100}%`;
-                        addToGallery(fileName, file.type);
+                        progress.style.width = `${((i + 1) / files.length) * 100}%`;
+                        // Obtener URL firmada y agregar a galería
+                        const signedUrl = await getSignedUrl(fileName);
+                        addToGallery(fileName, file.type, signedUrl);
                         showMessage('¡Archivo subido exitosamente!');
                     } else {
                         throw new Error('Error subiendo archivo');
                     }
-
                 } catch (error) {
                     console.error('Error:', error);
                     showMessage('Error: ' + error.message, 'error');
                 }
             }
 
-            elements.fileInput.value = '';
-            elements.progressBar.style.display = 'none';
-            elements.progress.style.width = '0%';
+            fileInput.value = '';
+            progressBar.style.display = 'none';
+            progress.style.width = '0%';
         }
 
+        // Cargar galería desde Backblaze
         async function loadGallery() {
             try {
-                showMessage('Cargando galería...');
+                loadingDiv.style.display = 'block';
                 
+                // 1. Autenticar
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                
+                if (!authResponse.ok) {
+                    showMessage('Error de autenticación', 'error');
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+                
+                const authData = await authResponse.json();
+
+                // 2. Listar archivos
+                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=galeria/`), {
+                    headers: {
+                        'Authorization': authData.authorizationToken
+                    }
+                });
+                
+                if (!listResponse.ok) {
+                    showMessage('Error listando archivos', 'error');
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+                
+                const filesData = await listResponse.json();
+
+                // 3. Mostrar archivos
+                gallery.innerHTML = '';
+                if (filesData.files && filesData.files.length > 0) {
+                    loadingDiv.style.display = 'none';
+                    
+                    // Cargar imágenes con URLs firmadas
+                    for (const file of filesData.files) {
+                        const signedUrl = await getSignedUrl(file.fileName);
+                        addToGallery(file.fileName, getFileType(file.fileName), signedUrl);
+                    }
+                    showMessage(`Galería cargada: ${filesData.files.length} archivos`);
+                } else {
+                    loadingDiv.innerHTML = 'No hay archivos en la galería';
+                    showMessage('No hay archivos en la galería', 'error');
+                }
+            } catch (error) {
+                console.error('Error cargando galería:', error);
+                loadingDiv.innerHTML = 'Error cargando galería';
+                showMessage('Error cargando galería', 'error');
+            }
+        }
+
+        // Agregar elemento a la galería (CON URL FIRMADA)
+        function addToGallery(fileName, fileType, fileUrl) {
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item';
+
+            if (fileType.startsWith('image/')) {
+                galleryItem.innerHTML = `
+                    <img src="${fileUrl}" alt="Galería" loading="lazy" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTIiIGR5PSIuM2VtIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5Ij5JbWFnbiBubyBkaXNwb25pYmxlPC90ZXh0Pjwvc3ZnPg=='">
+                    <button class="delete-btn" onclick="deleteFile('${fileName}')">×</button>
+                `;
+            } else if (fileType.startsWith('video/')) {
+                galleryItem.innerHTML = `
+                    <video controls onerror="this.style.display='none'">
+                        <source src="${fileUrl}" type="${fileType}">
+                    </video>
+                    <button class="delete-btn" onclick="deleteFile('${fileName}')">×</button>
+                `;
+            }
+
+            gallery.appendChild(galleryItem);
+        }
+
+        // Eliminar archivo
+        async function deleteFile(fileName) {
+            if (!confirm('¿Eliminar este archivo?')) return;
+
+            try {
+                showMessage('Eliminando archivo...');
+                
+                // 1. Autenticar
                 const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
@@ -137,72 +393,24 @@
                 if (!authResponse.ok) throw new Error('Error de autenticación');
                 const authData = await authResponse.json();
 
-                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=galeria/`), {
-                    headers: {
-                        'Authorization': authData.authorizationToken
-                    }
-                });
-                
-                if (!listResponse.ok) throw new Error('Error listando archivos');
-                const filesData = await listResponse.json();
-
-                elements.gallery.innerHTML = '';
-                if (filesData.files && filesData.files.length > 0) {
-                    filesData.files.forEach(file => {
-                        addToGallery(file.fileName, getFileType(file.fileName));
-                    });
-                    showMessage('Galería cargada exitosamente');
-                } else {
-                    showMessage('No hay archivos en la galería', 'error');
-                }
-            } catch (error) {
-                console.error('Error cargando galería:', error);
-                showMessage('Error cargando galería', 'error');
-            }
-        }
-
-        function addToGallery(fileName, fileType) {
-            const galleryItem = document.createElement('div');
-            galleryItem.className = 'gallery-item';
-            const fileUrl = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
-
-            galleryItem.innerHTML = `
-                ${fileType.startsWith('image/') ? 
-                    `<img src="${fileUrl}" alt="Galería" loading="lazy">` : 
-                    `<video controls><source src="${fileUrl}" type="${fileType}"></video>`
-                }
-                <button class="delete-btn" onclick="deleteFile('${fileName}')">×</button>
-            `;
-
-            elements.gallery.appendChild(galleryItem);
-        }
-
-        async function deleteFile(fileName) {
-            if (!confirm('¿Eliminar este archivo?')) return;
-
-            try {
-                showMessage('Eliminando archivo...');
-                
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                
-                if (!authResponse.ok) return;
-                const authData = await authResponse.json();
-
+                // 2. Obtener info del archivo
                 const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
                     headers: {
                         'Authorization': authData.authorizationToken
                     }
                 });
                 
+                if (!listResponse.ok) throw new Error('Error buscando archivo');
                 const filesData = await listResponse.json();
-                if (!filesData.files || filesData.files.length === 0) return;
+
+                if (!filesData.files || filesData.files.length === 0) {
+                    throw new Error('Archivo no encontrado');
+                }
 
                 const fileInfo = filesData.files[0];
-                await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+
+                // 3. Eliminar archivo
+                const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
                     method: 'POST',
                     headers: {
                         'Authorization': authData.authorizationToken,
@@ -214,20 +422,30 @@
                     })
                 });
 
-                showMessage('Archivo eliminado');
-                loadGallery();
+                if (deleteResponse.ok) {
+                    showMessage('Archivo eliminado exitosamente');
+                    loadGallery();
+                } else {
+                    throw new Error('Error eliminando archivo');
+                }
             } catch (error) {
-                showMessage('Error eliminando', 'error');
+                console.error('Error eliminando archivo:', error);
+                showMessage('Error: ' + error.message, 'error');
             }
         }
 
+        // Obtener tipo de archivo por extensión
         function getFileType(fileName) {
-            const ext = fileName.toLowerCase().split('.').pop();
-            const types = {
-                'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 
-                'gif': 'image/gif', 'mp4': 'video/mp4', 'mov': 'video/quicktime'
-            };
-            return types[ext] || 'application/octet-stream';
+            const extension = fileName.toLowerCase().split('.').pop();
+            switch(extension) {
+                case 'jpg': case 'jpeg': return 'image/jpeg';
+                case 'png': return 'image/png';
+                case 'gif': return 'image/gif';
+                case 'mp4': return 'video/mp4';
+                case 'mov': return 'video/quicktime';
+                case 'avi': return 'video/x-msvideo';
+                default: return 'application/octet-stream';
+            }
         }
     </script>
 </body>
