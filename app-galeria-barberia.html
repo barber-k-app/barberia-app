@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>✨ Galería Premium - Barbería Elite</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="极fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #667eea;
@@ -47,7 +47,7 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
             padding: 12px 20px;
-            border-radius: 50极;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -66,7 +66,7 @@
             display: none;
             position: fixed;
             top: 0;
-            left: 极;
+            left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.8);
@@ -81,7 +81,7 @@
             padding: 40px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 20px 60px rgba极0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             transform: scale(0.9);
             animation: modalAppear 0.3s ease forwards;
         }
@@ -148,8 +148,8 @@
             margin-bottom: 40px;
         }
 
-        .header h极 {
-            font-size: 3.5极;
+        .header h1 {
+            font-size: 3.5em;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -170,7 +170,7 @@
         }
 
         .view-btn {
-            background: linear-gradient(135极g, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             padding: 12px 20px;
             border: none;
@@ -258,10 +258,10 @@
             display: inline-flex;
             align-items: center;
             gap: 12px;
-极       }
+        }
 
         .upload-btn:hover {
-            transform: translate极(-3px);
+            transform: translateY(-3px);
             box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
         }
 
@@ -292,7 +292,7 @@
         }
 
         .gallery.list-view {
-            grid-template-columns: 1极;
+            grid-template-columns: 1fr;
         }
 
         .gallery.small-view {
@@ -382,7 +382,7 @@
         }
 
         .item-size {
-            font-size: 0.9极;
+            font-size: 0.9em;
             opacity: 0.8;
         }
 
@@ -439,7 +439,7 @@
 
         .download-btn:hover {
             background: var(--success);
-极           transform: scale(1.1);
+            transform: scale(1.1);
         }
 
         .progress-container {
@@ -450,12 +450,12 @@
         .progress-bar {
             width: 100%;
             height: 12px;
-            background: #ed极2f7;
+            background: #edf2f7;
             border-radius: 10px;
             overflow: hidden;
         }
 
-        .极rogress {
+        .progress {
             height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 10px;
@@ -490,7 +490,7 @@
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
         .warning { background: #fff3cd; color: #856404; }
-        .info { background: #d1ecf1; color: #0c5460极 }
+        .info { background: #d1ecf1; color: #0c5460; }
 
         .logout-btn {
             position: fixed;
@@ -515,7 +515,7 @@
             right: 20px;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            padding: 10极 15px;
+            padding: 10px 15px;
             border-radius: 20px;
             color: white;
             font-weight: 600;
@@ -525,7 +525,7 @@
 
         /* Animaciones */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20极); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -601,7 +601,7 @@
 
         .modal-content {
             max-width: 95%;
-            max极eight: 95%;
+            max-height: 95%;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 30px 80px rgba(0,0,0,0.8);
@@ -680,7 +680,7 @@
             justify-content: space-between;
             padding: 0 30px;
             transform: translateY(-50%);
-            z-index: 极001;
+            z-index: 3001;
         }
 
         .nav-btn {
@@ -700,7 +700,7 @@
 
         .nav-btn:hover {
             background: rgba(0,0,0,0.8);
-            transform: scale极1.1);
+            transform: scale(1.1);
         }
 
         /* Estilos mejorados para vista de lista */
@@ -710,7 +710,7 @@
             height: 100px;
         }
 
-        .gallery.list-view .极allery-item img,
+        .gallery.list-view .gallery-item img,
         .gallery.list-view .gallery-item video {
             width: 150px;
             height: 100px;
@@ -766,7 +766,7 @@
             <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
             <form class="login-form" onsubmit="login(); return false;">
                 <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="new-password">
-                <button type="submit" class极login-btn">Acceder</button>
+                <button type="submit" class="login-btn">Acceder</button>
             </form>
         </div>
     </div>
@@ -784,7 +784,7 @@
     <div class="container" id="mainContainer">
         <div class="header">
             <h1>✨ Galería Premium</h1>
-            <p>Showroom de trabajos de barbería - Ultra HD</极>
+            <p>Showroom de trabajos de barbería - Ultra HD</p>
         </div>
 
         <!-- Opciones de vista para clientes -->
@@ -807,7 +807,7 @@
                 <div class="stat-label">Archivos Totales</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number极id="totalSize">0GB</div>
+                <div class="stat-number" id="totalSize">0GB</div>
                 <div class="stat-label">Espacio Usado</div>
             </div>
             <div class="stat-card">
@@ -827,7 +827,7 @@
             <!-- Opciones de compresión -->
             <div class="compression-options">
                 <label for="compressionSlider">Calidad de compresión: <span id="qualityValue">80%</span></label>
-                <input type="range" class="compression-sl极er" id="compressionSlider" min="50" max="100" value="80" oninput="updateQuality(this.value)">
+                <input type="range" class="compression-slider" id="compressionSlider" min="50" max="100" value="80" oninput="updateQuality(this.value)">
                 <small>WebP - Mejor calidad con menor tamaño</small>
             </div>
 
@@ -837,7 +837,7 @@
                     <div class="progress" id="progress"></div>
                 </div>
                 <div id="progressText">0%</div>
-            </极iv>
+            </div>
         </div>
 
         <!-- Mensajes -->
@@ -861,7 +861,7 @@
                 <i class="fas fa-chevron-left"></i>
             </button>
             <button class="nav-btn" onclick="navigateModal(1)">
-                <极 class="fas fa-chevron-right"></i>
+                <i class="fas fa-chevron-right"></i>
             </button>
         </div>
 
@@ -877,7 +877,7 @@
             <button class="modal-control-btn" onclick="zoomModal(-0.1)">
                 <i class="fas fa-search-minus"></i>
             </button>
-            <button class="modal-control-btn极onclick="resetZoom()">
+            <button class="modal-control-btn" onclick="resetZoom()">
                 <i class="fas fa-sync-alt"></i>
             </button>
             <button class="modal-control-btn" onclick="downloadCurrent()">
@@ -890,7 +890,7 @@
         // Configuración de Backblaze B2
         const B2_CONFIG = {
             accessKeyId: '0055efa8d760b4a0000000006',
-            secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZp极CkTeeC8'
+            secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZpPCkTeeC8'
         };
 
         // Configuración de la aplicación
@@ -981,7 +981,7 @@
             elements.smallViewBtn.classList.remove('active');
             
             if (viewType === 'grid') elements.gridViewBtn.classList.add('active');
-            if (viewType ===极'list') elements.listViewBtn.classList.add('active');
+            if (viewType === 'list') elements.listViewBtn.classList.add('active');
             if (viewType === 'small') elements.smallViewBtn.classList.add('active');
         }
 
@@ -1056,7 +1056,7 @@
                 elements.modalImage.style.display = 'block';
             } else if (fileType.startsWith('video/')) {
                 elements.modalVideo.src = signedUrl;
-                elements.mod极Video.style.display = 'block';
+                elements.modalVideo.style.display = 'block';
                 elements.modalVideo.play();
             }
 
@@ -1089,7 +1089,7 @@
         // Resetear zoom
         function resetZoom() {
             appState.modalZoom = 1;
-            elements.modal极ontent.style.transform = 'scale(1)';
+            elements.modalContent.style.transform = 'scale(1)';
             elements.modalContent.classList.remove('zoomed');
         }
 
@@ -1098,13 +1098,13 @@
             if (appState.currentModalIndex >= 0) {
                 const file = appState.currentFiles[appState.currentModalIndex];
                 const signedUrl = await getSignedUrl(file.fileName);
-                downloadFile(file.fileName, signed极rl);
+                downloadFile(file.fileName, signedUrl);
             }
         }
 
         // Comprimir imagen antes de subir
         function compressImage(file) {
-            return new Promise((resolve极) {
+            return new Promise((resolve) => {
                 if (!file.type.startsWith('image/') || file.size < 102400) {
                     resolve(file);
                     return;
@@ -1178,7 +1178,7 @@
                         appState.authData = await authResponse.json();
                     }
 
-                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.auth极ata.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucket极}`), {
+                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
                         headers: {
                             'Authorization': appState.authData.authorizationToken
                         }
@@ -1190,10 +1190,10 @@
                         headers: {
                             'Authorization': uploadData.authorizationToken,
                             'X-Bz-File-Name': encodeURIComponent(fileName),
-                            'X-B极-Content-Sha1': 'do_not_verify',
+                            'X-Bz-Content-Sha1': 'do_not_verify',
                             'Content-Type': processedFile.type
                         },
-                        body: processed极ile
+                        body: processedFile
                     });
 
                     if (uploadResponse.ok) {
@@ -1254,7 +1254,7 @@
                     elements.gallery.innerHTML = `
                         <div style="text-align: center; padding: 60px; color: #718096;">
                             <i class="fas fa-images" style="font-size: 4em; margin-bottom: 20px;"></i>
-                            <h3极No hay archivos en la galería</h3>
+                            <h3>No hay archivos en la galería</h3>
                             <p>Sube la primera imagen para comenzar</p>
                         </div>
                     `;
@@ -1275,7 +1275,7 @@
         // Actualizar estadísticas
         function updateStats() {
             const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
-            const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed极2);
+            const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
             
             elements.totalFiles.textContent = appState.currentFiles.length;
             elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + 'GB';
@@ -1288,7 +1288,7 @@
             }
         }
 
-        // Agregar elemento a la galería - MODIFICADO PARA SOLUCIONAR LOS PROBLEMAS
+        // Agregar elemento a la galería
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1302,8 +1302,8 @@
 
             galleryItem.innerHTML = `
                 ${fileType.startsWith('image/') ? 
-                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
-                    `<video><source src="${signedUrl}" type="${fileType}"></video>`
+                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal(${index})">` : 
+                    `<video onclick="openModal(${index})"><source src="${signedUrl}" type="${fileType}"></video>`
                 }
                 <div class="item-overlay">
                     <div class="item-info">
@@ -1324,23 +1324,6 @@
             `;
 
             elements.gallery.appendChild(galleryItem);
-            
-            // AÑADIR EVENT LISTENER PARA CLIC EN TODAS LAS VISTAS (SOLUCIÓN AL PROBLEMA 1)
-            const mediaElement = galleryItem.querySelector('img, video');
-            if (mediaElement) {
-                mediaElement.addEventListener('click', () => {
-                    openModal(index);
-                });
-            }
-            
-            // También hacer que el overlay sea clickeable
-            const overlay = galleryItem.querySelector('.item-overlay');
-            if (overlay) {
-                overlay.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openModal(index);
-                });
-            }
         }
 
         // Obtener URL firmada
@@ -1398,7 +1381,7 @@
                 });
                 const authData = await authResponse.json();
 
-                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file极ames?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
+                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
                     headers: {
                         'Authorization': authData.authorizationToken
                     }
