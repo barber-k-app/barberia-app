@@ -129,7 +129,7 @@
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 极 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         .container {
@@ -146,6 +146,7 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
+            position: relative;
         }
 
         .header h1 {
@@ -232,7 +233,7 @@
             margin-bottom: 40px;
             border: 2px dashed #cbd5e0;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 极.3s ease;
             display: none;
         }
 
@@ -246,7 +247,7 @@
         }
 
         .upload-btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--极rimary), var(--secondary));
             color: white;
             padding: 18px 35px;
             border: none;
@@ -324,6 +325,7 @@
             object-fit: cover;
             display: block;
             transition: transform 0.3s ease;
+            cursor: pointer;
         }
 
         .gallery.small-view .gallery-item img,
@@ -336,7 +338,7 @@
             height: 200px;
         }
 
-        .gallery-item:hover img, .gallery-item:hover video {
+        .gallery-item:hover img, .极allery-item:hover video {
             transform: scale(1.1);
         }
 
@@ -371,6 +373,9 @@
             font-weight: 600;
             margin-bottom: 5px;
             font-size: 1.1em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .gallery.small-view .item-name {
@@ -420,7 +425,7 @@
             font-size: 12px;
         }
 
-        .delete-btn {
+极        .delete-btn {
             background: rgba(229, 62, 62, 0.9);
         }
 
@@ -486,7 +491,7 @@
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
         .warning { background: #fff3cd; color: #856404; }
-        .info { background: #d1ecf1; color: #0c5460; }
+        .info { background: #d1ec极1; color: #0c5460; }
 
         .logout-btn {
             position: fixed;
@@ -663,7 +668,7 @@
             font-size: 28px;
             cursor: pointer;
             z-index: 3001;
-            display: flex;
+            display:极 flex;
             align-items: center;
             justify-content: center;
         }
@@ -676,14 +681,14 @@
             justify-content: space-between;
             padding: 0 30px;
             transform: translateY(-50%);
-            z-index: 3001;
+            z极-index: 3001;
         }
 
         .nav-btn {
             background: rgba(0,0,0,0.6);
             border: none;
             border-radius: 50%;
-            width: 60px;
+            width: 极0px;
             height: 60px;
             color: white;
             font-size: 24px;
@@ -697,6 +702,51 @@
         .nav-btn:hover {
             background: rgba(0,0,0,0.8);
             transform: scale(1.1);
+        }
+
+        /* Estilos mejorados para vista de lista */
+        .gallery.list-view .gallery-item {
+            display: flex;
+            flex-direction: row;
+            height: 100px;
+        }
+
+        .gallery.list-view .gallery-item img,
+        .gallery.list-view .gallery-item video {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .gallery.list-view .item-overlay {
+            position: relative;
+            background: linear-gradient(to right, rgba(0,0,0,0.7), transparent);
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            flex-grow: 1;
+        }
+
+        .gallery.list-view .item-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .gallery.list-view .item-name {
+            font-size: 1em;
+            max-width: 60%;
+        }
+
+        .gallery.list-view .item-size {
+            font-size: 0.9em;
+        }
+
+        .gallery.list-view .admin-controls {
+            position: static;
+            display: flex;
+            gap: 10px;
         }
     </style>
 </head>
@@ -714,7 +764,7 @@
     <!-- Modal Login -->
     <div class="login-modal" id="loginModal">
         <div class="login-content">
-            <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
+            <h2><极 class="fas fa-lock"></i> Acceso Administrador</h2>
             <form class="login-form" onsubmit="login(); return false;">
                 <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="new-password">
                 <button type="submit" class="login-btn">Acceder</button>
@@ -743,10 +793,10 @@
             <button class="view-btn active" id="gridViewBtn" onclick="changeView('grid')">
                 <i class="fas fa-th"></i> Cuadrícula
             </button>
-            <button class="view-btn" id="listViewBtn" onclick="changeView('list')">
+            <button class="view-btn" id="listViewBtn" onclick="changeView('极ist')">
                 <i class="fas fa-list"></i> Lista
             </button>
-            <button class="view-btn" id="smallViewBtn" onclick="changeView('small')">
+            <button class="view-btn极" id="smallViewBtn" onclick="changeView('small')">
                 <i class="fas fa-th-small"></i> Pequeños
             </button>
         </div>
@@ -778,13 +828,13 @@
             <!-- Opciones de compresión -->
             <div class="compression-options">
                 <label for="compressionSlider">Calidad de compresión: <span id="qualityValue">80%</span></label>
-                <input type="range" class="compression-slider" id="compressionSlider" min="50" max="100" value="80" oninput="updateQuality(this.value)">
+                <input type="range" class="compression-slider" id="compressionSlider" min="50"极 max="100" value="80" oninput="updateQuality(this.value)">
                 <small>WebP - Mejor calidad con menor tamaño</small>
             </div>
 
             <!-- Barra de progreso -->
             <div class="progress-container">
-                <div class="progress-bar">
+                <极iv class="progress-bar">
                     <div class="progress" id="progress"></div>
                 </div>
                 <div id="progressText">0%</div>
@@ -860,7 +910,6 @@
             progressText: document.getElementById('progressText'),
             messageDiv: document.getElementById('message'),
             loginModal: document.getElementById('loginModal'),
-            uploadSection: document.getElementById('uploadSection'),
             logoutBtn: document.getElementById('logoutBtn'),
             viewMode: document.getElementById('viewMode'),
             totalFiles: document.getElementById('totalFiles'),
@@ -882,7 +931,7 @@
 
         // Estado de la aplicación
         let appState = {
-            isAdmin: false,
+            isAdmin: localStorage.getItem('isAdmin') === 'true' || false,
             authData: null,
             currentFiles: [],
             currentModalIndex: -1,
@@ -894,6 +943,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             loadGallery();
+            
+            // Verificar si ya está en modo admin
+            if (appState.isAdmin) {
+                elements.mainContainer.classList.add('admin-mode');
+                elements.logoutBtn.style.display = 'flex';
+                elements.viewMode.style.display = 'block';
+            }
         });
 
         // Función proxy para evitar CORS
@@ -910,7 +966,7 @@
                 particle.style.height = particle.style.width;
                 particle.style.left = Math.random() * 100 + 'vw';
                 particle.style.animationDuration = Math.random() * 30 + 10 + 's';
-                particle.style.animationDelay = Math.random() * 5 + 's';
+                particle.style.animationDelay = Math.random() * 5 + '极';
                 elements.particles.appendChild(particle);
             }
         }
@@ -959,6 +1015,7 @@
             const password = elements.adminPassword.value;
             if (password === APP_CONFIG.adminPassword) {
                 appState.isAdmin = true;
+                localStorage.setItem('isAdmin', 'true');
                 elements.mainContainer.classList.add('admin-mode');
                 elements.logoutBtn.style.display = 'flex';
                 elements.viewMode.style.display = 'block';
@@ -974,10 +1031,13 @@
         // Logout de administrador
         function logout() {
             appState.isAdmin = false;
+            localStorage.removeItem('isAdmin');
             elements.mainContainer.classList.remove('admin-mode');
             elements.logoutBtn.style.display = 'none';
             elements.viewMode.style.display = 'none';
             showMessage('Sesión cerrada', 'info');
+            // Recargar la galería para ocultar controles de admin
+            loadGallery();
         }
 
         // Abrir modal de imagen/mejorado
@@ -1076,7 +1136,7 @@
                         canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
                         
-                        canvas.toBlob((blob) => {
+                        canvas.to极lob((blob) => {
                             const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
                                 type: 'image/webp',
                                 lastModified: Date.now()
@@ -1099,7 +1159,7 @@
             if (!files.length) return;
 
             elements.progress.style.width = '0%';
-            elements.progressText.textContent = '0%';
+            elements.progress极ext.textContent = '0%';
             showMessage('Comprimiendo y subiendo archivos...', 'info');
 
             let uploadedCount = 0;
@@ -1110,7 +1170,7 @@
                     const processedFile = await compressImage(file);
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
-                    if (!appState.authData) {
+                    if (!appState.auth极ata) {
                         const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                             headers: {
                                 'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
@@ -1171,7 +1231,7 @@
                 });
                 appState.authData = await authResponse.json();
 
-                const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
+                const listResponse = await fetch(getProxyUrl(`${appState.authData.api极rl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
                     headers: {
                         'Authorization': appState.authData.authorizationToken
                     }
@@ -1184,7 +1244,10 @@
 
                 if (appState.currentFiles.length > 0) {
                     for (const file of appState.currentFiles) {
-                        appState.totalBytes += file.size;
+                        // Verificar que el archivo tenga tamaño válido
+                        if (file.size && !isNaN(file.size)) {
+                            appState.totalBytes += file.size;
+                        }
                         await addToGallery(file);
                     }
                     updateStats();
@@ -1216,8 +1279,8 @@
             const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
             
             elements.totalFiles.textContent = appState.currentFiles.length;
-            elements.totalSize.textContent = usedGB + 'GB';
-            elements.freeSpace.textContent = freeGB + 'GB';
+            elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + 'GB';
+            elements.freeSpace.textContent = isNaN(freeGB) ? '10.00 GB' : freeGB + 'GB';
 
             if (usedGB > 8) {
                 elements.totalSize.style.color = 'var(--danger)';
@@ -1230,7 +1293,8 @@
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
-            const fileSize = formatFileSize(file.size);
+            // Asegurarse de que el tamaño del archivo sea válido
+            const fileSize = file.size && !isNaN(file.size) ? formatFileSize(file.size) : 'Tamaño desconocido';
             const index = appState.currentFiles.indexOf(file);
 
             const galleryItem = document.createElement('div');
@@ -1261,12 +1325,20 @@
             `;
 
             elements.gallery.appendChild(galleryItem);
+            
+            // Añadir event listeners para las vistas de cuadrícula y pequeño
+            const mediaElement = galleryItem.querySelector('img, video');
+            if (mediaElement) {
+                mediaElement.addEventListener('click', () => {
+                    openModal(index);
+                });
+            }
         }
 
         // Obtener URL firmada
         async function getSignedUrl(fileName) {
             try {
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b极_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
@@ -1329,7 +1401,7 @@
                     throw new Error('Archivo no encontrado');
                 }
 
-                const fileInfo = filesData.files[0];
+                const fileInfo = files极.files[0];
 
                 const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
                     method: 'POST',
@@ -1366,6 +1438,7 @@
 
         // Formatear tamaño de archivo
         function formatFileSize(bytes) {
+            if (!bytes || isNaN(bytes)) return 'Tamaño desconocido';
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
             if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
