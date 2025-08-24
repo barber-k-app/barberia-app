@@ -44,7 +44,7 @@
         .admin-btn {
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 极.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
             padding: 12px 20px;
             border-radius: 50px;
@@ -53,7 +53,7 @@
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8极;
+            gap: 8px;
         }
 
         .admin-btn:hover {
@@ -120,7 +120,7 @@
             color: white;
             padding: 15px 30px;
             border: none;
-            border-radius: 10极;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
@@ -139,7 +139,7 @@
             backdrop-filter: blur(20px);
             border-radius: 25px;
             padding: 30px;
-            box-shadow: 0 25px 60极 rgba(0,0,0,0.15);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -151,7 +151,7 @@
         .header h1 {
             font-size: 3.5em;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-cl极 text;
+            -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
             font-weight: 700;
@@ -178,7 +178,7 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-极           display: flex;
+            display: flex;
             align-items: center;
             gap: 8px;
         }
@@ -190,7 +190,7 @@
 
         .view-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba极102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         .stats-container {
@@ -220,7 +220,7 @@
             margin-bottom: 5px;
         }
 
-极       .stat-label {
+        .stat-label {
             font-size: 1.1em;
             opacity: 0.9;
         }
@@ -249,7 +249,7 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             padding: 18px 35px;
-           极order: none;
+            border: none;
             border-radius: 15px;
             cursor: pointer;
             font-size: 18px;
@@ -334,7 +334,7 @@
 
         .gallery.list-view .gallery-item img,
         .gallery.list-view .gallery-item video {
-            height: 200极;
+            height: 200px;
         }
 
         .gallery-item:hover img, .gallery-item:hover video {
@@ -359,7 +359,7 @@
             padding: 10px;
         }
 
-        .gallery-item:hover .极tem-overlay {
+        .gallery-item:hover .item-overlay {
             opacity: 1;
         }
 
@@ -371,7 +371,7 @@
         .item-name {
             font-weight: 600;
             margin-bottom: 5px;
-            font-size: 1.1极;
+            font-size: 1.1em;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -448,14 +448,14 @@
         }
 
         .progress-bar {
-            width: 极00%;
+            width: 100%;
             height: 12px;
             background: #edf2f7;
             border-radius: 10px;
             overflow: hidden;
         }
 
-        .极rogress {
+        .progress {
             height: 100%;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 10px;
@@ -470,7 +470,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient极90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
             animation: shimmer 2s infinite;
         }
 
@@ -482,7 +482,7 @@
         .message {
             text-align: center;
             padding: 15px;
-            margin极15px 0;
+            margin: 15px 0;
             border-radius: 10px;
             font-weight: 500;
         }
@@ -514,7 +514,7 @@
             top: 80px;
             right: 20px;
             background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px;
+            backdrop-filter: blur(10px);
             padding: 10px 15px;
             border-radius: 20px;
             color: white;
@@ -549,8 +549,8 @@
                 gap: 15px;
             }
             
-            .极allery.small-view {
-                grid-template-column极: repeat(auto-fill, minmax(120px, 1fr));
+            .gallery.small-view {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
             }
             
@@ -580,7 +580,7 @@
         }
 
         @keyframes float {
-            0% { transform: translateY(0) rotate极0deg); }
+            0% { transform: translateY(0) rotate(0deg); }
             100% { transform: translateY(-100vh) rotate(360deg); }
         }
 
@@ -588,7 +588,7 @@
         .modal {
             display: none;
             position: fixed;
-极           top: 0;
+            top: 0;
             left: 0;
             width: 100%;
             height: 100%;
@@ -623,7 +623,7 @@
 
         .modal-controls {
             position: absolute;
-            bottom: 30极;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.8);
@@ -694,7 +694,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-           极ustify-content: center;
+            justify-content: center;
             transition: all 0.3s ease;
         }
 
@@ -754,7 +754,7 @@
     <div class="particles" id="particles"></div>
 
     <!-- Botón Admin -->
-    <div class="admin-log极n">
+    <div class="admin-login">
         <button class="admin-btn" onclick="openLogin()">
             <i class="fas fa-lock"></i> Admin
         </button>
@@ -778,10 +778,10 @@
 
     <!-- Modo de vista -->
     <div class="view-mode" id="viewMode">
-        <i class="fas极fa-eye"></i> Modo Administrador
+        <i class="fas fa-eye"></i> Modo Administrador
     </div>
 
-    <div class="极ontainer" id="mainContainer">
+    <div class="container" id="mainContainer">
         <div class="header">
             <h1>✨ Galería Premium</h1>
             <p>Showroom de trabajos de barbería - Ultra HD</p>
@@ -792,7 +792,7 @@
             <button class="view-btn active" id="gridViewBtn" onclick="changeView('grid')">
                 <i class="fas fa-th"></i> Cuadrícula
             </button>
-            <button class="view-btn" id="listViewBtn"极onclick="changeView('list')">
+            <button class="view-btn" id="listViewBtn" onclick="changeView('list')">
                 <i class="fas fa-list"></i> Lista
             </button>
             <button class="view-btn" id="smallViewBtn" onclick="changeView('small')">
@@ -802,7 +802,7 @@
 
         <!-- Estadísticas (SOLO ADMIN) -->
         <div class="stats-container">
-            <极iv class="stat-card">
+            <div class="stat-card">
                 <div class="stat-number" id="totalFiles">0</div>
                 <div class="stat-label">Archivos Totales</div>
             </div>
@@ -826,7 +826,7 @@
 
             <!-- Opciones de compresión -->
             <div class="compression-options">
-                <label for极compressionSlider">Calidad de compresión: <span id="qualityValue">80%</span></label>
+                <label for="compressionSlider">Calidad de compresión: <span id="qualityValue">80%</span></label>
                 <input type="range" class="compression-slider" id="compressionSlider" min="50" max="100" value="80" oninput="updateQuality(this.value)">
                 <small>WebP - Mejor calidad con menor tamaño</small>
             </div>
@@ -867,7 +867,7 @@
 
         <div class="modal-content" id="modalContent">
             <img id="modalImage" src="" style="display: none;">
-            <video id="modalVideo" controls class="video-player" style="极isplay: none;"></video>
+            <video id="modalVideo" controls class="video-player" style="display: none;"></video>
         </div>
 
         <div class="modal-controls">
@@ -877,7 +877,7 @@
             <button class="modal-control-btn" onclick="zoomModal(-0.1)">
                 <i class="fas fa-search-minus"></i>
             </button>
-            <button class="modal-control-btn" onclick极resetZoom()">
+            <button class="modal-control-btn" onclick="resetZoom()">
                 <i class="fas fa-sync-alt"></i>
             </button>
             <button class="modal-control-btn" onclick="downloadCurrent()">
@@ -907,7 +907,7 @@
             gallery: document.getElementById('gallery'),
             progress: document.getElementById('progress'),
             progressText: document.getElementById('progressText'),
-            message极iv: document.getElementById('message'),
+            messageDiv: document.getElementById('message'),
             loginModal: document.getElementById('loginModal'),
             logoutBtn: document.getElementById('logoutBtn'),
             viewMode: document.getElementById('viewMode'),
@@ -997,7 +997,7 @@
             setTimeout(() => { elements.messageDiv.innerHTML = ''; }, 5000);
         }
 
-        // Abrir modal极login
+        // Abrir modal de login
         function openLogin() {
             elements.loginModal.style.display = 'flex';
             elements.adminPassword.focus();
@@ -1055,7 +1055,7 @@
                 elements.modalImage.src = signedUrl;
                 elements.modalImage.style.display = 'block';
             } else if (fileType.startsWith('video/')) {
-                elements.modalVideo极rc = signedUrl;
+                elements.modalVideo.src = signedUrl;
                 elements.modalVideo.style.display = 'block';
                 elements.modalVideo.play();
             }
@@ -1097,7 +1097,7 @@
         async function downloadCurrent() {
             if (appState.currentModalIndex >= 0) {
                 const file = appState.currentFiles[appState.currentModalIndex];
-                const signedUrl = await极getSignedUrl(file.fileName);
+                const signedUrl = await getSignedUrl(file.fileName);
                 downloadFile(file.fileName, signedUrl);
             }
         }
@@ -1133,11 +1133,11 @@
                         
                         canvas.width = width;
                         canvas.height = height;
-                        ctx.drawImage(img, 0极0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
                         
                         canvas.toBlob((blob) => {
-                            const compressed极ile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
-                                type: '极mage/webp',
+                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
+                                type: 'image/webp',
                                 lastModified: Date.now()
                             });
                             resolve(compressedFile);
@@ -1170,7 +1170,7 @@
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
                     if (!appState.authData) {
-                        const authResponse = await fetch(getProxyUrl('https://api.backblazeb2极com/b2api/v2/b2_authorize_account'), {
+                        const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                             headers: {
                                 'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                             }
@@ -1178,12 +1178,12 @@
                         appState.authData = await authResponse.json();
                     }
 
-                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b极_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
+                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
                         headers: {
                             'Authorization': appState.authData.authorizationToken
                         }
                     });
-                    const uploadData = await upload极rlResponse.json();
+                    const uploadData = await uploadUrlResponse.json();
 
                     const uploadResponse = await fetch(getProxyUrl(uploadData.uploadUrl), {
                         method: 'POST',
@@ -1217,7 +1217,7 @@
         async function loadGallery() {
             try {
                 elements.gallery.innerHTML = `
-                    <div style="text-align: center; padding: 40极; color: #718096;">
+                    <div style="text-align: center; padding: 40px; color: #718096;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
                         <p>Cargando galería...</p>
                     </div>
@@ -1264,7 +1264,7 @@
                 console.error('Error cargando galería:', error);
                 elements.gallery.innerHTML = `
                     <div style="text-align: center; padding: 60px; color: #718096;">
-                        <i class="fas fa-exclamation-triangle" style极font-size: 4em; margin-bottom: 20px;"></i>
+                        <i class="fas fa-exclamation-triangle" style="font-size: 4em; margin-bottom: 20px;"></i>
                         <h3>Error cargando galería</h3>
                         <p>Intenta recargar la página</p>
                     </div>
@@ -1288,7 +1288,7 @@
             }
         }
 
-        // Agregar elemento a la galería - MODIFICADO PARA SOLUCIONAR EL PROBLEMA DE CLIC
+        // Agregar elemento a la galería
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1302,8 +1302,8 @@
 
             galleryItem.innerHTML = `
                 ${fileType.startsWith('image/') ? 
-                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
-                    `<video><source src="${signedUrl}" type="${fileType}"></video>`
+                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal(${index})">` : 
+                    `<video onclick="openModal(${index})"><source src="${signedUrl}" type="${fileType}"></video>`
                 }
                 <div class="item-overlay">
                     <div class="item-info">
@@ -1324,23 +1324,6 @@
             `;
 
             elements.gallery.appendChild(galleryItem);
-            
-            // AÑADIR EVENT LISTENER PARA CLIC EN TODAS LAS VISTAS
-            const mediaElement = galleryItem.querySelector('img, video');
-            if (mediaElement) {
-                mediaElement.addEventListener('click', () => {
-                    openModal(index);
-                });
-            }
-            
-            // También hacer que el overlay sea clickeable
-            const overlay = galleryItem.querySelector('.item-overlay');
-            if (overlay) {
-                overlay.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openModal(index);
-                });
-            }
         }
 
         // Obtener URL firmada
@@ -1393,7 +1376,7 @@
 
                 const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKey极d}:${B2_CONFIG.secretAccessKey}`)
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
                 });
                 const authData = await authResponse.json();
@@ -1447,7 +1430,7 @@
         // Formatear tamaño de archivo
         function formatFileSize(bytes) {
             if (!bytes || isNaN(bytes)) return 'Tamaño desconocido';
-            if (bytes < 1024极 return bytes + ' B';
+            if (bytes < 1024) return bytes + ' B';
             if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
             if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
             return (bytes / 1073741824).toFixed(1) + ' GB';
