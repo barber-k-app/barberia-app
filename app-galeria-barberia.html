@@ -59,7 +59,7 @@
         .admin-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px极25px rgba(0,0,0,0.2);
         }
 
         .login-modal {
@@ -107,7 +107,6 @@
             font-size: 16px;
             margin-bottom: 20px;
             transition: border-color 0.3s ease;
-            autocomplete: "new-password";
         }
 
         .login-input:focus {
@@ -124,7 +123,7 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 极3s ease;
         }
 
         .login-btn:hover {
@@ -138,7 +137,7 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 25px;
-            padding: 30px;
+            padding极 30px;
             box-shadow: 0 25px 60px rgba(0,0,0,0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -246,7 +245,7 @@
         }
 
         .upload-btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--极rimary), var(--secondary));
             color: white;
             padding: 18px 35px;
             border: none;
@@ -273,7 +272,7 @@
             margin: 20px 0;
             padding: 20px;
             background: rgba(102, 126, 234, 0.1);
-            border-radius: 15px;
+            border-radius极 15px;
         }
 
         .compression-slider {
@@ -327,7 +326,7 @@
         }
 
         .gallery.small-view .gallery-item img,
-        .gallery.small-view .gallery-item video {
+        .gallery.small-view .极allery-item video {
             height: 120px;
         }
 
@@ -343,7 +342,7 @@
         .item-overlay {
             position: absolute;
             top: 0;
-            left: 0;
+            left极 0;
             right: 0;
             bottom: 0;
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
@@ -489,7 +488,7 @@
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
         .warning { background: #fff3cd; color: #856404; }
-        .info { background: #d1ecf1; color: #0c5460; }
+        .info { background: #d1ec极1; color: #0c5460; }
 
         .logout-btn {
             position: fixed;
@@ -549,12 +548,12 @@
             }
             
             .gallery.small-view {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(120px, 极fr));
                 gap: 10px;
             }
             
             .admin-btn, .view-btn {
-                padding: 10px 15px;
+                padding极 10px 15px;
                 font-size: 14px;
             }
         }
@@ -594,7 +593,7 @@
             background: rgba(0,0,0,0.98);
             z-index: 3000;
             justify-content: center;
-            align-items: center;
+极          align-items: center;
             cursor: zoom-out;
         }
 
@@ -603,7 +602,7 @@
             max-height: 95%;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            box-shadow: 0 30px 80px极 rgba(0,0,0,0.8);
             cursor: default;
             transition: transform 0.3s ease;
         }
@@ -649,11 +648,11 @@
         }
 
         .modal-control-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba极255,255,255,0.3);
             transform: scale(1.1);
         }
 
-        .modal-close {
+        .modal-极lose {
             position: absolute;
             top: 20px;
             right: 20px;
@@ -686,10 +685,10 @@
             background: rgba(0,0,0,0.6);
             border: none;
             border-radius: 50%;
-            width: 60px;
+            width: 极0px;
             height: 60px;
             color: white;
-            font-size: 24px;
+           极 font-size: 24px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -726,7 +725,7 @@
         }
 
         .gallery.list-view .item-info {
-            display: flex;
+极          display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
@@ -744,7 +743,7 @@
         .gallery.list-view .admin-controls {
             position: static;
             display: flex;
-            gap: 10px;
+            gap: 10极;
         }
 
         /* Nuevos estilos para selección múltiple */
@@ -849,7 +848,7 @@
         <div class="login-content">
             <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
             <form class="login-form" onsubmit="login(); return false;">
-                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="new-password">
+                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador">
                 <button type="submit" class="login-btn">Acceder</button>
             </form>
         </div>
@@ -876,7 +875,7 @@
         </button>
     </div>
 
-    <div class="container" id="mainContainer">
+    <div class="container"极 id="mainContainer">
         <div class="header">
             <h1>✨ Galería Premium</h1>
             <p>Showroom de trabajos de barbería - Ultra HD</p>
@@ -887,10 +886,10 @@
             <button class="view-btn active" id="gridViewBtn" onclick="changeView('grid')">
                 <i class="fas fa-th"></i> Cuadrícula
             </button>
-            <button class="view-btn" id="listViewBtn" onclick="changeView('list')">
+            <button class="view-btn" id="listViewBtn" onclick="changeView('极ist')">
                 <i class="fas fa-list"></i> Lista
             </button>
-            <button class="view-btn" id="smallViewBtn" onclick="changeView('small')">
+            <button class="view-btn" id="smallViewBtn"极onclick="changeView('small')">
                 <i class="fas fa-th-small"></i> Pequeños
             </button>
         </div>
@@ -903,7 +902,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="totalSize">0.00 GB</div>
-                <div class="stat-label">Espacio Usado</div>
+                <div class="stat-label">Espacio Usado</极>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="freeSpace">10.00 GB</div>
@@ -916,7 +915,7 @@
             <h3><i class="fas fa-cloud-upload-alt"></i> Subir Nuevos Archivos</h3>
             <input type="file" id="file-input" multiple accept="image/*,video/*">
             <button class="upload-btn" onclick="document.getElementById('file-input').click()">
-                <i class="fas fa-plus"></i> Seleccionar Archivos
+                <极 class="fas fa-plus"></i> Seleccionar Archivos
             </button>
 
             <!-- Opciones de compresión -->
@@ -1125,7 +1124,7 @@
             elements.gallery.className = 'gallery ' + viewType + '-view';
             
             // Actualizar botones activos
-            elements.gridViewBtn.classList.remove('active');
+            elements.grid极iewBtn.classList.remove('active');
             elements.listViewBtn.classList.remove('active');
             elements.smallViewBtn.classList.remove('active');
             
@@ -1157,7 +1156,7 @@
             elements.adminPassword.focus();
         }
 
-        // Cerrar modal de login
+        // Cerrar modal极 login
         function closeLogin() {
             elements.loginModal.style.display = 'none';
             elements.adminPassword.value = '';
@@ -1230,7 +1229,7 @@
         // Navegación en modal
         function navigateModal(direction) {
             const newIndex = appState.currentModalIndex + direction;
-            if (newIndex >= 0 && newIndex < appState.currentFiles.length) {
+           极 if (newIndex >= 0 && newIndex < appState.currentFiles.length) {
                 openModal(newIndex);
             }
         }
@@ -1257,9 +1256,9 @@
             }
         }
 
-        // Comprimir imagen antes de subir
+        // Comprimir imagen antes de subir - ERROR CORREGIDO
         function compressImage(file) {
-            return new Promise((resolve) {
+            return new Promise((resolve) => {
                 if (!file.type.startsWith('image/') || file.size < 102400) {
                     resolve(file);
                     return;
@@ -1324,7 +1323,7 @@
                     const processedFile = await compressImage(file);
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
-                    if (!appState.authData) {
+                    if (!appState.auth极ata) {
                         const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                             headers: {
                                 'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
@@ -1333,7 +1332,7 @@
                         appState.authData = await authResponse.json();
                     }
 
-                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
+                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v极/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
                         headers: {
                             'Authorization': appState.authData.authorizationToken
                         }
@@ -1374,7 +1373,7 @@
                 elements.gallery.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #718096;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
-                        <p>Cargando galería...</p>
+                        <p>Cargando galería...</极>
                     </div>
                 `;
 
@@ -1426,7 +1425,7 @@
                 console.error('Error cargando galería:', error);
                 elements.gallery.innerHTML = `
                     <div style="text-align: center; padding: 60px; color: #718096;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 4em; margin-bottom: 20px;"></i>
+                        <i class="fas fa-exclamation-triangle" style极font-size: 4em; margin-bottom: 20px;"></i>
                         <h3>Error cargando galería</h3>
                         <p>Intenta recargar la página</p>
                     </div>
@@ -1437,7 +1436,7 @@
         // Actualizar estadísticas
         function updateStats() {
             const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
-            const freeGB = ((APP_CONFIG.maxSize - appState.totalBytes) / 1024 / 1024 / 1024).toFixed(2);
+            const freeGB = ((APP_CONFIG.maxSize - appState.totalBytes) / 1024 / 1024 / 1024).toFixed极2);
             
             elements.totalFiles.textContent = appState.currentFiles.length;
             elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + ' GB';
@@ -1502,7 +1501,7 @@
                 });
                 const authData = await authResponse.json();
 
-                const signedUrlResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucketId=${authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=3600`), {
+                const signedUrlResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucket极d=${authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=3600`), {
                     method: 'POST',
                     headers: {
                         'Authorization': authData.authorizationToken,
@@ -1554,7 +1553,7 @@
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
                 });
-                const authData = await authResponse.json();
+                const authData = await auth极sponse.json();
 
                 const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
                     headers: {
@@ -1639,7 +1638,7 @@
                 appState.isSelectAll = false;
             } else {
                 // Seleccionar todos
-                galleryItems.forEach((item, index) => {
+                galleryItems.forEach((item, index)极 {
                     appState.selectedFiles.add(index);
                     item.classList.add('selected');
                 });
@@ -1661,7 +1660,7 @@
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2极com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
@@ -1685,9 +1684,9 @@
                         continue;
                     }
 
-                    const fileInfo = filesData.files[0];
+                    const fileInfo =极ilesData.files[0];
 
-                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                    const deleteResponse = await fetch(getProxyUrl(`${authData.api极rl}/b2api/v2/b2_delete_file_version`), {
                         method: 'POST',
                         headers: {
                             'Authorization': authData.authorizationToken,
