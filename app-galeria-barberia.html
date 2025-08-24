@@ -746,6 +746,90 @@
             display: flex;
             gap: 10px;
         }
+
+        /* Nuevos estilos para selección múltiple */
+        .multi-select-controls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-mode .multi-select-controls {
+            display: flex;
+        }
+
+        .select-count {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .select-all-btn, .delete-selected-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .delete-selected-btn {
+            background: linear-gradient(135deg, var(--danger), #c53030);
+        }
+
+        .select-all-btn:hover, .delete-selected-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .gallery-item.selected {
+            box-shadow: 0 0 0 3px var(--primary);
+        }
+
+        .gallery-item .select-checkbox {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            z-index: 10;
+            display: none;
+        }
+
+        .admin-mode .gallery-item .select-checkbox {
+            display: block;
+        }
+
+        .gallery-item.selected .select-checkbox {
+            background: var(--primary);
+        }
+
+        .gallery-item.selected .select-checkbox::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
     </style>
 </head>
 <body>
@@ -780,6 +864,17 @@
         <i class="fas fa-eye"></i> Modo Administrador
     </div>
 
+    <!-- Controles de selección múltiple -->
+    <div class="multi-select-controls" id="multiSelectControls">
+        <span class="select-count" id="selectedCount">0 seleccionados</span>
+        <button class="select-all-btn" onclick="toggleSelectAll()">
+            <i class="fas fa-check-square"></i> Seleccionar todo
+        </button>
+        <button class="delete-selected-btn" onclick="deleteSelectedFiles()">
+            <i class="fas fa-trash"></i> Eliminar seleccionados
+        </button>
+    </div>
+
     <div class="container" id="mainContainer">
         <div class="header">
             <h1>✨ Galería Premium</h1>
@@ -806,11 +901,11 @@
                 <div class="stat-label">Archivos Totales</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalSize">0GB</div>
+                <div class="stat-number" id="totalSize">0.00 GB</div>
                 <div class="stat-label">Espacio Usado</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="freeSpace">10GB</div>
+                <div class="stat-number" id="freeSpace">10.00 GB</div>
                 <div class="stat-label">Espacio Libre</div>
             </div>
         </div>
@@ -895,7 +990,7 @@
         // Configuración de la aplicación
         const APP_CONFIG = {
             adminPassword: 'barber2024',
-            maxSize: 10,
+            maxSize: 10 * 1024 * 1024 * 1024, // 10 GB en bytes
             compressionQuality: 0.8,
             currentView: 'grid'
         };
@@ -924,7 +1019,9 @@
             mainContainer: document.getElementById('mainContainer'),
             gridViewBtn: document.getElementById('gridViewBtn'),
             listViewBtn: document.getElementById('listViewBtn'),
-            smallViewBtn: document.getElementById('smallViewBtn')
+            smallViewBtn: document.getElementById('smallViewBtn'),
+            multiSelectControls: document.getElementById('multiSelectControls'),
+            selectedCount: document.getElementById('selectedCount')
         };
 
         // Estado de la aplicación
@@ -934,7 +1031,9 @@
             currentFiles: [],
             currentModalIndex: -1,
             modalZoom: 1,
-            totalBytes: 0
+            totalBytes: 0,
+            selectedFiles: new Set(),
+            isSelectAll: false
         };
 
         // Inicializar
@@ -1033,6 +1132,8 @@
             elements.mainContainer.classList.remove('admin-mode');
             elements.logoutBtn.style.display = 'none';
             elements.viewMode.style.display = 'none';
+            appState.selectedFiles.clear();
+            updateSelectedCount();
             showMessage('Sesión cerrada', 'info');
             // Recargar la galería para ocultar controles de admin
             loadGallery();
@@ -1239,6 +1340,8 @@
                 elements.gallery.innerHTML = '';
                 appState.currentFiles = filesData.files || [];
                 appState.totalBytes = 0;
+                appState.selectedFiles.clear();
+                updateSelectedCount();
 
                 if (appState.currentFiles.length > 0) {
                     for (const file of appState.currentFiles) {
@@ -1274,11 +1377,11 @@
         // Actualizar estadísticas
         function updateStats() {
             const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
-            const freeGB = (APP_CONFIG.maxSize - usedGB).toFixed(2);
+            const freeGB = ((APP_CONFIG.maxSize - appState.totalBytes) / 1024 / 1024 / 1024).toFixed(2);
             
             elements.totalFiles.textContent = appState.currentFiles.length;
-            elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + 'GB';
-            elements.freeSpace.textContent = isNaN(freeGB) ? '10.00 GB' : freeGB + 'GB';
+            elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + ' GB';
+            elements.freeSpace.textContent = isNaN(freeGB) ? '10.00 GB' : freeGB + ' GB';
 
             if (usedGB > 8) {
                 elements.totalSize.style.color = 'var(--danger)';
@@ -1300,9 +1403,22 @@
             galleryItem.style.animationDelay = (Math.random() * 0.5) + 's';
             
             // Añadir evento de clic directamente al elemento de la galería
-            galleryItem.onclick = () => openModal(index);
+            galleryItem.onclick = (e) => {
+                // Si estamos en modo admin y se hace clic en el checkbox, no abrir el modal
+                if (appState.isAdmin && e.target.classList.contains('select-checkbox')) {
+                    toggleSelectFile(index, galleryItem);
+                    return;
+                }
+                // Si estamos en modo admin y hay archivos seleccionados, no abrir el modal
+                if (appState.isAdmin && appState.selectedFiles.size > 0) {
+                    toggleSelectFile(index, galleryItem);
+                    return;
+                }
+                openModal(index);
+            };
 
             galleryItem.innerHTML = `
+                <div class="select-checkbox" onclick="event.stopPropagation();"></div>
                 ${fileType.startsWith('image/') ? 
                     `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
                     `<video><source src="${signedUrl}" type="${fileType}"></video>`
@@ -1436,6 +1552,107 @@
             if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
             if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
             return (bytes / 1073741824).toFixed(1) + ' GB';
+        }
+
+        // Toggle selección de archivo
+        function toggleSelectFile(index, galleryItem) {
+            if (appState.selectedFiles.has(index)) {
+                appState.selectedFiles.delete(index);
+                galleryItem.classList.remove('selected');
+            } else {
+                appState.selectedFiles.add(index);
+                galleryItem.classList.add('selected');
+            }
+            updateSelectedCount();
+        }
+
+        // Actualizar contador de seleccionados
+        function updateSelectedCount() {
+            elements.selectedCount.textContent = `${appState.selectedFiles.size} seleccionados`;
+        }
+
+        // Seleccionar/Deseleccionar todos
+        function toggleSelectAll() {
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            
+            if (appState.isSelectAll) {
+                // Deseleccionar todos
+                appState.selectedFiles.clear();
+                galleryItems.forEach(item => item.classList.remove('selected'));
+                appState.isSelectAll = false;
+            } else {
+                // Seleccionar todos
+                galleryItems.forEach((item, index) => {
+                    appState.selectedFiles.add(index);
+                    item.classList.add('selected');
+                });
+                appState.isSelectAll = true;
+            }
+            
+            updateSelectedCount();
+        }
+
+        // Eliminar archivos seleccionados
+        async function deleteSelectedFiles() {
+            if (appState.selectedFiles.size === 0) {
+                showMessage('No hay archivos seleccionados', 'warning');
+                return;
+            }
+
+            if (!confirm(`¿Eliminar ${appState.selectedFiles.size} archivo(s) permanentemente?`)) return;
+
+            try {
+                showMessage('Eliminando archivos seleccionados...', 'info');
+
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                const authData = await authResponse.json();
+
+                let deletedCount = 0;
+                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a); // Orden descendente para evitar problemas de índices
+
+                for (const index of selectedIndices) {
+                    const file = appState.currentFiles[index];
+                    
+                    const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
+                        headers: {
+                            'Authorization': authData.authorizationToken
+                        }
+                    });
+                    const filesData = await listResponse.json();
+
+                    if (!filesData.files || filesData.files.length === 0) {
+                        continue;
+                    }
+
+                    const fileInfo = filesData.files[0];
+
+                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': authData.authorizationToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            fileId: fileInfo.fileId,
+                            fileName: fileInfo.fileName
+                        })
+                    });
+
+                    if (deleteResponse.ok) {
+                        deletedCount++;
+                    }
+                }
+
+                showMessage(`¡${deletedCount} archivo(s) eliminado(s) exitosamente!`, 'success');
+                loadGallery();
+
+            } catch (error) {
+                showMessage('Error eliminando archivos seleccionados', 'error');
+            }
         }
 
         // Event listener para tecla Escape
