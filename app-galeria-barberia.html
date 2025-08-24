@@ -1259,7 +1259,7 @@
 
         // Comprimir imagen antes de subir
         function compressImage(file) {
-            return new Promise((resolve) => {
+            return new Promise((resolve) {
                 if (!file.type.startsWith('image/') || file.size < 102400) {
                     resolve(file);
                     return;
