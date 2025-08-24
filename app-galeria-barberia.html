@@ -810,6 +810,7 @@
             border-radius: 4px;
             z-index: 10;
             display: none;
+            cursor: pointer;
         }
 
         .admin-mode .gallery-item .select-checkbox {
@@ -1043,9 +1044,7 @@
             
             // Verificar si ya está en modo admin
             if (appState.isAdmin) {
-                elements.mainContainer.classList.add('admin-mode');
-                elements.logoutBtn.style.display = 'flex';
-                elements.viewMode.style.display = 'block';
+                enableAdminMode();
             }
         });
 
@@ -1066,6 +1065,16 @@
                 particle.style.animationDelay = Math.random() * 5 + 's';
                 elements.particles.appendChild(particle);
             }
+        }
+
+        // Habilitar modo administrador
+        function enableAdminMode() {
+            appState.isAdmin = true;
+            localStorage.setItem('isAdmin', 'true');
+            elements.mainContainer.classList.add('admin-mode');
+            elements.logoutBtn.style.display = 'flex';
+            elements.viewMode.style.display = 'block';
+            updateStats();
         }
 
         // Cambiar vista
@@ -1111,14 +1120,9 @@
         function login() {
             const password = elements.adminPassword.value;
             if (password === APP_CONFIG.adminPassword) {
-                appState.isAdmin = true;
-                localStorage.setItem('isAdmin', 'true');
-                elements.mainContainer.classList.add('admin-mode');
-                elements.logoutBtn.style.display = 'flex';
-                elements.viewMode.style.display = 'block';
+                enableAdminMode();
                 closeLogin();
                 showMessage('Modo administrador activado', 'success');
-                updateStats();
             } else {
                 showMessage('Contraseña incorrecta', 'error');
             }
@@ -1418,7 +1422,7 @@
             };
 
             galleryItem.innerHTML = `
-                <div class="select-checkbox" onclick="event.stopPropagation();"></div>
+                <div class="select-checkbox" onclick="event.stopPropagation(); toggleSelectFile(${index}, this.parentElement)"></div>
                 ${fileType.startsWith('image/') ? 
                     `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
                     `<video><source src="${signedUrl}" type="${fileType}"></video>`
@@ -1477,12 +1481,21 @@
 
         // Descargar archivo
         function downloadFile(fileName, fileUrl) {
+            // Crear un enlace temporal para la descarga
             const link = document.createElement('a');
             link.href = fileUrl;
             link.download = fileName.split('/').pop();
+            link.target = '_blank';
+            
+            // Añadir el enlace al DOM y hacer clic en él
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+            
+            // Limpiar después de la descarga
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(fileUrl);
+            }, 100);
         }
 
         // Eliminar archivo
