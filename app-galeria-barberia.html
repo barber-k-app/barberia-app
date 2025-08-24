@@ -1074,7 +1074,49 @@
             elements.mainContainer.classList.add('admin-mode');
             elements.logoutBtn.style.display = 'flex';
             elements.viewMode.style.display = 'block';
+            
+            // Mostrar controles de administrador en elementos existentes
+            updateAdminControls();
             updateStats();
+        }
+
+        // Actualizar controles de administrador en todos los elementos
+        function updateAdminControls() {
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            galleryItems.forEach(item => {
+                // Añadir checkbox de selección
+                if (!item.querySelector('.select-checkbox')) {
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'select-checkbox';
+                    checkbox.onclick = (e) => {
+                        e.stopPropagation();
+                        const index = Array.from(item.parentElement.children).indexOf(item);
+                        toggleSelectFile(index, item);
+                    };
+                    item.appendChild(checkbox);
+                }
+                
+                // Añadir controles de administrador si no existen
+                if (!item.querySelector('.admin-controls')) {
+                    const index = Array.from(item.parentElement.children).indexOf(item);
+                    const file = appState.currentFiles[index];
+                    if (file) {
+                        getSignedUrl(file.fileName).then(signedUrl => {
+                            const adminControls = document.createElement('div');
+                            adminControls.className = 'admin-controls';
+                            adminControls.innerHTML = `
+                                <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}', '${signedUrl}')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            `;
+                            item.appendChild(adminControls);
+                        });
+                    }
+                }
+            });
         }
 
         // Cambiar vista
@@ -1090,6 +1132,11 @@
             if (viewType === 'grid') elements.gridViewBtn.classList.add('active');
             if (viewType === 'list') elements.listViewBtn.classList.add('active');
             if (viewType === 'small') elements.smallViewBtn.classList.add('active');
+            
+            // Actualizar controles de admin después de cambiar vista
+            if (appState.isAdmin) {
+                setTimeout(updateAdminControls, 100);
+            }
         }
 
         // Actualizar calidad de compresión
@@ -1138,9 +1185,13 @@
             elements.viewMode.style.display = 'none';
             appState.selectedFiles.clear();
             updateSelectedCount();
+            
+            // Ocultar controles de administrador
+            document.querySelectorAll('.select-checkbox, .admin-controls').forEach(el => {
+                el.style.display = 'none';
+            });
+            
             showMessage('Sesión cerrada', 'info');
-            // Recargar la galería para ocultar controles de admin
-            loadGallery();
         }
 
         // Abrir modal de imagen/mejorado
@@ -1356,6 +1407,11 @@
                         await addToGallery(file);
                     }
                     updateStats();
+                    
+                    // Si estamos en modo admin, actualizar controles
+                    if (appState.isAdmin) {
+                        updateAdminControls();
+                    }
                 } else {
                     elements.gallery.innerHTML = `
                         <div style="text-align: center; padding: 60px; color: #718096;">
@@ -1410,7 +1466,6 @@
             galleryItem.onclick = (e) => {
                 // Si estamos en modo admin y se hace clic en el checkbox, no abrir el modal
                 if (appState.isAdmin && e.target.classList.contains('select-checkbox')) {
-                    toggleSelectFile(index, galleryItem);
                     return;
                 }
                 // Si estamos en modo admin y hay archivos seleccionados, no abrir el modal
@@ -1422,7 +1477,6 @@
             };
 
             galleryItem.innerHTML = `
-                <div class="select-checkbox" onclick="event.stopPropagation(); toggleSelectFile(${index}, this.parentElement)"></div>
                 ${fileType.startsWith('image/') ? 
                     `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
                     `<video><source src="${signedUrl}" type="${fileType}"></video>`
@@ -1433,16 +1487,6 @@
                         <div class="item-size">${fileSize}</div>
                     </div>
                 </div>
-                ${appState.isAdmin ? `
-                    <div class="admin-controls">
-                        <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}', '${signedUrl}')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                ` : ''}
             `;
 
             elements.gallery.appendChild(galleryItem);
