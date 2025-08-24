@@ -324,7 +324,6 @@
             object-fit: cover;
             display: block;
             transition: transform 0.3s ease;
-            cursor: pointer;
         }
 
         .gallery.small-view .gallery-item img,
@@ -1288,7 +1287,7 @@
             }
         }
 
-        // Agregar elemento a la galería
+        // Agregar elemento a la galería - CÓDIGO CORREGIDO
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1299,11 +1298,14 @@
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
             galleryItem.style.animationDelay = (Math.random() * 0.5) + 's';
+            
+            // Añadir evento de clic directamente al elemento de la galería
+            galleryItem.onclick = () => openModal(index);
 
             galleryItem.innerHTML = `
                 ${fileType.startsWith('image/') ? 
-                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy" onclick="openModal(${index})">` : 
-                    `<video onclick="openModal(${index})"><source src="${signedUrl}" type="${fileType}"></video>`
+                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
+                    `<video><source src="${signedUrl}" type="${fileType}"></video>`
                 }
                 <div class="item-overlay">
                     <div class="item-info">
@@ -1313,10 +1315,10 @@
                 </div>
                 ${appState.isAdmin ? `
                     <div class="admin-controls">
-                        <button class="download-btn" onclick="downloadFile('${file.fileName}', '${signedUrl}')">
+                        <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}', '${signedUrl}')">
                             <i class="fas fa-download"></i>
                         </button>
-                        <button class="delete-btn" onclick="deleteFile('${file.fileName}')">
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
