@@ -474,8 +474,8 @@
         }
 
         @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
         }
 
         .message {
@@ -831,6 +831,44 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        /* Nuevo botón de eliminar seleccionados en la parte superior */
+        .delete-selected-top {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--danger), #c53030);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .delete-selected-top:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(229, 62, 62, 0.5);
+        }
+
+        .delete-selected-top.show {
+            display: flex;
+        }
+
+        @media (max-width: 768px) {
+            .delete-selected-top {
+                top: 70px;
+                right: 10px;
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -843,6 +881,11 @@
             <i class="fas fa-lock"></i> Admin
         </button>
     </div>
+
+    <!-- Nuevo botón de eliminar seleccionados en la parte superior -->
+    <button class="delete-selected-top" id="deleteSelectedTop" onclick="deleteSelectedFiles()">
+        <i class="fas fa-trash"></i> Eliminar seleccionados
+    </button>
 
     <!-- Modal Login -->
     <div class="login-modal" id="loginModal">
@@ -1022,7 +1065,8 @@
             listViewBtn: document.getElementById('listViewBtn'),
             smallViewBtn: document.getElementById('smallViewBtn'),
             multiSelectControls: document.getElementById('multiSelectControls'),
-            selectedCount: document.getElementById('selectedCount')
+            selectedCount: document.getElementById('selectedCount'),
+            deleteSelectedTop: document.getElementById('deleteSelectedTop')
         };
 
         // Estado de la aplicación
@@ -1626,6 +1670,13 @@
         // Actualizar contador de seleccionados
         function updateSelectedCount() {
             elements.selectedCount.textContent = `${appState.selectedFiles.size} seleccionados`;
+            
+            // Mostrar u ocultar el botón superior según si hay seleccionados
+            if (appState.selectedFiles.size > 0) {
+                elements.deleteSelectedTop.classList.add('show');
+            } else {
+                elements.deleteSelectedTop.classList.remove('show');
+            }
         }
 
         // Seleccionar/Deseleccionar todos
