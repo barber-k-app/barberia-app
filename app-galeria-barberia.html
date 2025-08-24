@@ -324,6 +324,7 @@
             object-fit: cover;
             display: block;
             transition: transform 0.3s ease;
+            cursor: pointer;
         }
 
         .gallery.small-view .gallery-item img,
@@ -1034,6 +1035,8 @@
             elements.logoutBtn.style.display = 'none';
             elements.viewMode.style.display = 'none';
             showMessage('Sesión cerrada', 'info');
+            // Recargar la galería para ocultar controles de admin
+            loadGallery();
         }
 
         // Abrir modal de imagen/mejorado
