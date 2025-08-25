@@ -47,14 +47,11 @@
         body::after {
             content: "";
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d4af37" width="30" height="30"><path d="M8 2a1 1 0 00-1 1v18a1 1 0 002 0V3a1 1 0 00-1-1zm8 0a1 1 0 00-1 1v18a1 1 0 002 0V3a1 1 0 00-1-1z"/></svg>');
+            inset: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d4af37" width="24" height="24"><path d="M8.5 2.75a.75.75 0 0 0-1.5 0v18.5a.75.75 0 0 0 1.5 0V2.75zM15.5 2.75a.75.75 0 0 0-1.5 0v18.5a.75.75 0 0 0 1.5 0V2.75z"/></svg>');
             background-repeat: repeat;
-            background-size: 30px 30px;
-            opacity: 0.08;
+            background-size: 40px 40px;
+            opacity: 0.1;
             z-index: -1;
             pointer-events: none;
         }
@@ -639,7 +636,7 @@
             transform: translate(-50%, -50%);
         }
 
-        /* ✅ Modal de imagen con zoom */
+        /* ✅ Modal de imagen completa sin controles */
         .modal {
             display: none;
             position: fixed;
@@ -649,15 +646,13 @@
             z-index: 3000;
             justify-content: center;
             align-items: center;
-            cursor: grab;
+            cursor: pointer;
         }
 
         .modal-content {
             max-width: 90%;
             max-height: 90%;
             transition: transform 0.3s ease;
-            transform-origin: center;
-            user-select: none;
         }
 
         .modal-content img,
@@ -694,6 +689,9 @@
     </style>
 </head>
 <body>
+    <!-- Partículas de fondo -->
+    <div class="particles" id="particles"></div>
+
     <!-- Botón Admin -->
     <div class="admin-login">
         <button class="admin-btn" onclick="openLogin()">
@@ -801,16 +799,17 @@
         </div>
     </div>
 
-    <!-- Modal de imagen con zoom -->
+    <!-- ✅ Modal de imagen completa sin controles -->
     <div class="modal" id="imageModal" onclick="closeModal()">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-        <div class="modal-content" id="modalContent">
+        <div class="modal-content">
             <img id="modalImage" src="" style="display: none;">
-            <video id="modalVideo" class="video-player" style="display: none;" controls></video>
+            <video id="modalVideo" class="video-player" style="display: none;"></video>
         </div>
     </div>
 
     <script>
+        // Configuración de Backblaze B2
         const B2_CONFIG = {
             accessKeyId: '0055efa8d760b4a0000000006',
             secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZpPCkTeeC8'
@@ -842,6 +841,12 @@
             modalContent: document.getElementById('modalContent'),
             modalImage: document.getElementById('modalImage'),
             modalVideo: document.getElementById('modalVideo'),
+            particles: document.getElementById('particles'),
+            mainContainer: document.getElementById('mainContainer'),
+            gridViewBtn: document.getElementById('gridViewBtn'),
+            listViewBtn: document.getElementById('listViewBtn'),
+            smallViewBtn: document.getElementById('smallViewBtn'),
+            multiSelectControls: document.getElementById('multiSelectControls'),
             selectedCount: document.getElementById('selectedCount')
         };
 
@@ -859,7 +864,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadGallery();
             if (appState.isAdmin) enableAdminMode();
-            setupModalZoom();
         });
 
         function getProxyUrl(url) {
@@ -887,6 +891,24 @@
                         toggleSelectFile(index, item);
                     };
                     item.appendChild(checkbox);
+                }
+                if (!item.querySelector('.admin-controls')) {
+                    const file = appState.currentFiles[index];
+                    if (file) {
+                        getSignedUrl(file.fileName).then(signedUrl => {
+                            const adminControls = document.createElement('div');
+                            adminControls.className = 'admin-controls';
+                            adminControls.innerHTML = `
+                                <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}', '${signedUrl}')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            `;
+                            item.appendChild(adminControls);
+                        });
+                    }
                 }
             });
         }
@@ -960,40 +982,11 @@
                 elements.modalVideo.play();
             }
             elements.imageModal.style.display = 'flex';
-            appState.modalZoom = 1;
-            updateModalTransform();
         }
 
         function closeModal() {
             elements.imageModal.style.display = 'none';
             if (elements.modalVideo.style.display === 'block') elements.modalVideo.pause();
-        }
-
-        function setupModalZoom() {
-            elements.modalContent.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                appState.modalZoom = Math.max(0.5, Math.min(3, appState.modalZoom + delta));
-                updateModalTransform();
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (elements.imageModal.style.display === 'flex') {
-                    if (e.key === 'Escape') closeModal();
-                    if (e.key === '+') {
-                        appState.modalZoom = Math.min(3, appState.modalZoom + 0.2);
-                        updateModalTransform();
-                    }
-                    if (e.key === '-') {
-                        appState.modalZoom = Math.max(0.5, appState.modalZoom - 0.2);
-                        updateModalTransform();
-                    }
-                }
-            });
-        }
-
-        function updateModalTransform() {
-            elements.modalContent.style.transform = `scale(${appState.modalZoom})`;
         }
 
         async function compressImage(file) {
@@ -1256,6 +1249,10 @@
                 showMessage('Error eliminando archivos seleccionados', 'error');
             }
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { closeModal(); closeLogin(); }
+        });
     </script>
 </body>
 </html>
