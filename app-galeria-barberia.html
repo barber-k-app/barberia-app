@@ -48,14 +48,14 @@
             content: "";
             position: fixed;
             inset: 0;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d4af37" width="24" height="24"><path d="M8.5 2.75a.75.75 0 0 0-1.5 0v18.5a.75.75 0 0 0 1.5 0V2.75zM15.5 2.75a.75.75 0 0 0-1.5 0v18.5a.75.75 0 0 0 1.5 0V2.75z"/></svg>');
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d4af37"><path d="M8.5 2.75a.75.75 0 0 0-1.5 0v18.5a.75.75 0 0 0 1.5 0V2.75zM15.5 2.75a.75.75 0 0 0-1.5 0v18.5a.75.75 0 0 0 1.5 0V2.75z"/></svg>');
             background-repeat: repeat;
-            background-size: 40px 40px;
+            background-size: 25vw 25vw;
             opacity: 0.1;
             z-index: -1;
             pointer-events: none;
         }
-
+        
         /* Resto de estilos sin cambios */
         .admin-login {
             position: fixed;
@@ -636,7 +636,7 @@
             transform: translate(-50%, -50%);
         }
 
-        /* ✅ Modal de imagen completa sin controles */
+        /* ✅ Modal de imagen completa con zoom */
         .modal {
             display: none;
             position: fixed;
@@ -653,6 +653,7 @@
             max-width: 90%;
             max-height: 90%;
             transition: transform 0.3s ease;
+            cursor: zoom-in;
         }
 
         .modal-content img,
@@ -660,6 +661,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            pointer-events: none;
         }
 
         .modal-close {
@@ -799,10 +801,10 @@
         </div>
     </div>
 
-    <!-- ✅ Modal de imagen completa sin controles -->
+    <!-- ✅ Modal de imagen completa con zoom -->
     <div class="modal" id="imageModal" onclick="closeModal()">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-        <div class="modal-content">
+        <div class="modal-content" id="modalContent">
             <img id="modalImage" src="" style="display: none;">
             <video id="modalVideo" class="video-player" style="display: none;"></video>
         </div>
@@ -973,6 +975,8 @@
             const fileType = getFileType(file.fileName);
             elements.modalImage.style.display = 'none';
             elements.modalVideo.style.display = 'none';
+            appState.modalZoom = 1;
+            elements.modalContent.style.transform = 'scale(1)';
             if (fileType.startsWith('image/')) {
                 elements.modalImage.src = signedUrl;
                 elements.modalImage.style.display = 'block';
@@ -982,12 +986,45 @@
                 elements.modalVideo.play();
             }
             elements.imageModal.style.display = 'flex';
+            elements.modalContent.style.cursor = 'zoom-in';
         }
 
         function closeModal() {
             elements.imageModal.style.display = 'none';
             if (elements.modalVideo.style.display === 'block') elements.modalVideo.pause();
+            appState.modalZoom = 1;
+            elements.modalContent.style.transform = 'scale(1)';
         }
+
+        // ✅ Zoom con rueda del ratón y teclado
+        elements.modalContent.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            appState.modalZoom = Math.max(0.5, Math.min(3, appState.modalZoom + delta));
+            elements.modalContent.style.transform = `scale(${appState.modalZoom})`;
+            elements.modalContent.style.cursor = appState.modalZoom > 1 ? 'zoom-out' : 'zoom-in';
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (elements.imageModal.style.display === 'flex') {
+                if (e.key === '+' || e.key === '=') {
+                    e.preventDefault();
+                    appState.modalZoom = Math.min(3, appState.modalZoom + 0.2);
+                    elements.modalContent.style.transform = `scale(${appState.modalZoom})`;
+                    elements.modalContent.style.cursor = 'zoom-out';
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    appState.modalZoom = Math.max(0.5, appState.modalZoom - 0.2);
+                    elements.modalContent.style.transform = `scale(${appState.modalZoom})`;
+                    elements.modalContent.style.cursor = appState.modalZoom > 1 ? 'zoom-out' : 'zoom-in';
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    appState.modalZoom = 1;
+                    elements.modalContent.style.transform = 'scale(1)';
+                    elements.modalContent.style.cursor = 'zoom-in';
+                }
+            }
+        });
 
         async function compressImage(file) {
             return new Promise((resolve) => {
@@ -1187,7 +1224,7 @@
 
         function getFileType(fileName) {
             const ext = fileName.toLowerCase().split('.').pop();
-            const types = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', mp4:'video/mp4', mov:'video/quicktime', avi:'video/x-msvideo' };
+            const types = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', mp4:'video/mp4', mov:'video/quicktime', avi:'video/x-msavi' };
             return types[ext] || 'application/octet-stream';
         }
 
