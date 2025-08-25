@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Galería Premium - Barbería Elite</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300 ;400;500;600;700&display=swap" rel="stylesheet">
+    <title>✨ GALERIA BARBER-K</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --accent: #f093fb;
+            --primary: #D4AF37; /* Dorado en lugar del azul */
+            --secondary: #B8860B; /* Dorado oscuro */
+            --accent: #FFD700; /* Dorado brillante */
             --dark: #1a202c;
             --light: #f7fafc;
             --success: #48bb78;
             --danger: #e53e3e;
             --warning: #ed8936;
             --info: #4299e1;
-            --gold: #FFD700;
         }
 
         * {
@@ -28,26 +27,14 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: #111;
-            background-image: url('https://barber-k-app.github.io/barberia-app/barber-k3.JPG');
-            background-size: 200px 200px;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://barber-k-app.github.io/barberia-app/barber-k3.JPG');
+            background-size: cover;
             background-repeat: repeat;
             min-height: 100vh;
             padding: 20px;
             color: var(--dark);
             overflow-x: hidden;
-        }
-
-        /* Fondo dorado semi-transparente */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.1));
-            z-index: -1;
         }
 
         .admin-login {
@@ -58,10 +45,10 @@
         }
 
         .admin-btn {
-            background: rgba(255, 215, 0, 0.2);
+            background: rgba(212, 175, 55, 0.3); /* Fondo dorado translúcido */
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 215, 0, 0.5);
-            color: var(--gold);
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            color: #FFD700; /* Texto dorado */
             padding: 12px 20px;
             border-radius: 50px;
             cursor: pointer;
@@ -73,9 +60,9 @@
         }
 
         .admin-btn:hover {
-            background: rgba(255, 215, 0, 0.3);
+            background: rgba(212, 175, 55, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .login-modal {
@@ -93,13 +80,14 @@
         }
 
         .login-content {
-            background: white;
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
             padding: 40px;
             border-radius: 20px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             transform: scale(0.9);
             animation: modalAppear 0.3s ease forwards;
+            border: 1px solid var(--primary);
         }
 
         @keyframes modalAppear {
@@ -108,7 +96,7 @@
 
         .login-content h2 {
             margin-bottom: 20px;
-            color: var(--dark);
+            color: var(--primary);
         }
 
         .login-form {
@@ -118,22 +106,24 @@
         .login-input {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #444;
             border-radius: 10px;
             font-size: 16px;
             margin-bottom: 20px;
             transition: border-color 0.3s ease;
             autocomplete: "new-password";
+            background: #333;
+            color: white;
         }
 
         .login-input:focus {
             outline: none;
-            border-color: var(--gold);
+            border-color: var(--primary);
         }
 
         .login-btn {
-            background: linear-gradient(135deg, var(--gold), #FFA500);
-            color: black;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
             padding: 15px 30px;
             border: none;
             border-radius: 10px;
@@ -145,31 +135,18 @@
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
-
-        .message {
-            text-align: center;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 10px;
-            font-weight: 500;
-        }
-
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        .warning { background: #fff3cd; color: #856404; }
-        .info { background: #d1ecf1; color: #0c5460; }
 
         .container {
             max-width: 1400px;
             margin: 80px auto 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(20, 20, 20, 0.9);
             backdrop-filter: blur(20px);
             border-radius: 25px;
             padding: 30px;
-            box-shadow: 0 25px 60px rgba(255, 215, 0, 0.3);
-            border: 2px solid var(--gold);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+            border: 1px solid var(--primary);
         }
 
         .header {
@@ -177,29 +154,34 @@
             margin-bottom: 40px;
         }
 
-        .header h1 {
-            font-size: 3.5em;
-            color: var(--gold);
-            margin-bottom: 10px;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        .logo-container {
+            margin-bottom: 20px;
         }
 
-        .header img {
-            width: 150px;
+        .logo {
+            max-width: 200px;
             height: auto;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 10px var(--gold));
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
         }
 
         .header p {
-            color: var(--gold);
-            font-size: 1.5em;
-            font-weight: 600;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            color: #FFD700;
+            font-size: 1.2em;
+            font-weight: 500;
         }
 
-        /* Resto del CSS permanece igual... */
         .view-options {
             display: flex;
             justify-content: center;
@@ -208,8 +190,8 @@
         }
 
         .view-btn {
-            background: linear-gradient(135deg, var(--gold), #FFA500);
-            color: black;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
             padding: 12px 20px;
             border: none;
             border-radius: 10px;
@@ -222,13 +204,13 @@
         }
 
         .view-btn.active {
-            background: linear-gradient(135deg, #FFA500, var(--gold));
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
             transform: scale(1.05);
         }
 
         .view-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .stats-container {
@@ -244,12 +226,12 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--gold), #FFA500);
-            color: black;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
             padding: 25px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
         }
 
         .stat-number {
@@ -264,11 +246,11 @@
         }
 
         .upload-section {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(30, 30, 30, 0.8);
             padding: 30px;
             border-radius: 20px;
             margin-bottom: 40px;
-            border: 2px dashed var(--gold);
+            border: 2px dashed var(--primary);
             text-align: center;
             transition: all 0.3s ease;
             display: none;
@@ -279,13 +261,13 @@
         }
 
         .upload-section:hover {
-            border-color: var(--gold);
+            border-color: var(--accent);
             transform: translateY(-5px);
         }
 
         .upload-btn {
-            background: linear-gradient(135deg, var(--gold), #FFA500);
-            color: black;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
             padding: 18px 35px;
             border: none;
             border-radius: 15px;
@@ -300,7 +282,7 @@
 
         .upload-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
         }
 
         #file-input {
@@ -310,8 +292,9 @@
         .compression-options {
             margin: 20px 0;
             padding: 20px;
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(212, 175, 55, 0.1);
             border-radius: 15px;
+            color: #FFD700;
         }
 
         .compression-slider {
@@ -342,18 +325,20 @@
             position: relative;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 12px 30px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
             transition: all 0.4s ease;
             cursor: pointer;
-        }
-
-        .gallery.small-view .gallery-item {
-            border-radius: 10px;
+            border: 2px solid transparent;
         }
 
         .gallery-item:hover {
             transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 25px 50px rgba(212, 175, 55, 0.3);
+            border-color: var(--primary);
+        }
+
+        .gallery.small-view .gallery-item {
+            border-radius: 10px;
         }
 
         .gallery-item img, .gallery-item video {
@@ -487,14 +472,14 @@
         .progress-bar {
             width: 100%;
             height: 12px;
-            background: #edf2f7;
+            background: #333;
             border-radius: 10px;
             overflow: hidden;
         }
 
         .progress {
             height: 100%;
-            background: linear-gradient(135deg, var(--gold), #FFA500);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 10px;
             transition: width 0.4s ease;
             position: relative;
@@ -515,6 +500,19 @@
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
         }
+
+        .message {
+            text-align: center;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
 
         .logout-btn {
             position: fixed;
@@ -537,14 +535,15 @@
             position: fixed;
             top: 80px;
             right: 20px;
-            background: rgba(255, 215, 0, 0.2);
+            background: rgba(212, 175, 55, 0.3);
             backdrop-filter: blur(10px);
             padding: 10px 15px;
             border-radius: 20px;
-            color: var(--gold);
+            color: #FFD700;
             font-weight: 600;
             display: none;
             z-index: 1000;
+            border: 1px solid var(--primary);
         }
 
         /* Animaciones */
@@ -597,7 +596,7 @@
 
         .particle {
             position: absolute;
-            background: linear-gradient(135deg, var(--gold), #FFA500);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             border-radius: 50%;
             opacity: 0.3;
             animation: float 20s infinite linear;
@@ -628,9 +627,10 @@
             max-height: 95%;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            box-shadow: 0 30px 80px rgba(212, 175, 55, 0.3);
             cursor: default;
             transition: transform 0.3s ease;
+            border: 2px solid var(--primary);
         }
 
         .modal-content.zoomed {
@@ -656,15 +656,16 @@
             display: flex;
             gap: 15px;
             backdrop-filter: blur(10px);
+            border: 1px solid var(--primary);
         }
 
         .modal-control-btn {
-            background: rgba(255,215,0,0.2);
+            background: rgba(212, 175, 55, 0.3);
             border: none;
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            color: var(--gold);
+            color: #FFD700;
             font-size: 20px;
             cursor: pointer;
             display: flex;
@@ -674,7 +675,7 @@
         }
 
         .modal-control-btn:hover {
-            background: rgba(255,215,0,0.4);
+            background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
         }
 
@@ -708,22 +709,23 @@
         }
 
         .nav-btn {
-            background: rgba(0,0,0,0.6);
+            background: rgba(212, 175, 55, 0.3);
             border: none;
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            color: white;
+            color: #FFD700;
             font-size: 24px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            border: 1px solid var(--primary);
         }
 
         .nav-btn:hover {
-            background: rgba(0,0,0,0.8);
+            background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
         }
 
@@ -779,7 +781,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(20, 20, 20, 0.95);
             padding: 15px 25px;
             border-radius: 50px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -787,6 +789,7 @@
             backdrop-filter: blur(10px);
             align-items: center;
             gap: 15px;
+            border: 1px solid var(--primary);
         }
 
         .admin-mode .multi-select-controls {
@@ -795,12 +798,12 @@
 
         .select-count {
             font-weight: 600;
-            color: var(--dark);
+            color: #FFD700;
         }
 
         .select-all-btn, .delete-selected-btn {
-            background: linear-gradient(135deg, var(--gold), #FFA500);
-            color: black;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
             border: none;
             padding: 10px 20px;
             border-radius: 25px;
@@ -814,16 +817,15 @@
 
         .delete-selected-btn {
             background: linear-gradient(135deg, var(--danger), #c53030);
-            color: white;
         }
 
         .select-all-btn:hover, .delete-selected-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .gallery-item.selected {
-            box-shadow: 0 0 0 3px var(--gold);
+            box-shadow: 0 0 0 3px var(--primary);
         }
 
         .gallery-item .select-checkbox {
@@ -844,13 +846,13 @@
         }
 
         .gallery-item.selected .select-checkbox {
-            background: var(--gold);
+            background: var(--primary);
         }
 
         .gallery-item.selected .select-checkbox::after {
             content: '✓';
             position: absolute;
-            color: black;
+            color: white;
             font-size: 16px;
             font-weight: bold;
             top: 50%;
@@ -904,7 +906,9 @@
 
     <div class="container" id="mainContainer">
         <div class="header">
-            <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Barber-K Logo">
+            <div class="logo-container">
+                <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Barber-K Logo" class="logo">
+            </div>
             <h1>GALERIA BARBER-K</h1>
             <p>¡MEJORAMOS TU ESTILO!</p>
         </div>
@@ -971,7 +975,7 @@
 
         <!-- Galería -->
         <div class="gallery grid-view" id="gallery">
-            <div style="text-align: center; padding: 40px; color: var(--gold);">
+            <div style="text-align: center; padding: 40px; color: #FFD700;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
                 <p>Cargando galería...</p>
             </div>
@@ -1013,8 +1017,6 @@
     </div>
 
     <script>
-        // Código JavaScript permanece exactamente igual...
-        // (Todo el código JS original se mantiene sin cambios)
         // Configuración de Backblaze B2
         const B2_CONFIG = {
             accessKeyId: '0055efa8d760b4a0000000006',
@@ -1083,7 +1085,7 @@
 
         // Función proxy para evitar CORS
         function getProxyUrl(url) {
-            return `https://corsproxy.io/? ${encodeURIComponent(url)}`;
+            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
         }
 
         // Crear partículas de fondo
@@ -1356,7 +1358,7 @@
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
                     if (!appState.authData) {
-                        const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account '), {
+                        const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                             headers: {
                                 'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                             }
@@ -1403,13 +1405,13 @@
         async function loadGallery() {
             try {
                 elements.gallery.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--gold);">
+                    <div style="text-align: center; padding: 40px; color: #FFD700;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
                         <p>Cargando galería...</p>
                     </div>
                 `;
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account '), {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
@@ -1445,7 +1447,7 @@
                     }
                 } else {
                     elements.gallery.innerHTML = `
-                        <div style="text-align: center; padding: 60px; color: var(--gold);">
+                        <div style="text-align: center; padding: 60px; color: #FFD700;">
                             <i class="fas fa-images" style="font-size: 4em; margin-bottom: 20px;"></i>
                             <h3>No hay archivos en la galería</h3>
                             <p>Sube la primera imagen para comenzar</p>
@@ -1456,7 +1458,7 @@
             } catch (error) {
                 console.error('Error cargando galería:', error);
                 elements.gallery.innerHTML = `
-                    <div style="text-align: center; padding: 60px; color: var(--gold);">
+                    <div style="text-align: center; padding: 60px; color: #FFD700;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 4em; margin-bottom: 20px;"></i>
                         <h3>Error cargando galería</h3>
                         <p>Intenta recargar la página</p>
@@ -1526,7 +1528,7 @@
         // Obtener URL firmada
         async function getSignedUrl(fileName) {
             try {
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account '), {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
@@ -1547,10 +1549,10 @@
                 });
 
                 const signedUrlData = await signedUrlResponse.json();
-                return `https://f005.backblazeb2.com/file/barber-k-galeria/ ${fileName}?Authorization=${signedUrlData.authorizationToken}`;
+                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
 
             } catch (error) {
-                return `https://f005.backblazeb2.com/file/barber-k-galeria/ ${fileName}`;
+                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
             }
         }
 
@@ -1580,7 +1582,7 @@
             try {
                 showMessage('Eliminando archivo...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account '), {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
@@ -1692,7 +1694,7 @@
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account '), {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
