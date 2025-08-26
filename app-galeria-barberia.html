@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -486,7 +485,7 @@
             border-radius: 10px;
             font-weight: 500;
         }
-
+        
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
         .warning { background: #fff3cd; color: #856404; }
@@ -539,21 +538,21 @@
                 margin: 60px 10px 10px;
                 padding: 20px;
             }
-
+            
             .header h1 {
                 font-size: 2.5em;
             }
-
+            
             .gallery.grid-view {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 15px;
             }
-
+            
             .gallery.small-view {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
             }
-
+            
             .admin-btn, .view-btn {
                 padding: 10px 15px;
                 font-size: 14px;
@@ -919,10 +918,6 @@
             <button class="upload-btn" onclick="document.getElementById('file-input').click()">
                 <i class="fas fa-plus"></i> Seleccionar Archivos
             </button>
-            <!-- Botón grande de borrado múltiple añadido al lado -->
-            <button class="upload-btn" onclick="deleteSelectedFiles()" style="margin-left: 15px; background: linear-gradient(135deg, var(--danger), #c53030);">
-                <i class="fas fa-trash-alt"></i> Eliminar Seleccionados
-            </button>
 
             <!-- Opciones de compresión -->
             <div class="compression-options">
@@ -955,7 +950,7 @@
     <!-- Modal para imagen completa MEJORADO -->
     <div class="modal" id="imageModal">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-
+        
         <div class="modal-nav">
             <button class="nav-btn" onclick="navigateModal(-1)">
                 <i class="fas fa-chevron-left"></i>
@@ -1046,7 +1041,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             loadGallery();
-
+            
             // Verificar si ya está en modo admin
             if (appState.isAdmin) {
                 enableAdminMode();
@@ -1079,7 +1074,7 @@
             elements.mainContainer.classList.add('admin-mode');
             elements.logoutBtn.style.display = 'flex';
             elements.viewMode.style.display = 'block';
-
+            
             // Mostrar controles de administrador en elementos existentes
             updateAdminControls();
             updateStats();
@@ -1088,20 +1083,22 @@
         // Actualizar controles de administrador en todos los elementos
         function updateAdminControls() {
             const galleryItems = document.querySelectorAll('.gallery-item');
-            galleryItems.forEach((item, index) => {
+            galleryItems.forEach(item => {
                 // Añadir checkbox de selección
                 if (!item.querySelector('.select-checkbox')) {
                     const checkbox = document.createElement('div');
                     checkbox.className = 'select-checkbox';
                     checkbox.onclick = (e) => {
                         e.stopPropagation();
+                        const index = Array.from(item.parentElement.children).indexOf(item);
                         toggleSelectFile(index, item);
                     };
                     item.appendChild(checkbox);
                 }
-
+                
                 // Añadir controles de administrador si no existen
                 if (!item.querySelector('.admin-controls')) {
+                    const index = Array.from(item.parentElement.children).indexOf(item);
                     const file = appState.currentFiles[index];
                     if (file) {
                         getSignedUrl(file.fileName).then(signedUrl => {
@@ -1126,16 +1123,16 @@
         function changeView(viewType) {
             APP_CONFIG.currentView = viewType;
             elements.gallery.className = 'gallery ' + viewType + '-view';
-
+            
             // Actualizar botones activos
             elements.gridViewBtn.classList.remove('active');
             elements.listViewBtn.classList.remove('active');
             elements.smallViewBtn.classList.remove('active');
-
+            
             if (viewType === 'grid') elements.gridViewBtn.classList.add('active');
             if (viewType === 'list') elements.listViewBtn.classList.add('active');
             if (viewType === 'small') elements.smallViewBtn.classList.add('active');
-
+            
             // Actualizar controles de admin después de cambiar vista
             if (appState.isAdmin) {
                 setTimeout(updateAdminControls, 100);
@@ -1188,12 +1185,12 @@
             elements.viewMode.style.display = 'none';
             appState.selectedFiles.clear();
             updateSelectedCount();
-
+            
             // Ocultar controles de administrador
             document.querySelectorAll('.select-checkbox, .admin-controls').forEach(el => {
                 el.style.display = 'none';
             });
-
+            
             showMessage('Sesión cerrada', 'info');
         }
 
@@ -1274,11 +1271,11 @@
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-
+                        
                         let width = img.width;
                         let height = img.height;
                         const maxDimension = 1920;
-
+                        
                         if (width > maxDimension || height > maxDimension) {
                             if (width > height) {
                                 height = (height * maxDimension) / width;
@@ -1288,11 +1285,11 @@
                                 height = maxDimension;
                             }
                         }
-
+                        
                         canvas.width = width;
                         canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
-
+                        
                         canvas.toBlob((blob) => {
                             const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
                                 type: 'image/webp',
@@ -1410,7 +1407,7 @@
                         await addToGallery(file);
                     }
                     updateStats();
-
+                    
                     // Si estamos en modo admin, actualizar controles
                     if (appState.isAdmin) {
                         updateAdminControls();
@@ -1441,7 +1438,7 @@
         function updateStats() {
             const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
             const freeGB = ((APP_CONFIG.maxSize - appState.totalBytes) / 1024 / 1024 / 1024).toFixed(2);
-
+            
             elements.totalFiles.textContent = appState.currentFiles.length;
             elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + ' GB';
             elements.freeSpace.textContent = isNaN(freeGB) ? '10.00 GB' : freeGB + ' GB';
@@ -1464,7 +1461,7 @@
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
             galleryItem.style.animationDelay = (Math.random() * 0.5) + 's';
-
+            
             // Añadir evento de clic directamente al elemento de la galería
             galleryItem.onclick = (e) => {
                 // Si estamos en modo admin y se hace clic en el checkbox, no abrir el modal
@@ -1533,11 +1530,11 @@
             link.href = fileUrl;
             link.download = fileName.split('/').pop();
             link.target = '_blank';
-
+            
             // Añadir el enlace al DOM y hacer clic en él
             document.body.appendChild(link);
             link.click();
-
+            
             // Limpiar después de la descarga
             setTimeout(() => {
                 document.body.removeChild(link);
@@ -1598,7 +1595,7 @@
         function getFileType(fileName) {
             const ext = fileName.toLowerCase().split('.').pop();
             const types = {
-                'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+                'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 
                 'gif': 'image/gif', 'webp': 'image/webp', 'mp4': 'video/mp4',
                 'mov': 'video/quicktime', 'avi': 'video/x-msvideo'
             };
@@ -1634,7 +1631,7 @@
         // Seleccionar/Deseleccionar todos
         function toggleSelectAll() {
             const galleryItems = document.querySelectorAll('.gallery-item');
-
+            
             if (appState.isSelectAll) {
                 // Deseleccionar todos
                 appState.selectedFiles.clear();
@@ -1648,7 +1645,7 @@
                 });
                 appState.isSelectAll = true;
             }
-
+            
             updateSelectedCount();
         }
 
@@ -1676,7 +1673,7 @@
 
                 for (const index of selectedIndices) {
                     const file = appState.currentFiles[index];
-
+                    
                     const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
                         headers: {
                             'Authorization': authData.authorizationToken
@@ -1738,7 +1735,7 @@
             }
             e.preventDefault();
         });
+
     </script>
 </body>
 </html>
-
