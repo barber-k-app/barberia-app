@@ -662,11 +662,6 @@
                 height: 130px;
             }
             
-            .gallery.small-view .gallery-item img,
-            .gallery.small-view .gallery-item video {
-                height: 70px;
-            }
-            
             .view-options {
                 flex-direction: column;
                 align-items: center;
@@ -714,7 +709,6 @@
             100% { transform: translateY(-100vh) rotate(360deg); }
         }
 
-        /* Modal de imagen completa MEJORADO para móviles */
         .modal {
             display: none;
             position: fixed;
@@ -739,11 +733,6 @@
             cursor: default;
             transition: transform 0.3s ease;
             border: 2px solid var(--primary);
-        }
-
-        .modal-content.zoomed {
-            transform: scale(1.5);
-            cursor: zoom-in;
         }
 
         .modal-content img, .modal-content video {
@@ -837,52 +826,6 @@
             transform: scale(1.1);
         }
 
-        /* Estilos mejorados para vista de lista en móviles */
-        .gallery.list-view .gallery-item {
-            display: flex;
-            flex-direction: row;
-            height: 80px;
-        }
-
-        .gallery.list-view .gallery-item img,
-        .gallery.list-view .gallery-item video {
-            width: 100px;
-            height: 80px;
-            object-fit: cover;
-        }
-
-        .gallery.list-view .item-overlay {
-            position: relative;
-            background: linear-gradient(to right, rgba(0,0,0,0.7), transparent);
-            display: flex;
-            align-items: center;
-            padding: 8px 15px;
-            flex-grow: 1;
-        }
-
-        .gallery.list-view .item-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        .gallery.list-view .item-name {
-            font-size: 0.9em;
-            max-width: 60%;
-        }
-
-        .gallery.list-view .item-size {
-            font-size: 0.8em;
-        }
-
-        .gallery.list-view .admin-controls {
-            position: static;
-            display: flex;
-            gap: 8px;
-        }
-
-        /* Nuevos estilos para selección múltiple en móviles */
         .multi-select-controls {
             display: none;
             position: fixed;
@@ -973,49 +916,6 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Mejoras táctiles para móviles */
-        @media (hover: none) {
-            .gallery-item:hover {
-                transform: none;
-            }
-            
-            .admin-controls {
-                opacity: 1 !important;
-            }
-            
-            .item-overlay {
-                opacity: 1 !important;
-            }
-            
-            .view-btn:hover, .admin-btn:hover, .logout-btn:hover,
-            .delete-btn:hover, .download-btn:hover, .modal-control-btn:hover,
-            .nav-btn:hover, .select-all-btn:hover, .delete-selected-btn:hover {
-                transform: none;
-            }
-        }
-
-        /* Soporte para dispositivos con notch */
-        @supports(padding: max(0px)) {
-            .admin-login, .logout-btn {
-                right: max(15px, env(safe-area-inset-right));
-                left: max(15px, env(safe-area-inset-left));
-            }
-            
-            body {
-                padding-left: max(10px, env(safe-area-inset-left));
-                padding-right: max(10px, env(safe-area-inset-right));
-            }
-            
-            .modal-controls {
-                bottom: max(20px, env(safe-area-inset-bottom));
-            }
-            
-            .multi-select-controls {
-                bottom: max(15px, env(safe-area-inset-bottom));
-            }
-        }
-
-        /* Paginación */
         .pagination {
             display: flex;
             justify-content: center;
@@ -1134,19 +1034,16 @@
             <button class="upload-btn" onclick="document.getElementById('file-input').click()">
                 <i class="fas fa-plus"></i> Seleccionar Archivos
             </button>
-            <!-- Botón grande de borrado múltiple añadido al lado -->
             <button class="upload-btn" onclick="deleteSelectedFiles()" style="margin-left: 15px; background: linear-gradient(135deg, var(--danger), #c53030);">
                 <i class="fas fa-trash-alt"></i> Eliminar Seleccionados
             </button>
 
-            <!-- Opciones de compresión -->
             <div class="compression-options">
                 <label for="compressionSlider">Calidad de compresión: <span id="qualityValue">80%</span></label>
                 <input type="range" class="compression-slider" id="compressionSlider" min="50" max="100" value="80" oninput="updateQuality(this.value)">
                 <small>WebP - Mejor calidad con menor tamaño</small>
             </div>
 
-            <!-- Barra de progreso -->
             <div class="progress-container">
                 <div class="progress-bar">
                     <div class="progress" id="progress"></div>
@@ -1211,19 +1108,17 @@
             secretAccessKey: 'K005oAZhf5xk2bi1CL8nZZpPCkTeeC8'
         };
 
-        // Configuración de la aplicación
         const APP_CONFIG = {
             adminPassword: 'barber2024',
-            maxSize: 10 * 1024 * 1024 * 1024, // 10 GB en bytes
+            maxSize: 10 * 1024 * 1024 * 1024,
             compressionQuality: 0.8,
             currentView: 'grid',
-            itemsPerPage: 20 // Elementos por página
+            itemsPerPage: 20
         };
 
-        // Caché para URLs firmadas (24 horas)
         const URL_CACHE = {
             urls: {},
-            expiration: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+            expiration: 7 * 24 * 60 * 60 * 1000,
             get: function(key) {
                 const item = this.urls[key];
                 if (item && Date.now() < item.expiry) {
@@ -1239,14 +1134,12 @@
             }
         };
 
-        // Caché para lista de archivos (5 minutos)
         let FILES_CACHE = {
             data: null,
-            expiration: 5 * 60 * 1000, // 5 minutos en milisegundos
+            expiration: 5 * 60 * 1000,
             timestamp: 0
         };
 
-        // Limitador de operaciones (1 segundo entre operaciones)
         const OPERATION_LIMITER = {
             lastOperation: 0,
             minInterval: 1000,
@@ -1261,7 +1154,6 @@
             }
         };
 
-        // Elementos DOM
         const elements = {
             fileInput: document.getElementById('file-input'),
             gallery: document.getElementById('gallery'),
@@ -1291,7 +1183,6 @@
             pagination: document.getElementById('pagination')
         };
 
-        // Estado de la aplicación
         let appState = {
             isAdmin: localStorage.getItem('isAdmin') === 'true' || false,
             authData: null,
@@ -1304,23 +1195,19 @@
             currentPage: 1
         };
 
-        // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             loadGallery();
 
-            // Verificar si ya está en modo admin
             if (appState.isAdmin) {
                 enableAdminMode();
             }
         });
 
-        // Función proxy para evitar CORS
         function getProxyUrl(url) {
             return `https://corsproxy.io/?${encodeURIComponent(url)}`;
         }
 
-        // Crear partículas de fondo
         function createParticles() {
             for (let i = 0; i < 50; i++) {
                 const particle = document.createElement('div');
@@ -1334,24 +1221,19 @@
             }
         }
 
-        // Habilitar modo administrador
         function enableAdminMode() {
             appState.isAdmin = true;
             localStorage.setItem('isAdmin', 'true');
             elements.mainContainer.classList.add('admin-mode');
             elements.logoutBtn.style.display = 'flex';
             elements.viewMode.style.display = 'block';
-
-            // Mostrar controles de administrador en elementos existentes
             updateAdminControls();
             updateStats();
         }
 
-        // Actualizar controles de administrador en todos los elementos
         function updateAdminControls() {
             const galleryItems = document.querySelectorAll('.gallery-item');
             galleryItems.forEach((item, index) => {
-                // Añadir checkbox de selección
                 if (!item.querySelector('.select-checkbox')) {
                     const checkbox = document.createElement('div');
                     checkbox.className = 'select-checkbox';
@@ -1362,7 +1244,6 @@
                     item.appendChild(checkbox);
                 }
 
-                // Añadir controles de administrador si no existen
                 if (!item.querySelector('.admin-controls')) {
                     const file = appState.currentFiles[index];
                     if (file) {
@@ -1384,51 +1265,40 @@
             });
         }
 
-        // Cambiar vista
         function changeView(viewType) {
             APP_CONFIG.currentView = viewType;
             elements.gallery.className = 'gallery ' + viewType + '-view';
-
-            // Actualizar botones activos
             elements.gridViewBtn.classList.remove('active');
             elements.listViewBtn.classList.remove('active');
             elements.smallViewBtn.classList.remove('active');
-
             if (viewType === 'grid') elements.gridViewBtn.classList.add('active');
             if (viewType === 'list') elements.listViewBtn.classList.add('active');
             if (viewType === 'small') elements.smallViewBtn.classList.add('active');
-
-            // Actualizar controles de admin después de cambiar vista
             if (appState.isAdmin) {
                 setTimeout(updateAdminControls, 100);
             }
         }
 
-        // Actualizar calidad de compresión
         function updateQuality(value) {
             APP_CONFIG.compressionQuality = value / 100;
             elements.qualityValue.textContent = value + '%';
         }
 
-        // Mostrar mensajes
         function showMessage(text, type = 'success') {
             elements.messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
             setTimeout(() => { elements.messageDiv.innerHTML = ''; }, 5000);
         }
 
-        // Abrir modal de login
         function openLogin() {
             elements.loginModal.style.display = 'flex';
             elements.adminPassword.focus();
         }
 
-        // Cerrar modal de login
         function closeLogin() {
             elements.loginModal.style.display = 'none';
             elements.adminPassword.value = '';
         }
 
-        // Login de administrador
         function login() {
             const password = elements.adminPassword.value;
             if (password === APP_CONFIG.adminPassword) {
@@ -1441,7 +1311,6 @@
             return false;
         }
 
-        // Logout de administrador
         function logout() {
             appState.isAdmin = false;
             localStorage.removeItem('isAdmin');
@@ -1450,20 +1319,15 @@
             elements.viewMode.style.display = 'none';
             appState.selectedFiles.clear();
             updateSelectedCount();
-
-            // Ocultar controles de administrador
             document.querySelectorAll('.select-checkbox, .admin-controls').forEach(el => {
                 el.style.display = 'none';
             });
-
             showMessage('Sesión cerrada', 'info');
         }
 
-        // Abrir modal de imagen/mejorado
         async function openModal(index) {
             const file = appState.currentFiles[index];
             if (!file) return;
-
             appState.currentModalIndex = index;
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1484,7 +1348,6 @@
             resetZoom();
         }
 
-        // Cerrar modal
         function closeModal() {
             elements.imageModal.style.display = 'none';
             if (elements.modalVideo.style.display === 'block') {
@@ -1492,7 +1355,6 @@
             }
         }
 
-        // Navegación en modal
         function navigateModal(direction) {
             const newIndex = appState.currentModalIndex + direction;
             if (newIndex >= 0 && newIndex < appState.currentFiles.length) {
@@ -1500,20 +1362,17 @@
             }
         }
 
-        // Zoom en modal
         function zoomModal(factor) {
             appState.modalZoom = Math.max(0.1, Math.min(5, appState.modalZoom + factor));
             elements.modalContent.style.transform = `scale(${appState.modalZoom})`;
         }
 
-        // Resetear zoom
         function resetZoom() {
             appState.modalZoom = 1;
             elements.modalContent.style.transform = 'scale(1)';
             elements.modalContent.classList.remove('zoomed');
         }
 
-        // Descargar archivo actual
         async function downloadCurrent() {
             if (appState.currentModalIndex >= 0) {
                 const file = appState.currentFiles[appState.currentModalIndex];
@@ -1522,7 +1381,6 @@
             }
         }
 
-        // Comprimir imagen antes de subir
         function compressImage(file) {
             return new Promise((resolve) => {
                 if (!file.type.startsWith('image/') || file.size < 102400) {
@@ -1569,10 +1427,8 @@
             });
         }
 
-        // Evento para subir archivos
         elements.fileInput.addEventListener('change', handleFileUpload);
 
-        // Subir archivos a Backblaze
         async function handleFileUpload(event) {
             if (!OPERATION_LIMITER.check()) {
                 elements.fileInput.value = '';
@@ -1635,12 +1491,10 @@
 
             elements.fileInput.value = '';
             showMessage(`¡${uploadedCount} archivos subidos exitosamente!`, 'success');
-            // Forzar recarga de la galería
             FILES_CACHE.data = null;
             loadGallery(true);
         }
 
-        // Cargar galería desde Backblaze (con cache)
         async function loadGallery(forceRefresh = false) {
             try {
                 elements.gallery.innerHTML = `
@@ -1650,7 +1504,6 @@
                     </div>
                 `;
 
-                // Verificar si tenemos datos en cache y no es forzado
                 const now = Date.now();
                 if (!forceRefresh && FILES_CACHE.data && (now - FILES_CACHE.timestamp) < FILES_CACHE.expiration) {
                     renderGallery(FILES_CACHE.data);
@@ -1671,7 +1524,6 @@
                 });
                 const filesData = await listResponse.json();
 
-                // Guardar en cache
                 FILES_CACHE.data = filesData.files || [];
                 FILES_CACHE.timestamp = now;
                 
@@ -1689,7 +1541,6 @@
             }
         }
 
-        // Renderizar galería con paginación
         function renderGallery(files) {
             elements.gallery.innerHTML = '';
             appState.currentFiles = files;
@@ -1697,7 +1548,6 @@
             appState.selectedFiles.clear();
             updateSelectedCount();
 
-            // Calcular paginación
             const totalPages = Math.ceil(files.length / APP_CONFIG.itemsPerPage);
             const startIndex = (appState.currentPage - 1) * APP_CONFIG.itemsPerPage;
             const endIndex = Math.min(startIndex + APP_CONFIG.itemsPerPage, files.length);
@@ -1705,7 +1555,6 @@
 
             if (filesToShow.length > 0) {
                 filesToShow.forEach(file => {
-                    // Verificar que el archivo tenga tamaño válido
                     if (file.size && !isNaN(file.size)) {
                         appState.totalBytes += file.size;
                     }
@@ -1714,13 +1563,14 @@
                 updateStats();
                 renderPagination(totalPages);
 
-                // Si estamos en modo admin, actualizar controles
                 if (appState.isAdmin) {
-                    updateAdminControls();
+                    setTimeout(updateAdminControls, 100);
                 }
                 
-                // Iniciar observador para lazy loading
                 setTimeout(initIntersectionObserver, 100);
+                if (files.length > 0) {
+                    preCacheAllUrls();
+                }
             } else {
                 elements.gallery.innerHTML = `
                     <div style="text-align: center; padding: 60px; color: #FFD700;">
@@ -1733,7 +1583,6 @@
             }
         }
 
-        // Renderizar controles de paginación
         function renderPagination(totalPages) {
             if (totalPages <= 1) {
                 elements.pagination.style.display = 'none';
@@ -1743,7 +1592,6 @@
             elements.pagination.style.display = 'flex';
             elements.pagination.innerHTML = '';
             
-            // Botón anterior
             const prevBtn = document.createElement('button');
             prevBtn.className = 'pagination-btn';
             prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Anterior';
@@ -1751,7 +1599,6 @@
             prevBtn.onclick = () => changePage(appState.currentPage - 1);
             elements.pagination.appendChild(prevBtn);
             
-            // Páginas
             const startPage = Math.max(1, appState.currentPage - 2);
             const endPage = Math.min(totalPages, startPage + 4);
             
@@ -1763,7 +1610,6 @@
                 elements.pagination.appendChild(pageBtn);
             }
             
-            // Botón siguiente
             const nextBtn = document.createElement('button');
             nextBtn.className = 'pagination-btn';
             nextBtn.innerHTML = 'Siguiente <i class="fas fa-chevron-right"></i>';
@@ -1772,14 +1618,12 @@
             elements.pagination.appendChild(nextBtn);
         }
 
-        // Cambiar página
         function changePage(page) {
             appState.currentPage = page;
             renderGallery(appState.currentFiles);
             window.scrollTo(0, 0);
         }
 
-        // Actualizar estadísticas
         function updateStats() {
             const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
             const freeGB = ((APP_CONFIG.maxSize - appState.totalBytes) / 1024 / 1024 / 1024).toFixed(2);
@@ -1795,7 +1639,6 @@
             }
         }
 
-        // Agregar elemento a la galería
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1806,13 +1649,10 @@
             galleryItem.className = 'gallery-item';
             galleryItem.style.animationDelay = (Math.random() * 0.5) + 's';
 
-            // Añadir evento de clic directamente al elemento de la galería
             galleryItem.onclick = (e) => {
-                // Si estamos en modo admin y se hace clic en el checkbox, no abrir el modal
                 if (appState.isAdmin && e.target.classList.contains('select-checkbox')) {
                     return;
                 }
-                // Si estamos en modo admin y hay archivos seleccionados, no abrir el modal
                 if (appState.isAdmin && appState.selectedFiles.size > 0) {
                     toggleSelectFile(index, galleryItem);
                     return;
@@ -1820,11 +1660,9 @@
                 openModal(index);
             };
 
-            // Usar miniatura para imágenes (añadir parámetro de miniatura si es posible)
             let displayUrl = signedUrl;
             if (fileType.startsWith('image/')) {
-                // Si Backblaze permite parámetros de transformación, úsalos aquí
-                // displayUrl = signedUrl + '&width=300'; // Ejemplo hipotético
+                // displayUrl = signedUrl + '&width=300';
             }
 
             galleryItem.innerHTML = `
@@ -1843,9 +1681,7 @@
             elements.gallery.appendChild(galleryItem);
         }
 
-        // Obtener URL firmada (con cache)
         async function getSignedUrl(fileName) {
-            // Verificar si tenemos la URL en cache
             const cachedUrl = URL_CACHE.get(fileName);
             if (cachedUrl) {
                 return cachedUrl;
@@ -1870,14 +1706,13 @@
                     body: JSON.stringify({
                         bucketId: appState.authData.allowed.bucketId,
                         fileNamePrefix: fileName,
-                        validDurationInSeconds: 86400 // 24 horas
+                        validDurationInSeconds: 86400
                     })
                 });
 
                 const signedUrlData = await signedUrlResponse.json();
                 const signedUrl = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
                 
-                // Guardar en cache antes de retornar
                 URL_CACHE.set(fileName, signedUrl);
                 return signedUrl;
 
@@ -1888,26 +1723,19 @@
             }
         }
 
-        // Descargar archivo
         function downloadFile(fileName, fileUrl) {
-            // Crear un enlace temporal para la descarga
             const link = document.createElement('a');
             link.href = fileUrl;
             link.download = fileName.split('/').pop();
             link.target = '_blank';
-
-            // Añadir el enlace al DOM y hacer clic en él
             document.body.appendChild(link);
             link.click();
-
-            // Limpiar después de la descarga
             setTimeout(() => {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(fileUrl);
             }, 100);
         }
 
-        // Eliminar archivo
         async function deleteFile(fileName) {
             if (!OPERATION_LIMITER.check()) return;
             if (!confirm('¿Eliminar este archivo permanentemente?')) return;
@@ -1915,44 +1743,34 @@
             try {
                 showMessage('Eliminando archivo...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
-
-                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
-                    headers: {
-                        'Authorization': authData.authorizationToken
-                    }
-                });
-                const filesData = await listResponse.json();
-
-                if (!filesData.files || filesData.files.length === 0) {
-                    throw new Error('Archivo no encontrado');
+                if (!appState.authData) {
+                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    appState.authData = await authResponse.json();
                 }
 
-                const fileInfo = filesData.files[0];
-
-                const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                const deleteResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
                     method: 'POST',
                     headers: {
-                        'Authorization': authData.authorizationToken,
+                        'Authorization': appState.authData.authorizationToken,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fileId: fileInfo.fileId,
-                        fileName: fileInfo.fileName
+                        fileName: fileName,
+                        fileId: "unknown"
                     })
                 });
 
                 if (deleteResponse.ok) {
                     showMessage('Archivo eliminado exitosamente', 'success');
-                    // Invalidar cache y recargar
                     FILES_CACHE.data = null;
                     URL_CACHE.urls = {};
                     loadGallery(true);
+                } else {
+                    await deleteFileTraditional(fileName);
                 }
 
             } catch (error) {
@@ -1960,7 +1778,49 @@
             }
         }
 
-        // Obtener tipo de archivo
+        async function deleteFileTraditional(fileName) {
+            const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                headers: {
+                    'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                }
+            });
+            const authData = await authResponse.json();
+
+            const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
+                headers: {
+                    'Authorization': authData.authorizationToken
+                }
+            });
+            const filesData = await listResponse.json();
+
+            if (!filesData.files || filesData.files.length === 0) {
+                throw new Error('Archivo no encontrado');
+            }
+
+            const fileInfo = filesData.files[0];
+
+            const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                method: 'POST',
+                headers: {
+                    'Authorization': authData.authorizationToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fileId: fileInfo.fileId,
+                    fileName: fileInfo.fileName
+                })
+            });
+
+            if (deleteResponse.ok) {
+                showMessage('Archivo eliminado exitosamente (método tradicional)', 'success');
+                FILES_CACHE.data = null;
+                URL_CACHE.urls = {};
+                loadGallery(true);
+            } else {
+                showMessage('Error eliminando archivo (método tradicional)', 'error');
+            }
+        }
+
         function getFileType(fileName) {
             const ext = fileName.toLowerCase().split('.').pop();
             const types = {
@@ -1971,7 +1831,6 @@
             return types[ext] || 'application/octet-stream';
         }
 
-        // Formatear tamaño de archivo
         function formatFileSize(bytes) {
             if (!bytes || isNaN(bytes)) return 'Tamaño desconocido';
             if (bytes < 1024) return bytes + ' B';
@@ -1980,7 +1839,6 @@
             return (bytes / 1073741824).toFixed(1) + ' GB';
         }
 
-        // Toggle selección de archivo
         function toggleSelectFile(index, galleryItem) {
             if (appState.selectedFiles.has(index)) {
                 appState.selectedFiles.delete(index);
@@ -1992,22 +1850,18 @@
             updateSelectedCount();
         }
 
-        // Actualizar contador de seleccionados
         function updateSelectedCount() {
             elements.selectedCount.textContent = `${appState.selectedFiles.size} seleccionados`;
         }
 
-        // Seleccionar/Deseleccionar todos
         function toggleSelectAll() {
             const galleryItems = document.querySelectorAll('.gallery-item');
 
             if (appState.isSelectAll) {
-                // Deseleccionar todos
                 appState.selectedFiles.clear();
                 galleryItems.forEach(item => item.classList.remove('selected'));
                 appState.isSelectAll = false;
             } else {
-                // Seleccionar todos
                 galleryItems.forEach((item, index) => {
                     appState.selectedFiles.add(index);
                     item.classList.add('selected');
@@ -2018,7 +1872,6 @@
             updateSelectedCount();
         }
 
-        // Eliminar archivos seleccionados
         async function deleteSelectedFiles() {
             if (!OPERATION_LIMITER.check()) return;
             if (appState.selectedFiles.size === 0) {
@@ -2031,51 +1884,49 @@
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
+                if (!appState.authData) {
+                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    appState.authData = await authResponse.json();
+                }
 
                 let deletedCount = 0;
-                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a); // Orden descendente para evitar problemas de índices
+                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a);
 
                 for (const index of selectedIndices) {
                     const file = appState.currentFiles[index];
+                    
+                    try {
+                        const deleteResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': appState.authData.authorizationToken,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                fileName: file.fileName,
+                                fileId: "unknown"
+                            })
+                        });
 
-                    const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
-                        headers: {
-                            'Authorization': authData.authorizationToken
+                        if (deleteResponse.ok) {
+                            deletedCount++;
+                        } else {
+                            if (await deleteFileTraditional(file.fileName)) {
+                                deletedCount++;
+                            }
                         }
-                    });
-                    const filesData = await listResponse.json();
-
-                    if (!filesData.files || filesData.files.length === 0) {
-                        continue;
+                    } catch (error) {
+                        console.warn("Error eliminando", file.fileName, ":", error);
                     }
-
-                    const fileInfo = filesData.files[0];
-
-                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': authData.authorizationToken,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            fileId: fileInfo.fileId,
-                            fileName: fileInfo.fileName
-                        })
-                    });
-
-                    if (deleteResponse.ok) {
-                        deletedCount++;
-                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
 
                 showMessage(`¡${deletedCount} archivo(s) eliminado(s) exitosamente!`, 'success');
-                // Invalidar cache y recargar
                 FILES_CACHE.data = null;
                 URL_CACHE.urls = {};
                 loadGallery(true);
@@ -2085,7 +1936,23 @@
             }
         }
 
-        // Inicializar Intersection Observer para lazy loading
+        async function preCacheAllUrls() {
+            if (!appState.isAdmin && appState.currentFiles.length > 0) {
+                console.log("Pre-cacheando URLs para", appState.currentFiles.length, "archivos...");
+                setTimeout(async () => {
+                    for (const file of appState.currentFiles) {
+                        try {
+                            await getSignedUrl(file.fileName);
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        } catch (error) {
+                            console.warn("Error pre-cacheando:", file.fileName);
+                        }
+                    }
+                    console.log("Pre-cacheo completado");
+                }, 2000);
+            }
+        }
+
         function initIntersectionObserver() {
             if (!('IntersectionObserver' in window)) return;
             
@@ -2099,7 +1966,6 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const img = entry.target;
-                        // Cargar la imagen de alta resolución si está disponible
                         if (img.dataset.full) {
                             img.src = img.dataset.full;
                             img.removeAttribute('data-full');
@@ -2109,13 +1975,11 @@
                 });
             }, options);
             
-            // Observar todas las imágenes después de renderizar
             document.querySelectorAll('img[data-full]').forEach(img => {
                 observer.observe(img);
             });
         }
 
-        // Event listener para tecla Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
@@ -2129,7 +1993,6 @@
             }
         });
 
-        // Event listener para rueda del mouse en modal
         elements.modalContent.addEventListener('wheel', (e) => {
             if (e.deltaY < 0) {
                 zoomModal(0.1);
