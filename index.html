@@ -9,27 +9,27 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --dark-gold: #B08D57;
-      --brown: #5E4B2B;
-      --light-gold: #F9F295;
-      --white-gold: #FFF8E0;
+      --dark-gold: #B08D57; /* Dorado oscuro */
+      --brown: #5E4B2B;    /* Marrón */
+      --light-gold: #F9F295; /* Dorado claro */
+      --white-gold: #FFF8E0; /* Blanco dorado */
       --dark: #121212;
       --light: #f8f8f8;
       --red: #e74c3c;
       --green: #2ecc71;
     }
-
+    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       font-family: 'Montserrat', sans-serif;
     }
-
+    
     body {
       background-color: var(--dark);
       color: var(--light);
-      background-image:
+      background-image: 
         linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.85)),
         url('https://barber-k-app.github.io/barberia-app/barber-k3.JPG');
       background-size: 300px;
@@ -39,7 +39,7 @@
       display: flex;
       flex-direction: column;
     }
-
+    
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -53,12 +53,12 @@
       position: relative;
       z-index: 1;
     }
-
+    
     header {
       margin-bottom: 3rem;
       animation: fadeIn 1s ease-out;
     }
-
+    
     .logo-container {
       display: flex;
       flex-direction: column;
@@ -66,21 +66,21 @@
       margin-bottom: 1.5rem;
       position: relative;
     }
-
+    
     .logo-image {
       height: 60px;
       margin-bottom: 10px;
     }
-
+    
     .logo-main {
       font-size: 3.5rem;
       font-weight: bold;
       letter-spacing: 3px;
       text-transform: uppercase;
-      background: linear-gradient(90deg,
-        var(--brown) 0%,
-        var(--dark-gold) 40%,
-        var(--light-gold) 60%,
+      background: linear-gradient(90deg, 
+        var(--brown) 0%, 
+        var(--dark-gold) 40%, 
+        var(--light-gold) 60%, 
         var(--white-gold) 80%);
       -webkit-background-clip: text;
       background-clip: text;
@@ -91,20 +91,20 @@
       align-items: center;
       justify-content: center;
     }
-
+    
     .logo-main::after {
       content: "";
       position: absolute;
       width: 100%;
       height: 3px;
-      background: linear-gradient(90deg,
-        transparent,
-        var(--dark-gold),
+      background: linear-gradient(90deg, 
+        transparent, 
+        var(--dark-gold), 
         transparent);
       bottom: -10px;
       left: 0;
     }
-
+    
     .logo-slogan {
       font-family: 'Poppins', sans-serif;
       font-weight: 500;
@@ -113,7 +113,7 @@
       color: white;
       text-shadow: 0 0 5px rgba(180, 150, 50, 0.5);
     }
-
+    
     .slogan {
       font-size: 1.2rem;
       letter-spacing: 1px;
@@ -125,7 +125,7 @@
       display: inline-block;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
     }
-
+    
     .buttons {
       display: flex;
       gap: 1.5rem;
@@ -133,7 +133,7 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-
+    
     .btn {
       padding: 1rem 2rem;
       border-radius: 50px;
@@ -148,34 +148,34 @@
       justify-content: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
-
+    
     .btn-client {
       background: linear-gradient(135deg, var(--dark-gold), var(--light-gold));
       color: var(--dark);
       border: none;
     }
-
+    
     .btn-barber {
       background: transparent;
       color: var(--light-gold);
       border: 2px solid var(--dark-gold);
     }
-
+    
     .btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
     }
-
+    
     .btn-client:hover {
       background: linear-gradient(135deg, var(--brown), var(--dark-gold));
       color: var(--light);
     }
-
+    
     .btn-barber:hover {
       background: var(--dark-gold);
       color: var(--dark);
     }
-
+    
     .location-btn {
       margin: 2rem 0;
       display: inline-flex;
@@ -185,13 +185,15 @@
       text-decoration: none;
       font-weight: 500;
       transition: all 0.3s;
+      text-align: center;
+      max-width: 90%;
     }
-
+    
     .location-btn:hover {
       transform: translateY(-2px);
       text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
     }
-
+    
     .rating-section {
       margin: 2rem 0;
       padding: 1.5rem;
@@ -201,52 +203,56 @@
       max-width: 500px;
       width: 100%;
     }
-
+    
     .rating-title {
       color: var(--light-gold);
       margin-bottom: 1rem;
+      font-size: 1.1rem;
     }
-
+    
     .stars {
       font-size: 1.8rem;
       color: var(--light-gold);
       letter-spacing: 5px;
       margin-bottom: 1rem;
+      display: flex;
+      justify-content: center;
     }
-
+    
     .rating-text {
       font-size: 0.9rem;
       color: var(--light);
       opacity: 0.8;
     }
-
+    
     footer {
       margin-top: auto;
       padding: 1.5rem;
       text-align: center;
       border-top: 1px solid rgba(180, 150, 50, 0.3);
       background-color: rgba(18, 18, 18, 0.9);
+      width: 100%;
     }
-
+    
     .copyright, .author {
       color: var(--light);
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     }
-
+    
     .copyright {
       margin-bottom: 0.5rem;
       font-size: 0.9rem;
     }
-
+    
     .author {
       font-size: 0.8rem;
     }
-
+    
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
+    
     .gold-glow {
       position: fixed;
       top: 50%;
@@ -257,24 +263,23 @@
       transform: translate(-50%, -50%);
       z-index: -1;
     }
-
-    /* Panel de Citas del Día */
+    
+    /* Panel de Citas del Día - Mejorado para móviles */
     .citas-panel {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 350px;
+      position: relative;
+      width: 100%;
       background: rgba(18, 18, 18, 0.95);
       border: 2px solid var(--dark-gold);
       border-radius: 10px;
       padding: 15px;
       box-shadow: 0 0 15px rgba(180, 150, 50, 0.3);
-      z-index: 1000;
-      max-height: 80vh;
+      z-index: 2;
+      max-height: 400px;
       overflow-y: auto;
       backdrop-filter: blur(5px);
+      margin-bottom: 2rem;
     }
-
+    
     .citas-header {
       display: flex;
       justify-content: space-between;
@@ -283,7 +288,7 @@
       padding-bottom: 10px;
       border-bottom: 1px solid rgba(180, 150, 50, 0.3);
     }
-
+    
     .citas-title {
       color: var(--light-gold);
       font-size: 1.2rem;
@@ -291,12 +296,12 @@
       display: flex;
       align-items: center;
     }
-
+    
     .logo-title {
       height: 30px;
       margin-right: 8px;
     }
-
+    
     .refresh-btn {
       background: var(--dark-gold);
       color: var(--dark);
@@ -310,18 +315,18 @@
       justify-content: center;
       transition: all 0.3s;
     }
-
+    
     .refresh-btn:hover {
       transform: rotate(180deg);
       background: var(--light-gold);
     }
-
+    
     .citas-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-
+    
     .cita-item {
       padding: 10px 12px;
       margin-bottom: 6px;
@@ -330,15 +335,16 @@
       align-items: center;
       background: rgba(30, 30, 30, 0.7);
       white-space: nowrap;
+      overflow: hidden;
     }
-
+    
     .cita-time {
       color: var(--light-gold);
       font-weight: bold;
       min-width: 55px;
       flex-shrink: 0;
     }
-
+    
     .cita-name {
       flex: 1;
       padding: 0 10px;
@@ -348,7 +354,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
+    
     .cita-service {
       color: var(--light-gold);
       font-size: 0.85rem;
@@ -358,26 +364,26 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
+    
     .no-citas {
       color: var(--light);
       font-style: italic;
       text-align: center;
       padding: 10px 0;
     }
-
+    
     .loading-citas {
       color: var(--light-gold);
       text-align: center;
       padding: 10px 0;
     }
-
+    
     .error-citas {
       color: var(--red);
       text-align: center;
       padding: 10px 0;
     }
-
+    
     /* Estilos para el sistema de mantenimiento */
     .maintenance-badge {
       position: fixed;
@@ -393,7 +399,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
       display: none;
     }
-
+    
     .admin-gear {
       position: fixed;
       bottom: 20px;
@@ -410,27 +416,27 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
       transition: all 0.3s ease;
     }
-
+    
     .admin-gear:hover {
       transform: rotate(30deg) scale(1.1);
     }
-
+    
     .admin-gear.maintenance-active {
       background-color: var(--red);
       animation: pulse 2s infinite;
     }
-
+    
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
       70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
       100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
     }
-
+    
     .admin-gear i {
       font-size: 24px;
       color: var(--dark);
     }
-
+    
     .password-modal {
       display: none;
       position: fixed;
@@ -443,7 +449,7 @@
       justify-content: center;
       align-items: center;
     }
-
+    
     .password-container {
       background-color: var(--dark);
       padding: 2rem;
@@ -453,12 +459,12 @@
       width: 90%;
       text-align: center;
     }
-
+    
     .password-container h3 {
       color: var(--light-gold);
       margin-bottom: 1rem;
     }
-
+    
     .password-input {
       width: 100%;
       padding: 10px;
@@ -468,7 +474,7 @@
       color: var(--light);
       border-radius: 5px;
     }
-
+    
     .password-btn {
       background-color: var(--dark-gold);
       color: var(--dark);
@@ -480,30 +486,30 @@
       transition: all 0.3s;
       margin: 0 5px;
     }
-
+    
     .password-btn:hover {
       background-color: var(--light-gold);
     }
-
+    
     .password-error {
       color: var(--red);
       margin-top: 10px;
       display: none;
     }
-
+    
     .access-granted {
       color: var(--green);
       font-weight: bold;
       margin-top: 10px;
       display: none;
     }
-
+    
     .maintenance-controls {
       margin-top: 20px;
       padding-top: 20px;
       border-top: 1px solid rgba(180, 150, 50, 0.3);
     }
-
+    
     .maintenance-btn {
       background-color: var(--red);
       color: white;
@@ -514,11 +520,11 @@
       font-size: 14px;
       margin-top: 10px;
     }
-
+    
     .protected-links {
       margin-top: 15px;
     }
-
+    
     .protected-link {
       display: block;
       background-color: rgba(180, 150, 50, 0.1);
@@ -529,244 +535,181 @@
       text-decoration: none;
       transition: all 0.3s;
     }
-
+    
     .protected-link:hover {
       background-color: rgba(180, 150, 50, 0.3);
     }
-
-    /* MEJORAS PARA TABLETS Y MÓVILES - RESPONSIVE */
-    @media (max-width: 768px) {
-      .logo-image {
-        height: 50px;
+    
+    /* Media Queries para Responsividad */
+    @media (min-width: 769px) {
+      /* Estilos para escritorio - panel de citas fijo */
+      .citas-panel {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 350px;
+        max-height: 80vh;
+        margin-bottom: 0;
       }
-
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
       .logo-main {
         font-size: 2.5rem;
+        flex-direction: column;
       }
-
+      
+      .logo-main img {
+        height: 60px;
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
+      
       .logo-slogan {
         font-size: 1.1rem;
       }
-
+      
+      .slogan {
+        font-size: 1rem;
+        padding: 6px 12px;
+      }
+      
       .buttons {
         flex-direction: column;
         gap: 1rem;
+        margin: 2rem 0;
       }
-
+      
+      .btn {
+        min-width: 250px;
+        padding: 0.9rem 1.5rem;
+      }
+      
       .rating-section {
         padding: 1rem;
+        margin: 1.5rem 0;
       }
-
+      
+      .rating-title {
+        font-size: 1rem;
+      }
+      
       .stars {
         font-size: 1.5rem;
+        letter-spacing: 3px;
       }
-
+      
       .citas-panel {
-        position: static;
-        width: 100%;
-        margin: 20px 0;
-        max-height: none;
+        margin: 1rem 0 2rem 0;
       }
-
+      
+      .cita-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px 10px;
+      }
+      
+      .cita-time {
+        margin-bottom: 5px;
+      }
+      
+      .cita-name {
+        padding: 0;
+        margin-bottom: 5px;
+      }
+      
+      .location-btn {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+      
       .maintenance-badge {
         top: 10px;
         right: 10px;
-        font-size: 12px;
-        padding: 5px 10px;
+        font-size: 10px;
+        padding: 4px 8px;
       }
-
+      
       .admin-gear {
         width: 40px;
         height: 40px;
         bottom: 15px;
         right: 15px;
       }
-
+      
       .admin-gear i {
         font-size: 20px;
       }
     }
-
-    /* MEJORAS ADICIONALES PARA MÓVILES PEQUEÑOS */
+    
     @media (max-width: 480px) {
       .container {
         padding: 1rem;
       }
-
+      
       .logo-main {
         font-size: 2rem;
       }
-
+      
+      .logo-main img {
+        height: 50px;
+      }
+      
       .logo-slogan {
         font-size: 1rem;
       }
-
-      .slogan {
-        font-size: 1rem;
-        padding: 6px 12px;
-      }
-
+      
       .btn {
-        min-width: 150px;
-        padding: 0.8rem 1.5rem;
+        min-width: 220px;
         font-size: 0.9rem;
       }
-
-      .location-btn {
-        font-size: 0.9rem;
-      }
-
-      .stars {
-        font-size: 1.2rem;
-        letter-spacing: 3px;
-      }
-
-      .citas-panel {
-        padding: 10px;
-      }
-
+      
       .citas-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
       }
-
-      .cita-item {
-        padding: 8px;
-        font-size: 0.9rem;
+      
+      .logo-title {
+        height: 25px;
       }
-
-      .cita-time {
-        min-width: 45px;
-      }
-
-      .cita-service {
-        max-width: 100px;
-        font-size: 0.8rem;
-      }
-
+      
       .password-container {
         padding: 1.5rem;
-        width: 95%;
       }
     }
-
-    /* MEJORAS PARA TABLETS EN MODO LANDSCAPE */
-    @media (min-width: 769px) and (max-width: 1024px) {
-      .citas-panel {
-        width: 300px;
-        right: 10px;
-      }
-
+    
+    @media (max-width: 350px) {
       .logo-main {
-        font-size: 3rem;
+        font-size: 1.8rem;
       }
-
-      .buttons {
-        gap: 1rem;
-      }
-
+      
       .btn {
-        min-width: 180px;
-        padding: 0.9rem 1.8rem;
+        min-width: 200px;
+        padding: 0.8rem 1.2rem;
       }
-    }
-
-    /* ASEGURAR VISIBILIDAD EN ORIENTACIÓN HORIZONTAL DEL MÓVIL */
-    @media (max-width: 768px) and (orientation: landscape) {
-      .container {
-        padding: 1rem;
-      }
-
-      .logo-main {
-        font-size: 2rem;
-      }
-
-      .logo-slogan {
-        font-size: 0.9rem;
-      }
-
-      .slogan {
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-      }
-
-      .buttons {
-        margin: 1.5rem 0;
-      }
-
-      .btn {
-        min-width: 150px;
-        padding: 0.7rem 1.4rem;
-        font-size: 0.9rem;
-      }
-
-      .location-btn {
-        margin: 1rem 0;
-        font-size: 0.9rem;
-      }
-
-      .rating-section {
-        margin: 1rem 0;
-        padding: 1rem;
-      }
-
-      .citas-panel {
-        position: static;
-        width: 100%;
-        margin: 10px 0;
-        max-height: 200px;
-      }
-    }
-
-    /* ASEGURAR QUE EL TEXTO SE AJUSTE CORRECTAMENTE */
-    .cita-name, .cita-service {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* MEJORAR LA VISIBILIDAD DEL FONDO EN MÓVILES */
-    body {
-      background-attachment: fixed;
-    }
-
-    /* AJUSTE DE LA FUENTE EN MÓVILES PARA MEJOR LEGIBILIDAD */
-    @media (max-width: 768px) {
-      body {
-        font-size: 14px;
-      }
-    }
-
-    /* MANTENER EL MISMO ASPECTO EN TABLETS Y PC */
-    @media (min-width: 1025px) {
-      .citas-panel {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: 350px;
-      }
-    }
-
-    /* EVITAR QUE EL PANEL DE CITAS OCULTE EL CONTENIDO EN MÓVILES */
-    @media (max-width: 768px) {
-      .container {
-        padding-top: 1rem;
+      
+      .citas-title {
+        font-size: 1rem;
       }
     }
   </style>
 </head>
 <body>
   <div class="gold-glow"></div>
-
+  
   <!-- Badge de mantenimiento -->
   <div class="maintenance-badge" id="maintenanceBadge">
     <i class="fas fa-tools"></i> MODO MANTENIMIENTO
   </div>
-
+  
   <!-- Icono de engranaje para acceso admin -->
   <div class="admin-gear" id="adminGear">
     <i class="fas fa-cog"></i>
   </div>
-
+  
   <!-- Modal de contraseña -->
   <div class="password-modal" id="passwordModal">
     <div class="password-container">
@@ -776,14 +719,14 @@
       <button class="password-btn" id="cancelPassword">Cancelar</button>
       <p class="password-error" id="passwordError">Contraseña incorrecta</p>
       <p class="access-granted" id="accessGranted">Acceso concedido ✓</p>
-
+      
       <div class="maintenance-controls" id="maintenanceControls" style="display: none;">
         <h4>Control de Mantenimiento</h4>
         <button class="maintenance-btn" id="toggleMaintenance">
           <i class="fas fa-power-off"></i> Desactivar Mantenimiento
         </button>
         <p id="maintenanceStatus">Estado actual: <strong>Activo</strong></p>
-
+        
         <div class="protected-links">
           <h4>Accesos Rápidos</h4>
           <a href="cliente.html" class="protected-link" id="clientAccess">
@@ -796,7 +739,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Panel de Citas -->
   <div class="citas-panel" id="citasPanel">
     <div class="citas-header">
@@ -811,7 +754,7 @@
       <p class="loading-citas">Cargando citas...</p>
     </div>
   </div>
-
+  
   <div class="container">
     <header>
       <div class="logo-container">
@@ -822,7 +765,7 @@
       </div>
       <p class="slogan">Estilo premium para caballeros modernos</p>
     </header>
-
+    
     <main>
       <div class="buttons">
         <a href="cliente.html" class="btn btn-client" id="clientLink">
@@ -832,12 +775,12 @@
           <i class="fas fa-cut"></i> Soy Barbero
         </a>
       </div>
-
+      
       <!-- Ubicación de la barbería -->
       <a href="https://www.google.com/maps?q=10.4954872131348,-66.7982482910156" target="_blank" class="location-btn">
         <i class="fas fa-map-marker-alt"></i>Makro la Urbina 2da alcabala, frente a la iglesia ebenezer "Petare"
       </a>
-
+      
       <!-- Valoración de la app -->
       <div class="rating-section">
         <h3 class="rating-title">¿Cómo valoras nuestro Servicio de atención y barbería?</h3>
@@ -851,7 +794,7 @@
         <p class="rating-text">Tu opinión nos ayuda a mejorar</p>
       </div>
     </main>
-
+    
     <footer>
       <p class="copyright">© 2025 Barber-K</p>
       <p class="author">Sistema desarrollado por Antonio Avila telf:.(424)1345912</p>
