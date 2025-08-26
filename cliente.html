@@ -564,13 +564,28 @@
         font-size: 0.95rem;
       }
       
+      /* MODIFICACIÓN: Redes sociales en línea horizontal en móvil */
       .redes-simple {
-        flex-direction: column;
+        flex-direction: row; /* Cambiado de column a row */
         gap: 15px;
+        flex-wrap: wrap; /* Permite que se ajusten si la pantalla es muy pequeña */
+        justify-content: space-around; /* Distribuye el espacio uniformemente */
       }
       
       .red-social {
-        justify-content: center;
+        flex-direction: column; /* Apila icono y texto verticalmente */
+        text-align: center;
+        min-width: 70px; /* Ancho mínimo para mantener consistencia */
+      }
+      
+      .icono-red {
+        margin-right: 0;
+        margin-bottom: 5px; /* Espacio entre icono y texto */
+        font-size: 1.5rem; /* Tamaño ligeramente reducido para móviles */
+      }
+      
+      .texto-red {
+        font-size: 0.75rem; /* Texto un poco más pequeño para móviles */
       }
       
       .info-horario {
@@ -622,19 +637,21 @@
         font-size: 0.9rem;
       }
       
+      /* Ajustes adicionales para pantallas muy pequeñas */
+      .redes-simple {
+        gap: 10px; /* Reducir espacio entre elementos */
+      }
+      
       .red-social {
-        flex-direction: column;
-        text-align: center;
-        gap: 5px;
+        min-width: 60px; /* Reducir ancho mínimo */
       }
       
       .icono-red {
-        margin-right: 0;
-        font-size: 1.5rem;
+        font-size: 1.3rem; /* Tamaño de icono para pantallas pequeñas */
       }
       
       .texto-red {
-        font-size: 0.8rem;
+        font-size: 0.7rem; /* Texto más pequeño para pantallas muy pequeñas */
       }
       
       .btn-volver {
@@ -671,11 +688,15 @@
       }
       
       .redes-simple {
-        gap: 10px;
+        gap: 8px; /* Espacio mínimo entre iconos */
       }
       
       .icono-red {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
+      }
+      
+      .texto-red {
+        font-size: 0.65rem; /* Texto muy pequeño para pantallas mínimas */
       }
     }
     
