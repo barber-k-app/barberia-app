@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Galería Premium - Barbería Elite</title>
+    <title>✨ GALERIA BARBER-K</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --accent: #f093fb;
+            --primary: #D4AF37; /* Dorado en lugar del azul */
+            --secondary: #B8860B; /* Dorado oscuro */
+            --accent: #FFD700; /* Dorado brillante */
             --dark: #1a202c;
             --light: #f7fafc;
             --success: #48bb78;
@@ -27,7 +27,10 @@
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+                        url('https://barber-k-app.github.io/barberia-app/barber-k3.JPG');
+            background-size: cover;
+            background-repeat: repeat;
             min-height: 100vh;
             padding: 20px;
             color: var(--dark);
@@ -42,10 +45,10 @@
         }
 
         .admin-btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(212, 175, 55, 0.3);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            color: #FFD700;
             padding: 12px 20px;
             border-radius: 50px;
             cursor: pointer;
@@ -57,9 +60,9 @@
         }
 
         .admin-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(212, 175, 55, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .login-modal {
@@ -77,13 +80,14 @@
         }
 
         .login-content {
-            background: white;
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
             padding: 40px;
             border-radius: 20px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             transform: scale(0.9);
             animation: modalAppear 0.3s ease forwards;
+            border: 1px solid var(--primary);
         }
 
         @keyframes modalAppear {
@@ -92,7 +96,7 @@
 
         .login-content h2 {
             margin-bottom: 20px;
-            color: var(--dark);
+            color: var(--primary);
         }
 
         .login-form {
@@ -102,11 +106,14 @@
         .login-input {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #444;
             border-radius: 10px;
             font-size: 16px;
             margin-bottom: 20px;
             transition: border-color 0.3s ease;
+            autocomplete: "new-password";
+            background: #333;
+            color: white;
         }
 
         .login-input:focus {
@@ -128,18 +135,18 @@
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .container {
             max-width: 1400px;
             margin: 80px auto 20px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(20, 20, 20, 0.9);
             backdrop-filter: blur(20px);
             border-radius: 25px;
             padding: 30px;
             box-shadow: 0 25px 60px rgba(0,0,0,0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--primary);
         }
 
         .header {
@@ -147,18 +154,32 @@
             margin-bottom: 40px;
         }
 
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
         .header h1 {
             font-size: 3.5em;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
             font-weight: 700;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
         }
 
         .header p {
-            color: #718096;
+            color: #FFD700;
             font-size: 1.2em;
+            font-weight: 500;
         }
 
         .view-options {
@@ -189,7 +210,7 @@
 
         .view-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .stats-container {
@@ -205,12 +226,12 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             padding: 25px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
         }
 
         .stat-number {
@@ -225,11 +246,11 @@
         }
 
         .upload-section {
-            background: var(--light);
+            background: rgba(30, 30, 30, 0.8);
             padding: 30px;
             border-radius: 20px;
             margin-bottom: 40px;
-            border: 2px dashed #cbd5e0;
+            border: 2px dashed var(--primary);
             text-align: center;
             transition: all 0.3s ease;
             display: none;
@@ -240,7 +261,7 @@
         }
 
         .upload-section:hover {
-            border-color: var(--primary);
+            border-color: var(--accent);
             transform: translateY(-5px);
         }
 
@@ -261,7 +282,7 @@
 
         .upload-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4);
         }
 
         #file-input {
@@ -271,8 +292,9 @@
         .compression-options {
             margin: 20px 0;
             padding: 20px;
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(212, 175, 55, 0.1);
             border-radius: 15px;
+            color: #FFD700;
         }
 
         .compression-slider {
@@ -306,15 +328,17 @@
             box-shadow: 0 12px 30px rgba(0,0,0,0.15);
             transition: all 0.4s ease;
             cursor: pointer;
-        }
-
-        .gallery.small-view .gallery-item {
-            border-radius: 10px;
+            border: 2px solid transparent;
         }
 
         .gallery-item:hover {
             transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            box-shadow: 0 25px 50px rgba(212, 175, 55, 0.3);
+            border-color: var(--primary);
+        }
+
+        .gallery.small-view .gallery-item {
+            border-radius: 10px;
         }
 
         .gallery-item img, .gallery-item video {
@@ -448,7 +472,7 @@
         .progress-bar {
             width: 100%;
             height: 12px;
-            background: #edf2f7;
+            background: #333;
             border-radius: 10px;
             overflow: hidden;
         }
@@ -511,14 +535,15 @@
             position: fixed;
             top: 80px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(212, 175, 55, 0.3);
             backdrop-filter: blur(10px);
             padding: 10px 15px;
             border-radius: 20px;
-            color: white;
+            color: #FFD700;
             font-weight: 600;
             display: none;
             z-index: 1000;
+            border: 1px solid var(--primary);
         }
 
         /* Animaciones */
@@ -571,7 +596,7 @@
 
         .particle {
             position: absolute;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             border-radius: 50%;
             opacity: 0.3;
             animation: float 20s infinite linear;
@@ -602,9 +627,10 @@
             max-height: 95%;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            box-shadow: 0 30px 80px rgba(212, 175, 55, 0.3);
             cursor: default;
             transition: transform 0.3s ease;
+            border: 2px solid var(--primary);
         }
 
         .modal-content.zoomed {
@@ -630,15 +656,16 @@
             display: flex;
             gap: 15px;
             backdrop-filter: blur(10px);
+            border: 1px solid var(--primary);
         }
 
         .modal-control-btn {
-            background: rgba(255,255,255,0.2);
+            background: rgba(212, 175, 55, 0.3);
             border: none;
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            color: white;
+            color: #FFD700;
             font-size: 20px;
             cursor: pointer;
             display: flex;
@@ -648,7 +675,7 @@
         }
 
         .modal-control-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
         }
 
@@ -682,22 +709,23 @@
         }
 
         .nav-btn {
-            background: rgba(0,0,0,0.6);
+            background: rgba(212, 175, 55, 0.3);
             border: none;
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            color: white;
+            color: #FFD700;
             font-size: 24px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            border: 1px solid var(--primary);
         }
 
         .nav-btn:hover {
-            background: rgba(0,0,0,0.8);
+            background: rgba(212, 175, 55, 0.5);
             transform: scale(1.1);
         }
 
@@ -709,7 +737,7 @@
         }
 
         .gallery.list-view .gallery-item img,
-        .gallery.list.view .gallery-item video {
+        .gallery.list-view .gallery-item video {
             width: 150px;
             height: 100px;
             object-fit: cover;
@@ -753,7 +781,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(20, 20, 20, 0.95);
             padding: 15px 25px;
             border-radius: 50px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -761,6 +789,7 @@
             backdrop-filter: blur(10px);
             align-items: center;
             gap: 15px;
+            border: 1px solid var(--primary);
         }
 
         .admin-mode .multi-select-controls {
@@ -769,7 +798,7 @@
 
         .select-count {
             font-weight: 600;
-            color: var(--dark);
+            color: #FFD700;
         }
 
         .select-all-btn, .delete-selected-btn {
@@ -792,7 +821,7 @@
 
         .select-all-btn:hover, .delete-selected-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .gallery-item.selected {
@@ -848,8 +877,7 @@
         <div class="login-content">
             <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
             <form class="login-form" onsubmit="login(); return false;">
-                <input type="text" name="username" autocomplete="username" style="display: none;">
-                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="current-password">
+                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="new-password">
                 <button type="submit" class="login-btn">Acceder</button>
             </form>
         </div>
@@ -878,8 +906,11 @@
 
     <div class="container" id="mainContainer">
         <div class="header">
-            <h1>✨ Galería Premium</h1>
-            <p>Showroom de trabajos de barbería - Ultra HD</p>
+            <div class="logo-container">
+                <img src="https://barber-k-app.github.io/barberia-app/barber-k-blanco.jpg" alt="Barber-K Logo" class="logo">
+            </div>
+            <h1>GALERIA BARBER-K</h1>
+            <p>¡MEJORAMOS TU ESTILO!</p>
         </div>
 
         <!-- Opciones de vista para clientes -->
@@ -944,7 +975,7 @@
 
         <!-- Galería -->
         <div class="gallery grid-view" id="gallery">
-            <div style="text-align: center; padding: 40px; color: #718096;">
+            <div style="text-align: center; padding: 40px; color: #FFD700;">
                 <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
                 <p>Cargando galería...</p>
             </div>
@@ -1041,13 +1072,6 @@
             isSelectAll: false
         };
 
-        // Cache de autorización
-        let authCache = {
-            data: null,
-            timestamp: 0,
-            ttl: 3600000 // 1 hora en milisegundos
-        };
-
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
@@ -1059,27 +1083,9 @@
             }
         });
 
-        // Función proxy mejorada para evitar CORS
-        async function getProxyUrl(url) {
-            // Intenta usar un proxy alternativo o tu propio backend
-            const proxyUrls = [
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-                `https://cors-anywhere.herokuapp.com/${url}`,
-                `https://thingproxy.freeboard.io/fetch/${url}`
-            ];
-            
-            // Prueba con el primer proxy disponible
-            for (const proxyUrl of proxyUrls) {
-                try {
-                    const test = await fetch(proxyUrl, { method: 'HEAD' });
-                    if (test.ok) return proxyUrl;
-                } catch (e) {
-                    console.log(`Proxy ${proxyUrl} falló, intentando con el siguiente`);
-                }
-            }
-            
-            // Si todos los proxies fallan, devuelve la URL directa (puede fallar por CORS)
-            return url;
+        // Función proxy para evitar CORS
+        function getProxyUrl(url) {
+            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
         }
 
         // Crear partículas de fondo
@@ -1399,25 +1405,18 @@
         async function loadGallery() {
             try {
                 elements.gallery.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #718096;">
+                    <div style="text-align: center; padding: 40px; color: #FFD700;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 3em; margin-bottom: 20px;"></i>
                         <p>Cargando galería...</p>
                     </div>
                 `;
 
-                // Usar datos de autorización en caché si están disponibles
-                const now = Date.now();
-                if (!authCache.data || now - authCache.timestamp > authCache.ttl) {
-                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                        headers: {
-                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                        }
-                    });
-                    authCache.data = await authResponse.json();
-                    authCache.timestamp = now;
-                }
-                
-                appState.authData = authCache.data;
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                appState.authData = await authResponse.json();
 
                 const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
                     headers: {
@@ -1448,7 +1447,7 @@
                     }
                 } else {
                     elements.gallery.innerHTML = `
-                        <div style="text-align: center; padding: 60px; color: #718096;">
+                        <div style="text-align: center; padding: 60px; color: #FFD700;">
                             <i class="fas fa-images" style="font-size: 4em; margin-bottom: 20px;"></i>
                             <h3>No hay archivos en la galería</h3>
                             <p>Sube la primera imagen para comenzar</p>
@@ -1459,7 +1458,7 @@
             } catch (error) {
                 console.error('Error cargando galería:', error);
                 elements.gallery.innerHTML = `
-                    <div style="text-align: center; padding: 60px; color: #718096;">
+                    <div style="text-align: center; padding: 60px; color: #FFD700;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 4em; margin-bottom: 20px;"></i>
                         <h3>Error cargando galería</h3>
                         <p>Intenta recargar la página</p>
@@ -1484,7 +1483,7 @@
             }
         }
 
-        // Agregar elemento a la galería
+        // Agregar elemento a la galería - CÓDIGO CORREGIDO
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1683,7 +1682,7 @@
             updateSelectedCount();
         }
 
-        // Eliminar archivos seleccionados (OPTIMIZADA)
+        // Eliminar archivos seleccionados
         async function deleteSelectedFiles() {
             if (appState.selectedFiles.size === 0) {
                 showMessage('No hay archivos seleccionados', 'warning');
@@ -1694,62 +1693,55 @@
 
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
-                
-                // Obtener autorización una sola vez
-                if (!appState.authData) {
-                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                        headers: {
-                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                        }
-                    });
-                    appState.authData = await authResponse.json();
-                }
+
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                const authData = await authResponse.json();
 
                 let deletedCount = 0;
-                const selectedIndices = Array.from(appState.selectedFiles);
-                const filesToDelete = selectedIndices.map(index => appState.currentFiles[index]);
-                
-                // Procesar en lotes para no saturar
-                const batchSize = 3;
-                for (let i = 0; i < filesToDelete.length; i += batchSize) {
-                    const batch = filesToDelete.slice(i, i + batchSize);
-                    
-                    // Procesar el lote actual en paralelo
-                    await Promise.all(batch.map(async (file) => {
-                        try {
-                            const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
-                                headers: {
-                                    'Authorization': appState.authData.authorizationToken
-                                }
-                            });
-                            
-                            const filesData = await listResponse.json();
-                            if (!filesData.files || filesData.files.length === 0) return;
-                            
-                            const fileInfo = filesData.files[0];
-                            const deleteResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
-                                method: 'POST',
-                                headers: {
-                                    'Authorization': appState.authData.authorizationToken,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    fileId: fileInfo.fileId,
-                                    fileName: fileInfo.fileName
-                                })
-                            });
-                            
-                            if (deleteResponse.ok) deletedCount++;
-                        } catch (error) {
-                            console.error(`Error eliminando ${file.fileName}:`, error);
+                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a); // Orden descendente para evitar problemas de índices
+
+                for (const index of selectedIndices) {
+                    const file = appState.currentFiles[index];
+
+                    const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
+                        headers: {
+                            'Authorization': authData.authorizationToken
                         }
-                    }));
+                    });
+                    const filesData = await listResponse.json();
+
+                    if (!filesData.files || filesData.files.length === 0) {
+                        continue;
+                    }
+
+                    const fileInfo = filesData.files[0];
+
+                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': authData.authorizationToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            fileId: fileInfo.fileId,
+                            fileName: fileInfo.fileName
+                        })
+                    });
+
+                    if (deleteResponse.ok) {
+                        deletedCount++;
+                    }
                 }
-                
+
                 showMessage(`¡${deletedCount} archivo(s) eliminado(s) exitosamente!`, 'success');
                 loadGallery();
+
             } catch (error) {
-                showMessage('Error eliminando archivos seleccionados: ' + error.message, 'error');
+                showMessage('Error eliminando archivos seleccionados', 'error');
             }
         }
 
