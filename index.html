@@ -750,8 +750,10 @@
   <div class="password-modal" id="passwordModal">
     <div class="password-container">
       <h3 id="modalTitle">Acceso Administrativo</h3>
-      <input type="password" class="password-input" id="adminPassword" placeholder="Ingrese la contraseña">
-      <button class="password-btn" id="submitPassword">Acceder</button>
+      <form id="passwordForm" onsubmit="return false;">
+        <input type="password" class="password-input" id="adminPassword" placeholder="Ingrese la contraseña">
+        <button type="submit" class="password-btn" id="submitPassword">Acceder</button>
+      </form>
       <button class="password-btn" id="cancelPassword">Cancelar</button>
       <p class="password-error" id="passwordError">Contraseña incorrecta</p>
       <p class="access-granted" id="accessGranted">Acceso concedido ✓</p>
@@ -857,7 +859,7 @@
 
     // 3. Configuración de Supabase
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
     // 4. Claves para el sistema de caché mejorado
     const CACHE_KEYS = {
@@ -907,6 +909,11 @@
       citasContainer.innerHTML = '<p class="loading-citas">Cargando citas...</p>';
       
       try {
+        // Verificar si Supabase está inicializado correctamente
+        if (!window.supabase) {
+          throw new Error('Conexión con Supabase no disponible');
+        }
+        
         const { data: citas, error } = await window.supabase
           .from('citas')
           .select('nombre, hora, servicio, barbero') // Solo campos necesarios
@@ -990,6 +997,11 @@
       }
       
       try {
+        // Verificar si Supabase está inicializado correctamente
+        if (!window.supabase) {
+          throw new Error('Conexión con Supabase no disponible');
+        }
+        
         const { data, error } = await supabase
           .from('app_settings')
           .select('maintenance_mode')
@@ -1084,7 +1096,7 @@
       document.getElementById('adminGear')?.addEventListener('click', handleAdminGearClick);
       
       // Modal de contraseña
-      document.getElementById('submitPassword')?.addEventListener('click', handlePasswordSubmit);
+      document.getElementById('passwordForm')?.addEventListener('submit', handlePasswordSubmit);
       document.getElementById('cancelPassword')?.addEventListener('click', closePasswordModal);
       document.getElementById('toggleMaintenance')?.addEventListener('click', toggleMaintenanceMode);
       
@@ -1144,7 +1156,8 @@
       passwordInput.focus();
     }
 
-    function handlePasswordSubmit() {
+    function handlePasswordSubmit(e) {
+      e.preventDefault();
       const passwordInput = document.getElementById('adminPassword');
       const passwordError = document.getElementById('passwordError');
       
@@ -1169,6 +1182,11 @@
       const newMode = !isMaintenance;
       
       try {
+        // Verificar si Supabase está inicializado correctamente
+        if (!window.supabase) {
+          throw new Error('Conexión con Supabase no disponible');
+        }
+        
         // Actualizar en Supabase
         const { error } = await supabase
           .from('app_settings')
@@ -1212,17 +1230,25 @@
       
       // 2. Inicializar Supabase
       const supabaseReady = await initializeSupabase();
-      if (!supabaseReady) return;
       
-      // 3. Cargar datos iniciales
-      await cargarCitasDelDia();
-      await checkMaintenanceFromSupabase();
-      
-      // 4. Configurar actualizaciones periódicas
-      setInterval(() => {
-        cargarCitasDelDia();
-        checkMaintenanceFromSupabase();
-      }, 300000); // 5 minutos
+      // 3. Cargar datos iniciales (solo si Supabase está disponible)
+      if (supabaseReady) {
+        await cargarCitasDelDia();
+        await checkMaintenanceFromSupabase();
+        
+        // 4. Configurar actualizaciones periódicas
+        setInterval(() => {
+          cargarCitasDelDia();
+          checkMaintenanceFromSupabase();
+        }, 300000); // 5 minutos
+      } else {
+        // Mostrar datos de ejemplo si no hay conexión a Supabase
+        mostrarCitas([
+          { hora: "09:00", nombre: "Ejemplo Cliente", servicio: "Corte Premium" },
+          { hora: "10:30", nombre: "Otro Cliente", servicio: "Afeitado Clásico" }
+        ]);
+        mostrarErrorCitas("Modo demostración - Sin conexión a base de datos");
+      }
     });
 
     // 17. Verificación periódica de mantenimiento (adicional al intervalo)
