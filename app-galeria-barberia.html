@@ -8,9 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #D4AF37; /* Dorado en lugar del azul */
-            --secondary: #B8860B; /* Dorado oscuro */
-            --accent: #FFD700; /* Dorado brillante */
+            --primary: #D4AF37;
+            --secondary: #B8860B;
+            --accent: #FFD700;
             --dark: #1a202c;
             --light: #f7fafc;
             --success: #48bb78;
@@ -1283,11 +1283,6 @@
             }
         });
 
-        // Función proxy para evitar CORS
-        function getProxyUrl(url) {
-            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-        }
-
         // Crear partículas de fondo
         function createParticles() {
             for (let i = 0; i < 50; i++) {
@@ -1334,19 +1329,17 @@
                 if (!item.querySelector('.admin-controls')) {
                     const file = appState.currentFiles[index];
                     if (file) {
-                        getSignedUrl(file.fileName).then(signedUrl => {
-                            const adminControls = document.createElement('div');
-                            adminControls.className = 'admin-controls';
-                            adminControls.innerHTML = `
-                                <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}', '${signedUrl}')">
-                                    <i class="fas fa-download"></i>
-                                </button>
-                                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            `;
-                            item.appendChild(adminControls);
-                        });
+                        const adminControls = document.createElement('div');
+                        adminControls.className = 'admin-controls';
+                        adminControls.innerHTML = `
+                            <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}')">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}', '${file.fileId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                        item.appendChild(adminControls);
                     }
                 }
             });
@@ -1540,7 +1533,7 @@
         // Evento para subir archivos
         elements.fileInput.addEventListener('change', handleFileUpload);
 
-        // Subir archivos a Backblaze
+        // Subir archivos a Backblaze B2
         async function handleFileUpload(event) {
             const files = event.target.files;
             if (!files.length) return;
@@ -1558,7 +1551,7 @@
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
                     if (!appState.authData) {
-                        const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                        const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
                             headers: {
                                 'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                             }
@@ -1566,14 +1559,14 @@
                         appState.authData = await authResponse.json();
                     }
 
-                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
+                    const uploadUrlResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`, {
                         headers: {
                             'Authorization': appState.authData.authorizationToken
                         }
                     });
                     const uploadData = await uploadUrlResponse.json();
 
-                    const uploadResponse = await fetch(getProxyUrl(uploadData.uploadUrl), {
+                    const uploadResponse = await fetch(uploadData.uploadUrl, {
                         method: 'POST',
                         headers: {
                             'Authorization': uploadData.authorizationToken,
@@ -1593,6 +1586,7 @@
 
                 } catch (error) {
                     console.error('Error subiendo archivo:', error);
+                    showMessage('Error subiendo archivo: ' + error.message, 'error');
                 }
             }
 
@@ -1601,7 +1595,7 @@
             loadGallery();
         }
 
-        // Cargar galería desde Backblaze
+        // Cargar galería desde Backblaze B2
         async function loadGallery() {
             try {
                 elements.gallery.innerHTML = `
@@ -1611,14 +1605,14 @@
                     </div>
                 `;
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
                 });
                 appState.authData = await authResponse.json();
 
-                const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
+                const listResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`, {
                     headers: {
                         'Authorization': appState.authData.authorizationToken
                     }
@@ -1664,6 +1658,7 @@
                         <p>Intenta recargar la página</p>
                     </div>
                 `;
+                showMessage('Error cargando galería: ' + error.message, 'error');
             }
         }
 
@@ -1683,11 +1678,10 @@
             }
         }
 
-        // Agregar elemento a la galería - CÓDIGO CORREGIDO
+        // Agregar elemento a la galería
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
-            // Asegurarse de que el tamaño del archivo sea válido
             const fileSize = file.size && !isNaN(file.size) ? formatFileSize(file.size) : 'Tamaño desconocido';
             const index = appState.currentFiles.indexOf(file);
 
@@ -1728,99 +1722,70 @@
         // Obtener URL firmada
         async function getSignedUrl(fileName) {
             try {
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
-
-                const signedUrlResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucketId=${authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=3600`), {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': authData.authorizationToken,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        bucketId: authData.allowed.bucketId,
-                        fileNamePrefix: fileName,
-                        validDurationInSeconds: 3600
-                    })
-                });
-
-                const signedUrlData = await signedUrlResponse.json();
-                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
-
+                // Para archivos públicos en Backblaze B2, podemos usar la URL directa
+                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
             } catch (error) {
+                console.error('Error obteniendo URL firmada:', error);
                 return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
             }
         }
 
         // Descargar archivo
-        function downloadFile(fileName, fileUrl) {
+        function downloadFile(fileName) {
             // Crear un enlace temporal para la descarga
             const link = document.createElement('a');
-            link.href = fileUrl;
+            link.href = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
             link.download = fileName.split('/').pop();
             link.target = '_blank';
-
+            
             // Añadir el enlace al DOM y hacer clic en él
             document.body.appendChild(link);
             link.click();
-
+            
             // Limpiar después de la descarga
             setTimeout(() => {
                 document.body.removeChild(link);
-                window.URL.revokeObjectURL(fileUrl);
             }, 100);
         }
 
         // Eliminar archivo
-        async function deleteFile(fileName) {
+        async function deleteFile(fileName, fileId) {
             if (!confirm('¿Eliminar este archivo permanentemente?')) return;
 
             try {
                 showMessage('Eliminando archivo...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
-
-                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
-                    headers: {
-                        'Authorization': authData.authorizationToken
-                    }
-                });
-                const filesData = await listResponse.json();
-
-                if (!filesData.files || filesData.files.length === 0) {
-                    throw new Error('Archivo no encontrado');
+                if (!appState.authData) {
+                    const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    appState.authData = await authResponse.json();
                 }
 
-                const fileInfo = filesData.files[0];
-
-                const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                const deleteResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': authData.authorizationToken,
+                        'Authorization': appState.authData.authorizationToken,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fileId: fileInfo.fileId,
-                        fileName: fileInfo.fileName
+                        fileId: fileId,
+                        fileName: fileName
                     })
                 });
 
                 if (deleteResponse.ok) {
                     showMessage('Archivo eliminado exitosamente', 'success');
                     loadGallery();
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
                 }
 
             } catch (error) {
-                showMessage('Error eliminando archivo', 'error');
+                console.error('Error eliminando archivo:', error);
+                showMessage('Error eliminando archivo: ' + error.message, 'error');
             }
         }
 
@@ -1894,41 +1859,30 @@
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
+                if (!appState.authData) {
+                    const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    appState.authData = await authResponse.json();
+                }
 
                 let deletedCount = 0;
-                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a); // Orden descendente para evitar problemas de índices
+                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a);
 
                 for (const index of selectedIndices) {
                     const file = appState.currentFiles[index];
 
-                    const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
-                        headers: {
-                            'Authorization': authData.authorizationToken
-                        }
-                    });
-                    const filesData = await listResponse.json();
-
-                    if (!filesData.files || filesData.files.length === 0) {
-                        continue;
-                    }
-
-                    const fileInfo = filesData.files[0];
-
-                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                    const deleteResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': authData.authorizationToken,
+                            'Authorization': appState.authData.authorizationToken,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            fileId: fileInfo.fileId,
-                            fileName: fileInfo.fileName
+                            fileId: file.fileId,
+                            fileName: file.fileName
                         })
                     });
 
@@ -1941,7 +1895,8 @@
                 loadGallery();
 
             } catch (error) {
-                showMessage('Error eliminando archivos seleccionados', 'error');
+                console.error('Error eliminando archivos seleccionados:', error);
+                showMessage('Error eliminando archivos seleccionados: ' + error.message, 'error');
             }
         }
 
