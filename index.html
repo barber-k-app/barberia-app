@@ -180,7 +180,7 @@
       margin: 2rem 0;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 4px; /* Reducido de 8px a 4px para acercar el icono */
       color: var(--light-gold);
       text-decoration: none;
       font-weight: 500;
@@ -578,15 +578,20 @@
         padding: 6px 12px;
       }
       
+      /* MODIFICACIÓN: Botones en horizontal en móvil */
       .buttons {
-        flex-direction: column;
+        flex-direction: row; /* Cambiado de column a row */
         gap: 1rem;
         margin: 2rem 0;
+        justify-content: center;
+        flex-wrap: wrap;
       }
       
       .btn {
-        min-width: 250px;
+        min-width: 200px; /* Reducido de 250px para mejor ajuste */
         padding: 0.9rem 1.5rem;
+        flex: 1; /* Para que se expandan proporcionalmente */
+        max-width: 250px; /* Límite máximo */
       }
       
       .rating-section {
@@ -664,7 +669,7 @@
       }
       
       .btn {
-        min-width: 220px;
+        min-width: 160px; /* Ajustado para pantallas más pequeñas */
         font-size: 0.9rem;
       }
       
@@ -687,7 +692,7 @@
       }
       
       .btn {
-        min-width: 200px;
+        min-width: 140px; /* Ajustado para pantallas muy pequeñas */
         padding: 0.8rem 1.2rem;
       }
       
