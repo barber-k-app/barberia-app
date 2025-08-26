@@ -1014,6 +1014,36 @@
                 bottom: max(15px, env(safe-area-inset-bottom));
             }
         }
+
+        /* Paginación */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            background: rgba(212, 175, 55, 0.3);
+            border: 1px solid var(--primary);
+            color: #FFD700;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover, .pagination-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -1135,6 +1165,9 @@
                 <p>Cargando galería...</p>
             </div>
         </div>
+
+        <!-- Paginación -->
+        <div class="pagination" id="pagination" style="display: none;"></div>
     </div>
 
     <!-- Modal para imagen completa MEJORADO -->
@@ -1183,7 +1216,49 @@
             adminPassword: 'barber2024',
             maxSize: 10 * 1024 * 1024 * 1024, // 10 GB en bytes
             compressionQuality: 0.8,
-            currentView: 'grid'
+            currentView: 'grid',
+            itemsPerPage: 20 // Elementos por página
+        };
+
+        // Caché para URLs firmadas (24 horas)
+        const URL_CACHE = {
+            urls: {},
+            expiration: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+            get: function(key) {
+                const item = this.urls[key];
+                if (item && Date.now() < item.expiry) {
+                    return item.value;
+                }
+                return null;
+            },
+            set: function(key, value) {
+                this.urls[key] = {
+                    value: value,
+                    expiry: Date.now() + this.expiration
+                };
+            }
+        };
+
+        // Caché para lista de archivos (5 minutos)
+        let FILES_CACHE = {
+            data: null,
+            expiration: 5 * 60 * 1000, // 5 minutos en milisegundos
+            timestamp: 0
+        };
+
+        // Limitador de operaciones (1 segundo entre operaciones)
+        const OPERATION_LIMITER = {
+            lastOperation: 0,
+            minInterval: 1000,
+            check: function() {
+                const now = Date.now();
+                if (now - this.lastOperation < this.minInterval) {
+                    showMessage('Por favor, espera un momento entre operaciones', 'warning');
+                    return false;
+                }
+                this.lastOperation = now;
+                return true;
+            }
         };
 
         // Elementos DOM
@@ -1212,7 +1287,8 @@
             listViewBtn: document.getElementById('listViewBtn'),
             smallViewBtn: document.getElementById('smallViewBtn'),
             multiSelectControls: document.getElementById('multiSelectControls'),
-            selectedCount: document.getElementById('selectedCount')
+            selectedCount: document.getElementById('selectedCount'),
+            pagination: document.getElementById('pagination')
         };
 
         // Estado de la aplicación
@@ -1224,7 +1300,8 @@
             modalZoom: 1,
             totalBytes: 0,
             selectedFiles: new Set(),
-            isSelectAll: false
+            isSelectAll: false,
+            currentPage: 1
         };
 
         // Inicializar
@@ -1497,6 +1574,11 @@
 
         // Subir archivos a Backblaze
         async function handleFileUpload(event) {
+            if (!OPERATION_LIMITER.check()) {
+                elements.fileInput.value = '';
+                return;
+            }
+            
             const files = event.target.files;
             if (!files.length) return;
 
@@ -1553,11 +1635,13 @@
 
             elements.fileInput.value = '';
             showMessage(`¡${uploadedCount} archivos subidos exitosamente!`, 'success');
-            loadGallery();
+            // Forzar recarga de la galería
+            FILES_CACHE.data = null;
+            loadGallery(true);
         }
 
-        // Cargar galería desde Backblaze
-        async function loadGallery() {
+        // Cargar galería desde Backblaze (con cache)
+        async function loadGallery(forceRefresh = false) {
             try {
                 elements.gallery.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #FFD700;">
@@ -1565,6 +1649,13 @@
                         <p>Cargando galería...</p>
                     </div>
                 `;
+
+                // Verificar si tenemos datos en cache y no es forzado
+                const now = Date.now();
+                if (!forceRefresh && FILES_CACHE.data && (now - FILES_CACHE.timestamp) < FILES_CACHE.expiration) {
+                    renderGallery(FILES_CACHE.data);
+                    return;
+                }
 
                 const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
@@ -1580,35 +1671,11 @@
                 });
                 const filesData = await listResponse.json();
 
-                elements.gallery.innerHTML = '';
-                appState.currentFiles = filesData.files || [];
-                appState.totalBytes = 0;
-                appState.selectedFiles.clear();
-                updateSelectedCount();
-
-                if (appState.currentFiles.length > 0) {
-                    for (const file of appState.currentFiles) {
-                        // Verificar que el archivo tenga tamaño válido
-                        if (file.size && !isNaN(file.size)) {
-                            appState.totalBytes += file.size;
-                        }
-                        await addToGallery(file);
-                    }
-                    updateStats();
-
-                    // Si estamos en modo admin, actualizar controles
-                    if (appState.isAdmin) {
-                        updateAdminControls();
-                    }
-                } else {
-                    elements.gallery.innerHTML = `
-                        <div style="text-align: center; padding: 60px; color: #FFD700;">
-                            <i class="fas fa-images" style="font-size: 4em; margin-bottom: 20px;"></i>
-                            <h3>No hay archivos en la galería</h3>
-                            <p>Sube la primera imagen para comenzar</p>
-                        </div>
-                    `;
-                }
+                // Guardar en cache
+                FILES_CACHE.data = filesData.files || [];
+                FILES_CACHE.timestamp = now;
+                
+                renderGallery(FILES_CACHE.data);
 
             } catch (error) {
                 console.error('Error cargando galería:', error);
@@ -1620,6 +1687,96 @@
                     </div>
                 `;
             }
+        }
+
+        // Renderizar galería con paginación
+        function renderGallery(files) {
+            elements.gallery.innerHTML = '';
+            appState.currentFiles = files;
+            appState.totalBytes = 0;
+            appState.selectedFiles.clear();
+            updateSelectedCount();
+
+            // Calcular paginación
+            const totalPages = Math.ceil(files.length / APP_CONFIG.itemsPerPage);
+            const startIndex = (appState.currentPage - 1) * APP_CONFIG.itemsPerPage;
+            const endIndex = Math.min(startIndex + APP_CONFIG.itemsPerPage, files.length);
+            const filesToShow = files.slice(startIndex, endIndex);
+
+            if (filesToShow.length > 0) {
+                filesToShow.forEach(file => {
+                    // Verificar que el archivo tenga tamaño válido
+                    if (file.size && !isNaN(file.size)) {
+                        appState.totalBytes += file.size;
+                    }
+                    addToGallery(file);
+                });
+                updateStats();
+                renderPagination(totalPages);
+
+                // Si estamos en modo admin, actualizar controles
+                if (appState.isAdmin) {
+                    updateAdminControls();
+                }
+                
+                // Iniciar observador para lazy loading
+                setTimeout(initIntersectionObserver, 100);
+            } else {
+                elements.gallery.innerHTML = `
+                    <div style="text-align: center; padding: 60px; color: #FFD700;">
+                        <i class="fas fa-images" style="font-size: 4em; margin-bottom: 20px;"></i>
+                        <h3>No hay archivos en la galería</h3>
+                        <p>Sube la primera imagen para comenzar</p>
+                    </div>
+                `;
+                elements.pagination.style.display = 'none';
+            }
+        }
+
+        // Renderizar controles de paginación
+        function renderPagination(totalPages) {
+            if (totalPages <= 1) {
+                elements.pagination.style.display = 'none';
+                return;
+            }
+            
+            elements.pagination.style.display = 'flex';
+            elements.pagination.innerHTML = '';
+            
+            // Botón anterior
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'pagination-btn';
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i> Anterior';
+            prevBtn.disabled = appState.currentPage === 1;
+            prevBtn.onclick = () => changePage(appState.currentPage - 1);
+            elements.pagination.appendChild(prevBtn);
+            
+            // Páginas
+            const startPage = Math.max(1, appState.currentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `pagination-btn ${i === appState.currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => changePage(i);
+                elements.pagination.appendChild(pageBtn);
+            }
+            
+            // Botón siguiente
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'pagination-btn';
+            nextBtn.innerHTML = 'Siguiente <i class="fas fa-chevron-right"></i>';
+            nextBtn.disabled = appState.currentPage === totalPages;
+            nextBtn.onclick = () => changePage(appState.currentPage + 1);
+            elements.pagination.appendChild(nextBtn);
+        }
+
+        // Cambiar página
+        function changePage(page) {
+            appState.currentPage = page;
+            renderGallery(appState.currentFiles);
+            window.scrollTo(0, 0);
         }
 
         // Actualizar estadísticas
@@ -1638,11 +1795,10 @@
             }
         }
 
-        // Agregar elemento a la galería - CÓDIGO CORREGIDO
+        // Agregar elemento a la galería
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
-            // Asegurarse de que el tamaño del archivo sea válido
             const fileSize = file.size && !isNaN(file.size) ? formatFileSize(file.size) : 'Tamaño desconocido';
             const index = appState.currentFiles.indexOf(file);
 
@@ -1664,9 +1820,16 @@
                 openModal(index);
             };
 
+            // Usar miniatura para imágenes (añadir parámetro de miniatura si es posible)
+            let displayUrl = signedUrl;
+            if (fileType.startsWith('image/')) {
+                // Si Backblaze permite parámetros de transformación, úsalos aquí
+                // displayUrl = signedUrl + '&width=300'; // Ejemplo hipotético
+            }
+
             galleryItem.innerHTML = `
                 ${fileType.startsWith('image/') ? 
-                    `<img src="${signedUrl}" alt="${file.fileName}" loading="lazy">` : 
+                    `<img src="${displayUrl}" alt="${file.fileName}" loading="lazy" data-full="${signedUrl}">` : 
                     `<video><source src="${signedUrl}" type="${fileType}"></video>`
                 }
                 <div class="item-overlay">
@@ -1680,34 +1843,48 @@
             elements.gallery.appendChild(galleryItem);
         }
 
-        // Obtener URL firmada
+        // Obtener URL firmada (con cache)
         async function getSignedUrl(fileName) {
+            // Verificar si tenemos la URL en cache
+            const cachedUrl = URL_CACHE.get(fileName);
+            if (cachedUrl) {
+                return cachedUrl;
+            }
+            
             try {
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
+                if (!appState.authData) {
+                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    appState.authData = await authResponse.json();
+                }
 
-                const signedUrlResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucketId=${authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=3600`), {
+                const signedUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucketId=${appState.authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=86400`), {
                     method: 'POST',
                     headers: {
-                        'Authorization': authData.authorizationToken,
+                        'Authorization': appState.authData.authorizationToken,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        bucketId: authData.allowed.bucketId,
+                        bucketId: appState.authData.allowed.bucketId,
                         fileNamePrefix: fileName,
-                        validDurationInSeconds: 3600
+                        validDurationInSeconds: 86400 // 24 horas
                     })
                 });
 
                 const signedUrlData = await signedUrlResponse.json();
-                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
+                const signedUrl = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
+                
+                // Guardar en cache antes de retornar
+                URL_CACHE.set(fileName, signedUrl);
+                return signedUrl;
 
             } catch (error) {
-                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
+                const fallbackUrl = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
+                URL_CACHE.set(fileName, fallbackUrl);
+                return fallbackUrl;
             }
         }
 
@@ -1732,6 +1909,7 @@
 
         // Eliminar archivo
         async function deleteFile(fileName) {
+            if (!OPERATION_LIMITER.check()) return;
             if (!confirm('¿Eliminar este archivo permanentemente?')) return;
 
             try {
@@ -1771,7 +1949,10 @@
 
                 if (deleteResponse.ok) {
                     showMessage('Archivo eliminado exitosamente', 'success');
-                    loadGallery();
+                    // Invalidar cache y recargar
+                    FILES_CACHE.data = null;
+                    URL_CACHE.urls = {};
+                    loadGallery(true);
                 }
 
             } catch (error) {
@@ -1839,6 +2020,7 @@
 
         // Eliminar archivos seleccionados
         async function deleteSelectedFiles() {
+            if (!OPERATION_LIMITER.check()) return;
             if (appState.selectedFiles.size === 0) {
                 showMessage('No hay archivos seleccionados', 'warning');
                 return;
@@ -1893,11 +2075,44 @@
                 }
 
                 showMessage(`¡${deletedCount} archivo(s) eliminado(s) exitosamente!`, 'success');
-                loadGallery();
+                // Invalidar cache y recargar
+                FILES_CACHE.data = null;
+                URL_CACHE.urls = {};
+                loadGallery(true);
 
             } catch (error) {
                 showMessage('Error eliminando archivos seleccionados', 'error');
             }
+        }
+
+        // Inicializar Intersection Observer para lazy loading
+        function initIntersectionObserver() {
+            if (!('IntersectionObserver' in window)) return;
+            
+            const options = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        // Cargar la imagen de alta resolución si está disponible
+                        if (img.dataset.full) {
+                            img.src = img.dataset.full;
+                            img.removeAttribute('data-full');
+                        }
+                        observer.unobserve(img);
+                    }
+                });
+            }, options);
+            
+            // Observar todas las imágenes después de renderizar
+            document.querySelectorAll('img[data-full]').forEach(img => {
+                observer.observe(img);
+            });
         }
 
         // Event listener para tecla Escape
