@@ -107,7 +107,6 @@
             font-size: 16px;
             margin-bottom: 20px;
             transition: border-color 0.3s ease;
-            autocomplete: "new-password";
         }
 
         .login-input:focus {
@@ -485,7 +484,7 @@
             border-radius: 10px;
             font-weight: 500;
         }
-        
+
         .success { background: #d4edda; color: #155724; }
         .error { background: #f8d7da; color: #721c24; }
         .warning { background: #fff3cd; color: #856404; }
@@ -538,21 +537,21 @@
                 margin: 60px 10px 10px;
                 padding: 20px;
             }
-            
+
             .header h1 {
                 font-size: 2.5em;
             }
-            
+
             .gallery.grid-view {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 15px;
             }
-            
+
             .gallery.small-view {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 10px;
             }
-            
+
             .admin-btn, .view-btn {
                 padding: 10px 15px;
                 font-size: 14px;
@@ -710,7 +709,7 @@
         }
 
         .gallery.list-view .gallery-item img,
-        .gallery.list-view .gallery-item video {
+        .gallery.list.view .gallery-item video {
             width: 150px;
             height: 100px;
             object-fit: cover;
@@ -849,7 +848,8 @@
         <div class="login-content">
             <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
             <form class="login-form" onsubmit="login(); return false;">
-                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="new-password">
+                <input type="text" name="username" autocomplete="username" style="display: none;">
+                <input type="password" class="login-input" id="adminPassword" placeholder="Contraseña de administrador" autocomplete="current-password">
                 <button type="submit" class="login-btn">Acceder</button>
             </form>
         </div>
@@ -918,6 +918,10 @@
             <button class="upload-btn" onclick="document.getElementById('file-input').click()">
                 <i class="fas fa-plus"></i> Seleccionar Archivos
             </button>
+            <!-- Botón grande de borrado múltiple añadido al lado -->
+            <button class="upload-btn" onclick="deleteSelectedFiles()" style="margin-left: 15px; background: linear-gradient(135deg, var(--danger), #c53030);">
+                <i class="fas fa-trash-alt"></i> Eliminar Seleccionados
+            </button>
 
             <!-- Opciones de compresión -->
             <div class="compression-options">
@@ -950,7 +954,7 @@
     <!-- Modal para imagen completa MEJORADO -->
     <div class="modal" id="imageModal">
         <button class="modal-close" onclick="closeModal()">&times;</button>
-        
+
         <div class="modal-nav">
             <button class="nav-btn" onclick="navigateModal(-1)">
                 <i class="fas fa-chevron-left"></i>
@@ -1037,20 +1041,45 @@
             isSelectAll: false
         };
 
+        // Cache de autorización
+        let authCache = {
+            data: null,
+            timestamp: 0,
+            ttl: 3600000 // 1 hora en milisegundos
+        };
+
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             loadGallery();
-            
+
             // Verificar si ya está en modo admin
             if (appState.isAdmin) {
                 enableAdminMode();
             }
         });
 
-        // Función proxy para evitar CORS
-        function getProxyUrl(url) {
-            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        // Función proxy mejorada para evitar CORS
+        async function getProxyUrl(url) {
+            // Intenta usar un proxy alternativo o tu propio backend
+            const proxyUrls = [
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+                `https://cors-anywhere.herokuapp.com/${url}`,
+                `https://thingproxy.freeboard.io/fetch/${url}`
+            ];
+            
+            // Prueba con el primer proxy disponible
+            for (const proxyUrl of proxyUrls) {
+                try {
+                    const test = await fetch(proxyUrl, { method: 'HEAD' });
+                    if (test.ok) return proxyUrl;
+                } catch (e) {
+                    console.log(`Proxy ${proxyUrl} falló, intentando con el siguiente`);
+                }
+            }
+            
+            // Si todos los proxies fallan, devuelve la URL directa (puede fallar por CORS)
+            return url;
         }
 
         // Crear partículas de fondo
@@ -1074,7 +1103,7 @@
             elements.mainContainer.classList.add('admin-mode');
             elements.logoutBtn.style.display = 'flex';
             elements.viewMode.style.display = 'block';
-            
+
             // Mostrar controles de administrador en elementos existentes
             updateAdminControls();
             updateStats();
@@ -1083,22 +1112,20 @@
         // Actualizar controles de administrador en todos los elementos
         function updateAdminControls() {
             const galleryItems = document.querySelectorAll('.gallery-item');
-            galleryItems.forEach(item => {
+            galleryItems.forEach((item, index) => {
                 // Añadir checkbox de selección
                 if (!item.querySelector('.select-checkbox')) {
                     const checkbox = document.createElement('div');
                     checkbox.className = 'select-checkbox';
                     checkbox.onclick = (e) => {
                         e.stopPropagation();
-                        const index = Array.from(item.parentElement.children).indexOf(item);
                         toggleSelectFile(index, item);
                     };
                     item.appendChild(checkbox);
                 }
-                
+
                 // Añadir controles de administrador si no existen
                 if (!item.querySelector('.admin-controls')) {
-                    const index = Array.from(item.parentElement.children).indexOf(item);
                     const file = appState.currentFiles[index];
                     if (file) {
                         getSignedUrl(file.fileName).then(signedUrl => {
@@ -1123,16 +1150,16 @@
         function changeView(viewType) {
             APP_CONFIG.currentView = viewType;
             elements.gallery.className = 'gallery ' + viewType + '-view';
-            
+
             // Actualizar botones activos
             elements.gridViewBtn.classList.remove('active');
             elements.listViewBtn.classList.remove('active');
             elements.smallViewBtn.classList.remove('active');
-            
+
             if (viewType === 'grid') elements.gridViewBtn.classList.add('active');
             if (viewType === 'list') elements.listViewBtn.classList.add('active');
             if (viewType === 'small') elements.smallViewBtn.classList.add('active');
-            
+
             // Actualizar controles de admin después de cambiar vista
             if (appState.isAdmin) {
                 setTimeout(updateAdminControls, 100);
@@ -1185,12 +1212,12 @@
             elements.viewMode.style.display = 'none';
             appState.selectedFiles.clear();
             updateSelectedCount();
-            
+
             // Ocultar controles de administrador
             document.querySelectorAll('.select-checkbox, .admin-controls').forEach(el => {
                 el.style.display = 'none';
             });
-            
+
             showMessage('Sesión cerrada', 'info');
         }
 
@@ -1271,11 +1298,11 @@
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        
+
                         let width = img.width;
                         let height = img.height;
                         const maxDimension = 1920;
-                        
+
                         if (width > maxDimension || height > maxDimension) {
                             if (width > height) {
                                 height = (height * maxDimension) / width;
@@ -1285,11 +1312,11 @@
                                 height = maxDimension;
                             }
                         }
-                        
+
                         canvas.width = width;
                         canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
-                        
+
                         canvas.toBlob((blob) => {
                             const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
                                 type: 'image/webp',
@@ -1378,12 +1405,19 @@
                     </div>
                 `;
 
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                appState.authData = await authResponse.json();
+                // Usar datos de autorización en caché si están disponibles
+                const now = Date.now();
+                if (!authCache.data || now - authCache.timestamp > authCache.ttl) {
+                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                        }
+                    });
+                    authCache.data = await authResponse.json();
+                    authCache.timestamp = now;
+                }
+                
+                appState.authData = authCache.data;
 
                 const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
                     headers: {
@@ -1407,7 +1441,7 @@
                         await addToGallery(file);
                     }
                     updateStats();
-                    
+
                     // Si estamos en modo admin, actualizar controles
                     if (appState.isAdmin) {
                         updateAdminControls();
@@ -1438,7 +1472,7 @@
         function updateStats() {
             const usedGB = (appState.totalBytes / 1024 / 1024 / 1024).toFixed(2);
             const freeGB = ((APP_CONFIG.maxSize - appState.totalBytes) / 1024 / 1024 / 1024).toFixed(2);
-            
+
             elements.totalFiles.textContent = appState.currentFiles.length;
             elements.totalSize.textContent = isNaN(usedGB) ? '0.00 GB' : usedGB + ' GB';
             elements.freeSpace.textContent = isNaN(freeGB) ? '10.00 GB' : freeGB + ' GB';
@@ -1450,7 +1484,7 @@
             }
         }
 
-        // Agregar elemento a la galería - CÓDIGO CORREGIDO
+        // Agregar elemento a la galería
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
@@ -1461,7 +1495,7 @@
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
             galleryItem.style.animationDelay = (Math.random() * 0.5) + 's';
-            
+
             // Añadir evento de clic directamente al elemento de la galería
             galleryItem.onclick = (e) => {
                 // Si estamos en modo admin y se hace clic en el checkbox, no abrir el modal
@@ -1530,11 +1564,11 @@
             link.href = fileUrl;
             link.download = fileName.split('/').pop();
             link.target = '_blank';
-            
+
             // Añadir el enlace al DOM y hacer clic en él
             document.body.appendChild(link);
             link.click();
-            
+
             // Limpiar después de la descarga
             setTimeout(() => {
                 document.body.removeChild(link);
@@ -1595,7 +1629,7 @@
         function getFileType(fileName) {
             const ext = fileName.toLowerCase().split('.').pop();
             const types = {
-                'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 
+                'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
                 'gif': 'image/gif', 'webp': 'image/webp', 'mp4': 'video/mp4',
                 'mov': 'video/quicktime', 'avi': 'video/x-msvideo'
             };
@@ -1631,7 +1665,7 @@
         // Seleccionar/Deseleccionar todos
         function toggleSelectAll() {
             const galleryItems = document.querySelectorAll('.gallery-item');
-            
+
             if (appState.isSelectAll) {
                 // Deseleccionar todos
                 appState.selectedFiles.clear();
@@ -1645,11 +1679,11 @@
                 });
                 appState.isSelectAll = true;
             }
-            
+
             updateSelectedCount();
         }
 
-        // Eliminar archivos seleccionados
+        // Eliminar archivos seleccionados (OPTIMIZADA)
         async function deleteSelectedFiles() {
             if (appState.selectedFiles.size === 0) {
                 showMessage('No hay archivos seleccionados', 'warning');
@@ -1660,55 +1694,62 @@
 
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
-
-                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
-                    headers: {
-                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                    }
-                });
-                const authData = await authResponse.json();
-
-                let deletedCount = 0;
-                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a); // Orden descendente para evitar problemas de índices
-
-                for (const index of selectedIndices) {
-                    const file = appState.currentFiles[index];
-                    
-                    const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
+                
+                // Obtener autorización una sola vez
+                if (!appState.authData) {
+                    const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                         headers: {
-                            'Authorization': authData.authorizationToken
+                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                         }
                     });
-                    const filesData = await listResponse.json();
-
-                    if (!filesData.files || filesData.files.length === 0) {
-                        continue;
-                    }
-
-                    const fileInfo = filesData.files[0];
-
-                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': authData.authorizationToken,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            fileId: fileInfo.fileId,
-                            fileName: fileInfo.fileName
-                        })
-                    });
-
-                    if (deleteResponse.ok) {
-                        deletedCount++;
-                    }
+                    appState.authData = await authResponse.json();
                 }
 
+                let deletedCount = 0;
+                const selectedIndices = Array.from(appState.selectedFiles);
+                const filesToDelete = selectedIndices.map(index => appState.currentFiles[index]);
+                
+                // Procesar en lotes para no saturar
+                const batchSize = 3;
+                for (let i = 0; i < filesToDelete.length; i += batchSize) {
+                    const batch = filesToDelete.slice(i, i + batchSize);
+                    
+                    // Procesar el lote actual en paralelo
+                    await Promise.all(batch.map(async (file) => {
+                        try {
+                            const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
+                                headers: {
+                                    'Authorization': appState.authData.authorizationToken
+                                }
+                            });
+                            
+                            const filesData = await listResponse.json();
+                            if (!filesData.files || filesData.files.length === 0) return;
+                            
+                            const fileInfo = filesData.files[0];
+                            const deleteResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': appState.authData.authorizationToken,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    fileId: fileInfo.fileId,
+                                    fileName: fileInfo.fileName
+                                })
+                            });
+                            
+                            if (deleteResponse.ok) deletedCount++;
+                        } catch (error) {
+                            console.error(`Error eliminando ${file.fileName}:`, error);
+                        }
+                    }));
+                }
+                
                 showMessage(`¡${deletedCount} archivo(s) eliminado(s) exitosamente!`, 'success');
                 loadGallery();
-
             } catch (error) {
-                showMessage('Error eliminando archivos seleccionados', 'error');
+                showMessage('Error eliminando archivos seleccionados: ' + error.message, 'error');
             }
         }
 
@@ -1735,7 +1776,6 @@
             }
             e.preventDefault();
         });
-
     </script>
 </body>
 </html>
