@@ -498,7 +498,7 @@
     .red-social {
       display: flex;
       align-items: center;
-      text-decoration: nil;
+      text-decoration: none;
       color: white;
       transition: all 0.3s;
     }
@@ -517,31 +517,51 @@
       font-size: 0.9rem;
     }
 
+    /* Media queries para responsividad mejorada */
     @media (max-width: 768px) {
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-      
       .container {
         padding: 1rem;
       }
       
-      .contacto-contenedor {
-        grid-template-columns: 1fr;
+      .glass-panel {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
       }
       
-      .contacto-icono {
+      .titulo-efecto {
         font-size: 1.8rem;
-      }
-
-      .titulo-premium {
         flex-direction: column;
         gap: 5px;
       }
-
-      .redes-contenedor {
-        flex-direction: column;
-        gap: 15px;
+      
+      .logo-titulo {
+        height: 2em;
+        margin-right: 0;
+        margin-bottom: 5px;
+      }
+      
+      .subtitulo-lujo {
+        font-size: 0.8rem;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      
+      input, select {
+        padding: 12px 15px 12px 40px;
+        font-size: 0.95rem;
+      }
+      
+      .input-group i {
+        left: 12px;
+        font-size: 0.9rem;
+      }
+      
+      button[type="submit"] {
+        padding: 12px;
+        font-size: 0.95rem;
       }
       
       .redes-simple {
@@ -549,8 +569,168 @@
         gap: 15px;
       }
       
+      .red-social {
+        justify-content: center;
+      }
+      
+      .info-horario {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+      }
+      
+      .info-horario i {
+        font-size: 1.2rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 0.8rem;
+      }
+      
+      .glass-panel {
+        padding: 1.2rem;
+        border-radius: 12px;
+      }
+      
+      .titulo-efecto {
+        font-size: 1.5rem;
+      }
+      
       .logo-titulo {
-        height: 1.8em; /* Ajuste para móviles */
+        height: 1.8em;
+      }
+      
+      .subtitulo-lujo {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+      }
+      
+      input, select {
+        padding: 10px 12px 10px 35px;
+        font-size: 0.9rem;
+      }
+      
+      .input-group i {
+        left: 10px;
+        font-size: 0.85rem;
+      }
+      
+      button[type="submit"] {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+      
+      .red-social {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+      }
+      
+      .icono-red {
+        margin-right: 0;
+        font-size: 1.5rem;
+      }
+      
+      .texto-red {
+        font-size: 0.8rem;
+      }
+      
+      .btn-volver {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+      }
+      
+      footer p {
+        font-size: 0.8rem;
+      }
+    }
+    
+    @media (max-width: 350px) {
+      .titulo-efecto {
+        font-size: 1.3rem;
+      }
+      
+      .logo-titulo {
+        height: 1.5em;
+      }
+      
+      input, select {
+        padding: 8px 10px 8px 30px;
+        font-size: 0.85rem;
+      }
+      
+      .input-group i {
+        left: 8px;
+        font-size: 0.8rem;
+      }
+      
+      button[type="submit"] {
+        font-size: 0.85rem;
+      }
+      
+      .redes-simple {
+        gap: 10px;
+      }
+      
+      .icono-red {
+        font-size: 1.3rem;
+      }
+    }
+    
+    /* Ajustes específicos para tablets en orientación horizontal */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .container {
+        max-width: 90%;
+        padding: 1.5rem;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .titulo-efecto {
+        font-size: 1.9rem;
+      }
+    }
+    
+    /* Ajustes para mejorar la experiencia táctil en dispositivos móviles */
+    @media (hover: none) {
+      .input-group:hover {
+        transform: none;
+      }
+      
+      .input-group:hover i {
+        transform: translateY(-50%);
+        text-shadow: none;
+      }
+      
+      .contacto-item:hover {
+        transform: none;
+        animation: float 4s ease-in-out infinite;
+      }
+      
+      .contacto-item:hover .contacto-icono {
+        transform: none;
+      }
+      
+      .contacto-item:hover .whatsapp-btn {
+        transform: none;
+        background: rgba(37, 211, 102, 0.2);
+      }
+      
+      button[type="submit"]:hover {
+        transform: none;
+        box-shadow: none;
+      }
+      
+      .btn-volver:hover {
+        transform: none;
+      }
+      
+      .red-social:hover {
+        transform: none;
       }
     }
   </style>
