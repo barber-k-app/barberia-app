@@ -128,14 +128,15 @@
     
     .buttons {
       display: flex;
-      gap: 1.5rem;
+      gap: 1rem; /* Reducido para mejor ajuste en móviles */
       margin: 3rem 0;
       flex-wrap: wrap;
       justify-content: center;
+      width: 100%;
     }
     
     .btn {
-      padding: 1rem 2rem;
+      padding: 1rem 1.5rem; /* Ajustado para mejor responsividad */
       border-radius: 50px;
       text-decoration: none;
       font-weight: bold;
@@ -144,14 +145,22 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      min-width: 200px;
+      min-width: 180px; /* Reducido para mejor ajuste */
       justify-content: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      flex: 1; /* Para que se expandan proporcionalmente */
+      max-width: 220px; /* Límite máximo */
     }
     
     .btn-client {
       background: linear-gradient(135deg, var(--dark-gold), var(--light-gold));
       color: var(--dark);
+      border: none;
+    }
+    
+    .btn-gallery {
+      background: linear-gradient(135deg, var(--brown), var(--dark-gold));
+      color: var(--light);
       border: none;
     }
     
@@ -171,6 +180,11 @@
       color: var(--light);
     }
     
+    .btn-gallery:hover {
+      background: linear-gradient(135deg, var(--dark-gold), var(--light-gold));
+      color: var(--dark);
+    }
+    
     .btn-barber:hover {
       background: var(--dark-gold);
       color: var(--dark);
@@ -180,7 +194,7 @@
       margin: 2rem 0;
       display: inline-flex;
       align-items: center;
-      gap: 4px; /* Reducido de 8px a 4px para acercar el icono */
+      gap: 2px; /* Reducido aún más para acercar el icono al texto */
       color: var(--light-gold);
       text-decoration: none;
       font-weight: 500;
@@ -581,17 +595,18 @@
       /* MODIFICACIÓN: Botones en horizontal en móvil */
       .buttons {
         flex-direction: row; /* Cambiado de column a row */
-        gap: 1rem;
+        gap: 0.8rem; /* Reducido aún más para mejor ajuste */
         margin: 2rem 0;
         justify-content: center;
         flex-wrap: wrap;
       }
       
       .btn {
-        min-width: 200px; /* Reducido de 250px para mejor ajuste */
-        padding: 0.9rem 1.5rem;
+        min-width: 160px; /* Reducido para mejor ajuste */
+        padding: 0.8rem 1.2rem;
         flex: 1; /* Para que se expandan proporcionalmente */
-        max-width: 250px; /* Límite máximo */
+        max-width: 200px; /* Límite máximo */
+        font-size: 0.9rem;
       }
       
       .rating-section {
@@ -630,6 +645,7 @@
       .location-btn {
         font-size: 0.9rem;
         line-height: 1.4;
+        gap: 2px; /* Asegurar que el icono esté cerca del texto */
       }
       
       .maintenance-badge {
@@ -669,8 +685,9 @@
       }
       
       .btn {
-        min-width: 160px; /* Ajustado para pantallas más pequeñas */
-        font-size: 0.9rem;
+        min-width: 140px; /* Ajustado para pantallas más pequeñas */
+        font-size: 0.85rem;
+        padding: 0.7rem 1rem;
       }
       
       .citas-title {
@@ -684,6 +701,19 @@
       .password-container {
         padding: 1.5rem;
       }
+      
+      /* Asegurar que los botones se mantengan en una sola línea */
+      .buttons {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .btn {
+        flex: 0 0 auto;
+      }
     }
     
     @media (max-width: 350px) {
@@ -692,8 +722,9 @@
       }
       
       .btn {
-        min-width: 140px; /* Ajustado para pantallas muy pequeñas */
-        padding: 0.8rem 1.2rem;
+        min-width: 120px; /* Ajustado para pantallas muy pequeñas */
+        padding: 0.6rem 0.9rem;
+        font-size: 0.8rem;
       }
       
       .citas-title {
@@ -776,6 +807,9 @@
         <a href="cliente.html" class="btn btn-client" id="clientLink">
           <i class="fas fa-user"></i> Soy Cliente
         </a>
+        <a href="https://barber-k-app.github.io/barberia-app/app-galeria-barberia.html" class="btn btn-gallery" id="galleryLink">
+          <i class="fas fa-images"></i> Galería de Trabajos
+        </a>
         <a href="barbero.html" class="btn btn-barber" id="barberLink">
           <i class="fas fa-cut"></i> Soy Barbero
         </a>
@@ -823,7 +857,7 @@
 
     // 3. Configuración de Supabase
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
     // 4. Claves para el sistema de caché mejorado
     const CACHE_KEYS = {
@@ -1057,6 +1091,7 @@
       // Protección de enlaces
       const protectedLinks = [
         document.getElementById('clientLink'),
+        document.getElementById('galleryLink'),
         document.getElementById('barberLink'),
         document.getElementById('clientAccess'),
         document.getElementById('barberAccess')
