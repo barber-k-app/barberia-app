@@ -8,9 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #D4AF37;
-            --secondary: #B8860B;
-            --accent: #FFD700;
+            --primary: #D4AF37; /* Dorado en lugar del azul */
+            --secondary: #B8860B; /* Dorado oscuro */
+            --accent: #FFD700; /* Dorado brillante */
             --dark: #1a202c;
             --light: #f7fafc;
             --success: #48bb78;
@@ -556,230 +556,30 @@
             animation: fadeIn 0.6s ease;
         }
 
-        /* Responsive - MEJORAS PARA MÓVIL */
+        /* Responsive */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
             .container {
-                margin: 70px 5px 10px;
-                padding: 15px;
-                border-radius: 15px;
+                margin: 60px 10px 10px;
+                padding: 20px;
             }
 
             .header h1 {
-                font-size: 2em;
-            }
-            
-            .header p {
-                font-size: 1em;
-            }
-
-            .logo {
-                max-width: 120px;
-            }
-
-            .view-options {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .view-btn {
-                padding: 10px 15px;
-                font-size: 14px;
+                font-size: 2.5em;
             }
 
             .gallery.grid-view {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
             }
 
             .gallery.small-view {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                gap: 8px;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
             }
 
-            .gallery-item img, 
-            .gallery-item video {
-                height: 180px;
-            }
-
-            .gallery.small-view .gallery-item img,
-            .gallery.small-view .gallery-item video {
-                height: 80px;
-            }
-
-            .gallery.list-view .gallery-item img,
-            .gallery.list-view .gallery-item video {
-                height: 120px;
-            }
-
-            .admin-btn, .logout-btn {
+            .admin-btn, .view-btn {
                 padding: 10px 15px;
                 font-size: 14px;
-            }
-            
-            .admin-login {
-                top: 15px;
-                right: 15px;
-            }
-            
-            .logout-btn {
-                top: 15px;
-                left: 15px;
-            }
-            
-            .view-mode {
-                top: 70px;
-                right: 15px;
-                font-size: 12px;
-                padding: 8px 12px;
-            }
-
-            /* Mejoras para el modal en móviles */
-            .modal-content {
-                max-width: 100%;
-                max-height: 100%;
-                border-radius: 0;
-            }
-            
-            .modal-controls {
-                bottom: 10px;
-                padding: 10px;
-            }
-            
-            .modal-control-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-            
-            .modal-close {
-                top: 10px;
-                right: 10px;
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
-            
-            .nav-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-            
-            .modal-nav {
-                padding: 0 10px;
-            }
-
-            /* Mejoras para la sección de subida en móviles */
-            .upload-section {
-                padding: 20px 15px;
-            }
-            
-            .upload-btn {
-                padding: 15px 20px;
-                font-size: 16px;
-                margin-bottom: 10px;
-            }
-            
-            .compression-options {
-                padding: 15px;
-            }
-
-            /* Mejoras para controles de selección múltiple */
-            .multi-select-controls {
-                bottom: 10px;
-                left: 10px;
-                right: 10px;
-                transform: none;
-                width: auto;
-                padding: 12px 15px;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .select-all-btn, .delete-selected-btn {
-                padding: 8px 15px;
-                font-size: 14px;
-                margin: 5px;
-            }
-            
-            /* Mejoras para vista de lista en móviles */
-            .gallery.list-view .gallery-item {
-                height: auto;
-                flex-direction: column;
-            }
-            
-            .gallery.list-view .gallery-item img,
-            .gallery.list-view .gallery-item video {
-                width: 100%;
-                height: 150px;
-            }
-            
-            .gallery.list-view .item-overlay {
-                position: relative;
-                background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-                padding: 10px;
-            }
-            
-            .gallery.list-view .item-info {
-                display: block;
-            }
-            
-            .gallery.list-view .admin-controls {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-            }
-            
-            /* Estadísticas en grid para móviles */
-            .stats-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .stat-card {
-                padding: 15px;
-            }
-            
-            .stat-number {
-                font-size: 2em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.7em;
-            }
-            
-            .view-btn {
-                flex: 1;
-                min-width: calc(50% - 10px);
-                justify-content: center;
-            }
-            
-            .gallery.grid-view {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            }
-            
-            .gallery-item img, 
-            .gallery-item video {
-                height: 150px;
-            }
-            
-            .login-content {
-                padding: 25px 20px;
-                margin: 20px;
-            }
-            
-            .login-input {
-                padding: 12px;
-            }
-            
-            .login-btn {
-                padding: 12px 25px;
             }
         }
 
@@ -1283,6 +1083,11 @@
             }
         });
 
+        // Función proxy para evitar CORS
+        function getProxyUrl(url) {
+            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        }
+
         // Crear partículas de fondo
         function createParticles() {
             for (let i = 0; i < 50; i++) {
@@ -1329,17 +1134,19 @@
                 if (!item.querySelector('.admin-controls')) {
                     const file = appState.currentFiles[index];
                     if (file) {
-                        const adminControls = document.createElement('div');
-                        adminControls.className = 'admin-controls';
-                        adminControls.innerHTML = `
-                            <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}')">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}', '${file.fileId}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        `;
-                        item.appendChild(adminControls);
+                        getSignedUrl(file.fileName).then(signedUrl => {
+                            const adminControls = document.createElement('div');
+                            adminControls.className = 'admin-controls';
+                            adminControls.innerHTML = `
+                                <button class="download-btn" onclick="event.stopPropagation(); downloadFile('${file.fileName}', '${signedUrl}')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteFile('${file.fileName}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            `;
+                            item.appendChild(adminControls);
+                        });
                     }
                 }
             });
@@ -1533,7 +1340,7 @@
         // Evento para subir archivos
         elements.fileInput.addEventListener('change', handleFileUpload);
 
-        // Subir archivos a Backblaze B2
+        // Subir archivos a Backblaze
         async function handleFileUpload(event) {
             const files = event.target.files;
             if (!files.length) return;
@@ -1551,7 +1358,7 @@
                     const fileName = `galeria/${Date.now()}_${processedFile.name}`;
 
                     if (!appState.authData) {
-                        const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+                        const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                             headers: {
                                 'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                             }
@@ -1559,14 +1366,14 @@
                         appState.authData = await authResponse.json();
                     }
 
-                    const uploadUrlResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`, {
+                    const uploadUrlResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${appState.authData.allowed.bucketId}`), {
                         headers: {
                             'Authorization': appState.authData.authorizationToken
                         }
                     });
                     const uploadData = await uploadUrlResponse.json();
 
-                    const uploadResponse = await fetch(uploadData.uploadUrl, {
+                    const uploadResponse = await fetch(getProxyUrl(uploadData.uploadUrl), {
                         method: 'POST',
                         headers: {
                             'Authorization': uploadData.authorizationToken,
@@ -1586,7 +1393,6 @@
 
                 } catch (error) {
                     console.error('Error subiendo archivo:', error);
-                    showMessage('Error subiendo archivo: ' + error.message, 'error');
                 }
             }
 
@@ -1595,7 +1401,7 @@
             loadGallery();
         }
 
-        // Cargar galería desde Backblaze B2
+        // Cargar galería desde Backblaze
         async function loadGallery() {
             try {
                 elements.gallery.innerHTML = `
@@ -1605,14 +1411,14 @@
                     </div>
                 `;
 
-                const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
                     headers: {
                         'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
                     }
                 });
                 appState.authData = await authResponse.json();
 
-                const listResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`, {
+                const listResponse = await fetch(getProxyUrl(`${appState.authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${appState.authData.allowed.bucketId}&prefix=galeria/`), {
                     headers: {
                         'Authorization': appState.authData.authorizationToken
                     }
@@ -1658,7 +1464,6 @@
                         <p>Intenta recargar la página</p>
                     </div>
                 `;
-                showMessage('Error cargando galería: ' + error.message, 'error');
             }
         }
 
@@ -1678,10 +1483,11 @@
             }
         }
 
-        // Agregar elemento a la galería
+        // Agregar elemento a la galería - CÓDIGO CORREGIDO
         async function addToGallery(file) {
             const signedUrl = await getSignedUrl(file.fileName);
             const fileType = getFileType(file.fileName);
+            // Asegurarse de que el tamaño del archivo sea válido
             const fileSize = file.size && !isNaN(file.size) ? formatFileSize(file.size) : 'Tamaño desconocido';
             const index = appState.currentFiles.indexOf(file);
 
@@ -1722,70 +1528,99 @@
         // Obtener URL firmada
         async function getSignedUrl(fileName) {
             try {
-                // Para archivos públicos en Backblaze B2, podemos usar la URL directa
-                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                const authData = await authResponse.json();
+
+                const signedUrlResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_get_download_authorization?bucketId=${authData.allowed.bucketId}&fileNamePrefix=${fileName}&validDurationInSeconds=3600`), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authData.authorizationToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bucketId: authData.allowed.bucketId,
+                        fileNamePrefix: fileName,
+                        validDurationInSeconds: 3600
+                    })
+                });
+
+                const signedUrlData = await signedUrlResponse.json();
+                return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}?Authorization=${signedUrlData.authorizationToken}`;
+
             } catch (error) {
-                console.error('Error obteniendo URL firmada:', error);
                 return `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
             }
         }
 
         // Descargar archivo
-        function downloadFile(fileName) {
+        function downloadFile(fileName, fileUrl) {
             // Crear un enlace temporal para la descarga
             const link = document.createElement('a');
-            link.href = `https://f005.backblazeb2.com/file/barber-k-galeria/${fileName}`;
+            link.href = fileUrl;
             link.download = fileName.split('/').pop();
             link.target = '_blank';
-            
+
             // Añadir el enlace al DOM y hacer clic en él
             document.body.appendChild(link);
             link.click();
-            
+
             // Limpiar después de la descarga
             setTimeout(() => {
                 document.body.removeChild(link);
+                window.URL.revokeObjectURL(fileUrl);
             }, 100);
         }
 
         // Eliminar archivo
-        async function deleteFile(fileName, fileId) {
+        async function deleteFile(fileName) {
             if (!confirm('¿Eliminar este archivo permanentemente?')) return;
 
             try {
                 showMessage('Eliminando archivo...', 'info');
 
-                if (!appState.authData) {
-                    const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-                        headers: {
-                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                        }
-                    });
-                    appState.authData = await authResponse.json();
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                const authData = await authResponse.json();
+
+                const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(fileName)}`), {
+                    headers: {
+                        'Authorization': authData.authorizationToken
+                    }
+                });
+                const filesData = await listResponse.json();
+
+                if (!filesData.files || filesData.files.length === 0) {
+                    throw new Error('Archivo no encontrado');
                 }
 
-                const deleteResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`, {
+                const fileInfo = filesData.files[0];
+
+                const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
                     method: 'POST',
                     headers: {
-                        'Authorization': appState.authData.authorizationToken,
+                        'Authorization': authData.authorizationToken,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        fileId: fileId,
-                        fileName: fileName
+                        fileId: fileInfo.fileId,
+                        fileName: fileInfo.fileName
                     })
                 });
 
                 if (deleteResponse.ok) {
                     showMessage('Archivo eliminado exitosamente', 'success');
                     loadGallery();
-                } else {
-                    throw new Error('Error en la respuesta del servidor');
                 }
 
             } catch (error) {
-                console.error('Error eliminando archivo:', error);
-                showMessage('Error eliminando archivo: ' + error.message, 'error');
+                showMessage('Error eliminando archivo', 'error');
             }
         }
 
@@ -1859,30 +1694,41 @@
             try {
                 showMessage('Eliminando archivos seleccionados...', 'info');
 
-                if (!appState.authData) {
-                    const authResponse = await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
-                        headers: {
-                            'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
-                        }
-                    });
-                    appState.authData = await authResponse.json();
-                }
+                const authResponse = await fetch(getProxyUrl('https://api.backblazeb2.com/b2api/v2/b2_authorize_account'), {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${B2_CONFIG.accessKeyId}:${B2_CONFIG.secretAccessKey}`)
+                    }
+                });
+                const authData = await authResponse.json();
 
                 let deletedCount = 0;
-                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a);
+                const selectedIndices = Array.from(appState.selectedFiles).sort((a, b) => b - a); // Orden descendente para evitar problemas de índices
 
                 for (const index of selectedIndices) {
                     const file = appState.currentFiles[index];
 
-                    const deleteResponse = await fetch(`${appState.authData.apiUrl}/b2api/v2/b2_delete_file_version`, {
+                    const listResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_list_file_names?bucketId=${authData.allowed.bucketId}&prefix=${encodeURIComponent(file.fileName)}`), {
+                        headers: {
+                            'Authorization': authData.authorizationToken
+                        }
+                    });
+                    const filesData = await listResponse.json();
+
+                    if (!filesData.files || filesData.files.length === 0) {
+                        continue;
+                    }
+
+                    const fileInfo = filesData.files[0];
+
+                    const deleteResponse = await fetch(getProxyUrl(`${authData.apiUrl}/b2api/v2/b2_delete_file_version`), {
                         method: 'POST',
                         headers: {
-                            'Authorization': appState.authData.authorizationToken,
+                            'Authorization': authData.authorizationToken,
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            fileId: file.fileId,
-                            fileName: file.fileName
+                            fileId: fileInfo.fileId,
+                            fileName: fileInfo.fileName
                         })
                     });
 
@@ -1895,8 +1741,7 @@
                 loadGallery();
 
             } catch (error) {
-                console.error('Error eliminando archivos seleccionados:', error);
-                showMessage('Error eliminando archivos seleccionados: ' + error.message, 'error');
+                showMessage('Error eliminando archivos seleccionados', 'error');
             }
         }
 
