@@ -399,7 +399,7 @@
       padding: 10px 0;
     }
 
-    /* Estilos para el sistema de mantenimiento */
+    /* Sistema de mantenimiento */
     .maintenance-badge {
       position: fixed;
       top: 20px;
@@ -557,7 +557,6 @@
 
     /* Media Queries para Responsividad */
     @media (min-width: 769px) {
-      /* Estilos para escritorio - panel de citas fijo */
       .citas-panel {
         position: fixed;
         top: 20px;
@@ -645,6 +644,7 @@
       .location-btn {
         font-size: 0.9rem;
         line-height: 1.4;
+        gap: 0; /* 🔧 Elimina espacio entre icono y texto */
       }
 
       .maintenance-badge {
@@ -825,25 +825,21 @@
   </div>
 
   <script>
-    // 1. Configuración de seguridad y constantes
-    const ADMIN_PASSWORD = "BarberK2025"; // Cambia esto en producción
+    const ADMIN_PASSWORD = "BarberK2025";
     const MAINTENANCE_KEY = "barberk_maintenance";
     const ACCESS_KEY = "barberk_access_granted";
-    const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos de sesión
-    const CACHE_EXPIRATION = 5 * 60 * 1000; // 5 minutos para cache de citas
-    const MAINTENANCE_CHECK_INTERVAL = 10 * 60 * 1000; // 10 minutos para verificar mantenimiento
+    const SESSION_TIMEOUT = 30 * 60 * 1000;
+    const CACHE_EXPIRATION = 5 * 60 * 1000;
+    const MAINTENANCE_CHECK_INTERVAL = 10 * 60 * 1000;
 
-    // 2. Variables de caché
     let cachedCitas = null;
     let lastCitasFetchTime = 0;
     let lastMaintenanceCheck = 0;
     let supabaseInitialized = false;
 
-    // 3. Configuración de Supabase
     const supabaseUrl = 'https://jjihjvegheguvmradmau.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqaWhqdmVnaGVndXZtcmFkbWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU5MzEsImV4cCI6MjA3MDY2MTkzMX0._wkRKxSbsEaHXXYhQMYSIgLBOLfeLAZbH0E9Tx4W7Tk';
 
-    // 4. Claves para el sistema de caché mejorado
     const CACHE_KEYS = {
       CITAS: 'citas_cache',
       CITAS_TIMESTAMP: 'citas_timestamp',
@@ -851,10 +847,8 @@
       MAINTENANCE_TIMESTAMP: 'maintenance_timestamp'
     };
 
-    // 5. Inicialización de Supabase
     async function initializeSupabase() {
       if (supabaseInitialized || typeof supabase === 'undefined') return false;
-
       try {
         window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
         supabaseInitialized = true;
@@ -866,19 +860,16 @@
       }
     }
 
-    // 6. Función para obtener fecha actual en formato YYYY-MM-DD
     function obtenerFechaActual() {
       const hoy = new Date();
       return hoy.toISOString().split('T')[0];
     }
 
-    // 7. Sistema de caché mejorado para citas
     async function cargarCitasDelDia(forceRefresh = false) {
       const now = Date.now();
       const fechaHoy = obtenerFechaActual();
       const citasContainer = document.getElementById('citasContainer');
 
-      // Usar caché si está disponible y no está expirado
       const cacheData = localStorage.getItem(CACHE_KEYS.CITAS);
       const cacheTime = localStorage.getItem(CACHE_KEYS.CITAS_TIMESTAMP);
 
@@ -893,13 +884,12 @@
       try {
         const { data: citas, error } = await window.supabase
           .from('citas')
-          .select('nombre, hora, servicio, barbero') // Solo campos necesarios
+          .select('nombre, hora, servicio, barbero')
           .eq('fecha', fechaHoy)
           .order('hora', { ascending: true });
 
         if (error) throw error;
 
-        // Actualizar caché
         localStorage.setItem(CACHE_KEYS.CITAS, JSON.stringify(citas));
         localStorage.setItem(CACHE_KEYS.CITAS_TIMESTAMP, now.toString());
         cachedCitas = citas;
@@ -908,7 +898,6 @@
 
       } catch (error) {
         console.error('Error al cargar citas:', error);
-        // Mostrar datos cacheados si hay error
         if (cacheData) {
           mostrarCitas(JSON.parse(cacheData));
           mostrarErrorCitas('Mostrando datos cacheados. Error al actualizar: ' + error.message);
@@ -918,11 +907,9 @@
       }
     }
 
-    // 8. Mostrar citas en el panel
     function mostrarCitas(citas) {
       const citasContainer = document.getElementById('citasContainer');
       if (!citasContainer) return;
-
       if (!citas || citas.length === 0) {
         citasContainer.innerHTML = '<p class="no-citas">No hay citas agendadas para hoy</p>';
         return;
@@ -934,13 +921,11 @@
       citas.forEach(cita => {
         const item = document.createElement('li');
         item.className = 'cita-item';
-
         item.innerHTML = `
           <span class="cita-time">${cita.hora}</span>
           <span class="cita-name" title="${cita.nombre}">${cita.nombre}</span>
           <span class="cita-service">${cita.servicio}</span>
         `;
-
         lista.appendChild(item);
       });
 
@@ -948,7 +933,6 @@
       citasContainer.appendChild(lista);
     }
 
-    // 9. Manejo de errores
     function mostrarErrorCitas(mensaje) {
       const citasContainer = document.getElementById('citasContainer');
       if (citasContainer) {
@@ -959,11 +943,9 @@
       }
     }
 
-    // 10. Sistema de mantenimiento con caché
     async function checkMaintenanceFromSupabase() {
       const now = Date.now();
 
-      // Verificar caché primero
       const cacheData = localStorage.getItem(CACHE_KEYS.MAINTENANCE);
       const cacheTime = localStorage.getItem(CACHE_KEYS.MAINTENANCE_TIMESTAMP);
 
@@ -991,7 +973,6 @@
         checkMaintenanceStatus();
       } catch (error) {
         console.error('Error al verificar mantenimiento:', error);
-        // Mantener el último estado conocido si hay error
       }
     }
 
@@ -1000,7 +981,6 @@
       const accessTime = localStorage.getItem(ACCESS_KEY);
       const hasAccess = accessTime && (Date.now() - parseInt(accessTime)) < SESSION_TIMEOUT;
 
-      // Actualizar UI
       const maintenanceBadge = document.getElementById('maintenanceBadge');
       const adminGear = document.getElementById('adminGear');
       const toggleBtn = document.getElementById('toggleMaintenance');
@@ -1021,7 +1001,6 @@
       return { isMaintenance, hasAccess };
     }
 
-    // 11. Sistema de rating optimizado
     function setupRatingSystem() {
       const starsContainer = document.querySelector('.stars');
       if (!starsContainer) return;
@@ -1045,7 +1024,6 @@
       });
     }
 
-    // 12. Protección de rutas durante mantenimiento
     function checkMaintenanceRedirect() {
       const protectedPaths = ['/cliente.html', '/barbero.html'];
       const currentPath = window.location.pathname;
@@ -1057,22 +1035,16 @@
       }
     }
 
-    // 13. Configuración de event listeners
     function setupEventListeners() {
-      // Botón de refrescar citas
       document.getElementById('refreshCitas')?.addEventListener('click', () => {
-        cargarCitasDelDia(true); // Forzar refresco
+        cargarCitasDelDia(true);
       });
 
-      // Engranaje de administración
       document.getElementById('adminGear')?.addEventListener('click', handleAdminGearClick);
-
-      // Modal de contraseña
       document.getElementById('submitPassword')?.addEventListener('click', handlePasswordSubmit);
       document.getElementById('cancelPassword')?.addEventListener('click', closePasswordModal);
       document.getElementById('toggleMaintenance')?.addEventListener('click', toggleMaintenanceMode);
 
-      // Protección de enlaces
       const protectedLinks = [
         document.getElementById('clientLink'),
         document.getElementById('barberLink'),
@@ -1094,7 +1066,6 @@
       });
     }
 
-    // 14. Funciones de administración
     function handleAdminGearClick() {
       const { hasAccess } = checkMaintenanceStatus();
       const modalTitle = document.getElementById('modalTitle');
@@ -1134,7 +1105,7 @@
       if (passwordInput.value === ADMIN_PASSWORD) {
         localStorage.setItem(ACCESS_KEY, Date.now());
         passwordError.style.display = 'none';
-        handleAdminGearClick(); // Recargar la vista del modal
+        handleAdminGearClick();
       } else {
         passwordError.style.display = 'block';
         passwordInput.style.borderColor = 'var(--red)';
@@ -1152,7 +1123,6 @@
       const newMode = !isMaintenance;
 
       try {
-        // Actualizar en Supabase
         const { error } = await supabase
           .from('app_settings')
           .update({ maintenance_mode: newMode })
@@ -1160,7 +1130,6 @@
 
         if (error) throw error;
 
-        // Actualizar en localStorage
         localStorage.setItem(MAINTENANCE_KEY, newMode.toString());
         localStorage.setItem(CACHE_KEYS.MAINTENANCE, newMode.toString());
         localStorage.setItem(CACHE_KEYS.MAINTENANCE_TIMESTAMP, Date.now().toString());
@@ -1172,7 +1141,6 @@
       }
     }
 
-    // 15. Función con reintentos para consultas a Supabase
     async function queryWithRetry(queryFn, maxRetries = 3) {
       for (let i = 0; i < maxRetries; i++) {
         try {
@@ -1180,35 +1148,28 @@
           return result;
         } catch (error) {
           if (i === maxRetries - 1) throw error;
-          // Esperar antes de reintentar (backoff exponencial)
           await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
         }
       }
     }
 
-    // 16. Inicialización de la aplicación
     document.addEventListener('DOMContentLoaded', async function() {
-      // 1. Configuración inicial
       checkMaintenanceRedirect();
       setupEventListeners();
       setupRatingSystem();
 
-      // 2. Inicializar Supabase
       const supabaseReady = await initializeSupabase();
       if (!supabaseReady) return;
 
-      // 3. Cargar datos iniciales
       await cargarCitasDelDia();
       await checkMaintenanceFromSupabase();
 
-      // 4. Configurar actualizaciones periódicas
       setInterval(() => {
         cargarCitasDelDia();
         checkMaintenanceFromSupabase();
-      }, 300000); // 5 minutos
+      }, 300000);
     });
 
-    // 17. Verificación periódica de mantenimiento (adicional al intervalo)
     setInterval(checkMaintenanceRedirect, 1000);
   </script>
 </body>
